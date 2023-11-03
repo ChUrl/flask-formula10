@@ -11,16 +11,18 @@
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          overlays = [ devshell.overlay ];
+          overlays = [ devshell.overlays.default ];
         };
 
         myPython = pkgs.python311.withPackages (p: with p; [
           # Basic
           rich
+          numpy
 
           # Web
           flask
           flask-sqlalchemy
+          sqlalchemy
 
         ]);
       in {
