@@ -1,187 +1,227 @@
+from copyreg import constructor
+from typing import Optional
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Integer, String, Boolean, DateTime, Date, Time, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
+import datetime as dt
+import re
 
 db = SQLAlchemy()
 
 # Modeling these entities separately should make it easier to add new guess categories, for example team guesses or GP guesses
 
-# This table contains metainformation about the GPs, not specific to seasons (can be reused).
-class GrandPrix(db.Model):
-    __tablename__ = "grandprix"
+def optional_date(date_string):
+    if date_string == "\\N":
+        return None
+
+    return dt.date.fromisoformat(date_string)
+
+def optional_time(time_string):
+    if time_string == "\\N":
+        return None
+
+    pattern = re.compile(r"^.?:.?.?\..*$")
+    if pattern.match(time_string):
+        time_string = "0" + time_string
+
+    return dt.time.fromisoformat(time_string)
+
+def optional_int(int_string):
+    if int_string == "\\N":
+        return None
+
+    return int(int_string)
+
+def optional_str(str_string):
+    if str_string == "\\N":
+        return None
+
+    return str(str_string)
+
+class Circuit(db.Model):
+    __tablename__ = "circuit"
 
     def from_csv(self, row):
-        self.name         = str(row[0])
-        self.country_code = str(row[1])
+        self.circuitId = int(row[0])
+        self.circuitRef = str(row[1])
+        self.name = str(row[2])
+        self.location = str(row[3])
+        self.country = str(row[4])
         return self
 
-    name:         Mapped[str] = mapped_column(String(64), primary_key=True)
-    country_code: Mapped[str] = mapped_column(String(2)) # alpha-2 code
+    circuitId: Mapped[int] = mapped_column(Integer, primary_key=True)
+    circuitRef: Mapped[str] = mapped_column(String(128))
+    name: Mapped[str] = mapped_column(String(128))
+    location: Mapped[str] = mapped_column(String(128))
+    country: Mapped[str] = mapped_column(String(128))
 
-# This table contains season information
 class Season(db.Model):
     __tablename__ = "season"
 
     def from_csv(self, row):
-        self.year   = int(row[0])
-        self.active = bool(row[1])
+        self.year = int(row[0])
         return self
 
-    year:   Mapped[int]  = mapped_column(Integer, primary_key=True) # This is the year
-    active: Mapped[bool] = mapped_column(Boolean) # Only allow guessing the current season
+    year: Mapped[int] = mapped_column(Integer, primary_key=True) # This is the year
 
-# This table contains manifestations of GPs, with dates
 class Race(db.Model):
     __tablename__ = "race"
 
     def from_csv(self, row):
-        self.id           = int(row[0])
-        self.grandprix_id = str(row[1])
-        self.season_id    = int(row[2])
-        self.number       = int(row[3])
-        self.date         = datetime.strptime(row[4], "%Y-%m-%d")
+        self.raceId = int(row[0])
+        self.year = int(row[1])
+        self.round = int(row[2])
+        self.circuitId = int(row[3])
+        self.name = str(row[4])
+        self.date = optional_date(row[5]) # optional_date shouldn't return None for this table
+        self.time = optional_time(row[6])
         return self
 
-    id:           Mapped[int]         = mapped_column(Integer, primary_key=True)
-    grandprix_id: Mapped[str]         = mapped_column(ForeignKey("grandprix.name"))
-    season_id:    Mapped[int]         = mapped_column(ForeignKey("season.year"))
-    number:       Mapped[int]         = mapped_column(Integer)
-    date:         Mapped[datetime]    = mapped_column(DateTime)
+    raceId: Mapped[int] = mapped_column(Integer, primary_key=True)
+    year: Mapped[int] = mapped_column(Integer)
+    round: Mapped[int] = mapped_column(Integer)
+    circuitId: Mapped[int] = mapped_column(ForeignKey("circuit.circuitId"))
+    name: Mapped[str] = mapped_column(String(128))
+    date: Mapped[dt.date] = mapped_column(Date)
+    time: Mapped[Optional[dt.time]] = mapped_column(Time)
 
-    grandprix:    Mapped["GrandPrix"] = relationship("GrandPrix", foreign_keys=[grandprix_id])
-    season:       Mapped["Season"]    = relationship("Season", foreign_keys=[season_id])
+    circuit: Mapped["Circuit"] = relationship("Circuit", foreign_keys=[circuitId])
 
-# This table contains teams, e.g. RedBull
-class Team(db.Model):
-    __tablename__ = "team"
+class Constructor(db.Model):
+    __tablename__ = "constructor"
 
     def from_csv(self, row):
-        self.name         = str(row[0])
-        self.country_code = str(row[1])
+        self.constructorId = int(row[0])
+        self.constructorRef = str(row[1])
+        self.name = str(row[2])
+        self.nationality = str(row[3])
         return self
 
-    name:         Mapped[str] = mapped_column(String(32), primary_key=True)
-    country_code: Mapped[str] = mapped_column(String(2)) # alpha-2 code
+    constructorId: Mapped[int] = mapped_column(Integer, primary_key=True)
+    constructorRef: Mapped[str] = mapped_column(String(64))
+    name: Mapped[str] = mapped_column(String(64))
+    nationality: Mapped[str] = mapped_column(String(64))
 
-# This table contains drivers and their team associations, e.g. Max Verschtappen
 class Driver(db.Model):
     __tablename__ = "driver"
 
     def from_csv(self, row):
-        self.name         = str(row[0])
-        self.team_id      = str(row[1])
-        self.country_code = str(row[2])
-        self.active       = bool(row[3])
+        self.driverId = int(row[0])
+        self.driverRef = str(row[1])
+        self.number = optional_int(row[2])
+        self.code = str(row[3])
+        self.forename = str(row[4])
+        self.surname = str(row[5])
+        self.dob = optional_date(row[6]) # optional_date shouldn't return None for this table
+        self.nationality = str(row[7])
         return self
 
-    name:         Mapped[str]    = mapped_column(String(32), primary_key=True)
-    team_id:      Mapped[str]    = mapped_column(ForeignKey("team.name"))
-    country_code: Mapped[str]    = mapped_column(String(2)) # alpha-2 code
-    active:       Mapped[bool]   = mapped_column(Boolean) # Only allow guessing active drivers
+    driverId: Mapped[int] = mapped_column(Integer, primary_key=True)
+    driverRef: Mapped[str] = mapped_column(String(64))
+    number: Mapped[Optional[int]] = mapped_column(Integer)
+    code: Mapped[str] = mapped_column(String(8))
+    forename: Mapped[str] = mapped_column(String(32))
+    surname: Mapped[str] = mapped_column(String(32))
+    dob: Mapped[dt.date] = mapped_column(Date)
+    nationality: Mapped[str] = mapped_column(String(32))
 
-    team:         Mapped["Team"] = relationship("Team", foreign_keys=[team_id])
-
-class RaceResult(db.Model):
-    __tablename__ = "raceresult"
+class Status(db.Model):
+    __tablename__ = "status"
 
     def from_csv(self, row):
-        self.id        = int(row[0])
-        self.race_id   = str(row[1])
-        self.season_id = int(row[2])
-        self.p10_id    = str(row[3])
-        self.dnf_id    = str(row[4])
+        self.statusId = int(row[0])
+        self.status = str(row[1])
         return self
 
-    id:        Mapped[int]      = mapped_column(Integer, primary_key=True)
-    race_id:   Mapped[str]      = mapped_column(ForeignKey("race.id"))
-    season_id: Mapped[int]      = mapped_column(ForeignKey("season.year"))
+    statusId: Mapped[int] = mapped_column(Integer, primary_key=True)
+    status: Mapped[str] = mapped_column(String(32))
 
-    # These map to drivers
-    # p01_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p02_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p03_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p04_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p05_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p06_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p07_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p08_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p09_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    p10_id:    Mapped[str]      = mapped_column(ForeignKey("driver.name"))
-    # p11_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p12_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p13_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p14_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p15_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p16_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p17_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p18_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p19_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p20_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    dnf_id:    Mapped[str]      = mapped_column(ForeignKey("driver.name"))
-
-    race:      Mapped["Race"]   = relationship("Race", foreign_keys=[race_id])
-    season:    Mapped["Season"] = relationship("Season", foreign_keys=[season_id]) # Redundant but should make things easier
-
-    # p01:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p01_id]) # Store all places to allow adding guesses
-    # p02:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p02_id])
-    # p03:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p03_id])
-    # p04:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p04_id])
-    # p05:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p05_id])
-    # p06:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p06_id])
-    # p07:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p07_id])
-    # p08:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p08_id])
-    # p09:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p09_id])
-    p10:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p10_id])
-    # p11:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p11_id])
-    # p12:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p12_id])
-    # p13:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p13_id])
-    # p14:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p14_id])
-    # p15:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p15_id])
-    # p16:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p16_id])
-    # p17:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p17_id])
-    # p18:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p18_id])
-    # p19:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p19_id])
-    # p20:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p20_id])
-    dnf:       Mapped["Driver"] = relationship("Driver", foreign_keys=[dnf_id]) # Only store first DNF
-
-# This table contains users that can guess
-class User(db.Model):
-    __tablename__ = "user"
+class Result(db.Model):
+    __tablename__ = "result"
 
     def from_csv(self, row):
-        self.name   = str(row[0])
-        self.active = bool(row[1])
+        self.resultId = int(row[0])
+        self.raceId = int(row[1])
+        self.driverId = int(row[2])
+        self.constructorId = int(row[3])
+        self.number = optional_int(row[4])
+        self.grid = int(row[5])
+        self.position = optional_int(row[6])
+        self.positionText = str(row[7])
+        self.positionOrder = int(row[8])
+        self.points = str(row[9])
+        self.laps = int(row[10])
+        self.time = str(row[11])
+        self.milliseconds = optional_int(row[12])
+        self.fastestLap = optional_int(row[13])
+        self.rank = optional_int(row[14])
+        self.fastestLapTime = optional_time(row[15])
+        self.fastestLapSpeed = optional_str(row[16])
+        self.statusId = int(row[17])
         return self
 
-    name:   Mapped[str]  = mapped_column(String(32), primary_key=True)
-    active: Mapped[bool] = mapped_column(Boolean) # Only show active users
+    resultId: Mapped[int] = mapped_column(Integer, primary_key=True)
+    raceId: Mapped[int] = mapped_column(ForeignKey("race.raceId"))
+    driverId: Mapped[int] = mapped_column(ForeignKey("driver.driverId"))
+    constructorId: Mapped[int] = mapped_column(ForeignKey("constructor.constructorId"))
+    number: Mapped[Optional[int]] = mapped_column(Integer)
+    grid: Mapped[int] = mapped_column(Integer)
+    postition: Mapped[Optional[int]] = mapped_column(Integer)
+    positionText: Mapped[str] = mapped_column(String(8))
+    positionOrder: Mapped[int] = mapped_column(Integer)
+    points: Mapped[str] = mapped_column(String(8))
+    laps: Mapped[int] = mapped_column(Integer)
+    time: Mapped[str] = mapped_column(String(16))
+    milliseconds: Mapped[Optional[int]] = mapped_column(Integer)
+    fastestLap: Mapped[Optional[int]] = mapped_column(Integer)
+    rank: Mapped[Optional[int]] = mapped_column(Integer)
+    fastestLapTime: Mapped[Optional[dt.time]] = mapped_column(Time)
+    fastestLapSpeed: Mapped[Optional[str]] = mapped_column(String(16))
+    statusId: Mapped[int] = mapped_column(ForeignKey("status.statusId"))
 
-# This table contains guesses made by users
-class Guess(db.Model):
-    __tablename__ = "guess"
+    race: Mapped["Race"] = relationship("Race", foreign_keys=[raceId])
+    driver: Mapped["Driver"] = relationship("Driver", foreign_keys=[driverId])
+    constructor: Mapped["Constructor"] = relationship("Constructor", foreign_keys=[constructorId])
+    status: Mapped["Status"] = relationship("Status", foreign_keys=[statusId])
 
-    def from_csv(self, row):
-        self.id            = int(row[0])
-        self.user_id       = str(row[1])
-        self.race_id       = str(row[2])
-        self.season_id     = int(row[3])
-        self.p10_id        = str(row[4])
-        self.dnf_id        = str(row[5])
-        self.raceresult_id = int(row[6])
-        return self
 
-    id:            Mapped[int]          = mapped_column(Integer, primary_key=True)
-    user_id:       Mapped[str]          = mapped_column(ForeignKey("user.name"))
-    race_id:       Mapped[str]          = mapped_column(ForeignKey("race.id"))
-    season_id:     Mapped[int]          = mapped_column(ForeignKey("season.year"))
-    p10_id:        Mapped[str]          = mapped_column(ForeignKey("driver.name"))
-    dnf_id:        Mapped[str]          = mapped_column(ForeignKey("driver.name"))
-    raceresult_id: Mapped[int]          = mapped_column(ForeignKey("raceresult.id"))
+# # This table contains users that can guess
+# class User(db.Model):
+#     __tablename__ = "user"
 
-    user:          Mapped["User"]       = relationship("User", foreign_keys=[user_id])
-    race:          Mapped["Race"]       = relationship("Race", foreign_keys=[race_id])
-    season:        Mapped["Season"]     = relationship("Season", foreign_keys=[season_id]) # Redundant but should make things easier
-    p10:           Mapped["Driver"]     = relationship("Driver", foreign_keys=[p10_id])
-    dnf:           Mapped["Driver"]     = relationship("Driver", foreign_keys=[dnf_id])
-    raceresult:    Mapped["RaceResult"] = relationship("RaceResult", foreign_keys=[raceresult_id])
+#     def from_csv(self, row):
+#         self.name   = str(row[0])
+#         self.active = bool(row[1])
+#         return self
+
+#     name:   Mapped[str]  = mapped_column(String(32), primary_key=True)
+#     active: Mapped[bool] = mapped_column(Boolean) # Only show active users
+
+# # This table contains guesses made by users
+# class Guess(db.Model):
+#     __tablename__ = "guess"
+
+#     def from_csv(self, row):
+#         self.id            = int(row[0])
+#         self.user_id       = str(row[1])
+#         self.race_id       = str(row[2])
+#         self.season_id     = int(row[3])
+#         self.p10_id        = str(row[4])
+#         self.dnf_id        = str(row[5])
+#         self.raceresult_id = int(row[6])
+#         return self
+
+#     id:            Mapped[int]          = mapped_column(Integer, primary_key=True)
+#     user_id:       Mapped[str]          = mapped_column(ForeignKey("user.name"))
+#     race_id:       Mapped[str]          = mapped_column(ForeignKey("race.id"))
+#     season_id:     Mapped[int]          = mapped_column(ForeignKey("season.year"))
+#     p10_id:        Mapped[str]          = mapped_column(ForeignKey("driver.name"))
+#     dnf_id:        Mapped[str]          = mapped_column(ForeignKey("driver.name"))
+#     raceresult_id: Mapped[int]          = mapped_column(ForeignKey("raceresult.id"))
+
+#     user:          Mapped["User"]       = relationship("User", foreign_keys=[user_id])
+#     race:          Mapped["Race"]       = relationship("Race", foreign_keys=[race_id])
+#     season:        Mapped["Season"]     = relationship("Season", foreign_keys=[season_id]) # Redundant but should make things easier
+#     p10:           Mapped["Driver"]     = relationship("Driver", foreign_keys=[p10_id])
+#     dnf:           Mapped["Driver"]     = relationship("Driver", foreign_keys=[dnf_id])
+#     raceresult:    Mapped["RaceResult"] = relationship("RaceResult", foreign_keys=[raceresult_id])
