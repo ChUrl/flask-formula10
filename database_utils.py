@@ -21,32 +21,27 @@ def reload_static_data(db):
     db.create_all()
 
     # Clear static data
-    Team.query.delete()
+    Circuit.query.delete()
+    Constructor.query.delete()
     Driver.query.delete()
-    GrandPrix.query.delete()
-    Season.query.delete()
     Race.query.delete()
-    RaceResult.query.delete()
-    User.query.delete()
-    Guess.query.delete()
+    Season.query.delete()
 
     # Reload static data
-    for row in load_csv("teams"):
-        db.session.add(Team().from_csv(row))
+    for row in load_csv("circuits"):
+        db.session.add(Circuit().from_csv(row))
+    for row in load_csv("constructors"):
+        db.session.add(Constructor().from_csv(row))
     for row in load_csv("drivers"):
         db.session.add(Driver().from_csv(row))
-    for row in load_csv("grandsprix"):
-        db.session.add(GrandPrix().from_csv(row))
-    for row in load_csv("seasons"):
-        db.session.add(Season().from_csv(row))
     for row in load_csv("races"):
         db.session.add(Race().from_csv(row))
-    for row in load_csv("raceresults"):
-        db.session.add(RaceResult().from_csv(row))
-    for row in load_csv("users"):
-        db.session.add(User().from_csv(row))
-    for row in load_csv("guesses"):
-        db.session.add(Guess().from_csv(row))
+    for row in load_csv("seasons"):
+        db.session.add(Season().from_csv(row))
+    for row in load_csv("status"):
+        db.session.add(Status().from_csv(row))
+    for row in load_csv("results"):
+        db.session.add(Result().from_csv(row))
 
     db.session.commit()
 
