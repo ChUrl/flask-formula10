@@ -12,7 +12,16 @@ db.init_app(app)
 
 @app.route("/")
 def index():
-    return render_template("index.jinja")
+    users = User.query.all()
+    raceresults = RaceResult.query.filter_by(season_id=2023).all()
+
+    guesses = dict()
+    for raceresult in raceresults:
+        guesses[raceresult.race_id] = dict()
+    for guess in Guess.query.filter_by(season_id=2023).all():
+        guesses[guess.race_id][guess.user_id] = guess
+
+    return render_template("index.jinja", users=users, raceresults=raceresults, guesses=guesses)
 
 @app.route("/reload")
 def reload():
