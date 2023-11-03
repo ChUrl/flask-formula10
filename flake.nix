@@ -1,0 +1,44 @@
+{
+  description = "Dumb F1 Guessgame";
+
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs.devshell.url = "github:numtide/devshell";
+
+  outputs = { self, nixpkgs, flake-utils, devshell }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          overlays = [ devshell.overlay ];
+        };
+
+        myPython = pkgs.python311.withPackages (p: with p; [
+          # Basic
+          rich
+
+          # Web
+          flask
+          flask-sqlalchemy
+
+        ]);
+      in {
+        devShell = pkgs.devshell.mkShell {
+          name = "Formula10";
+
+          packages = with pkgs; [
+            myPython
+          ];
+
+          # Use $1 for positional args
+          commands = [
+            # {
+            #   name = "";
+            #   help = "";
+            #   command = "";
+            # }
+          ];
+        };
+      });
+}
