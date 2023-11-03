@@ -23,12 +23,31 @@ def reload_static_data(db):
     # Clear static data
     Team.query.delete()
     Driver.query.delete()
+    GrandPrix.query.delete()
+    Season.query.delete()
+    Race.query.delete()
+    RaceResult.query.delete()
+    User.query.delete()
+    Guess.query.delete()
 
     # Reload static data
     for row in load_csv("teams"):
         db.session.add(Team().from_csv(row))
     for row in load_csv("drivers"):
         db.session.add(Driver().from_csv(row))
+    for row in load_csv("grandsprix"):
+        db.session.add(GrandPrix().from_csv(row))
+    for row in load_csv("seasons"):
+        db.session.add(Season().from_csv(row))
+    for row in load_csv("races"):
+        db.session.add(Race().from_csv(row))
+    for row in load_csv("raceresults"):
+        db.session.add(RaceResult().from_csv(row))
+    for row in load_csv("users"):
+        db.session.add(User().from_csv(row))
+    for row in load_csv("guesses"):
+        db.session.add(Guess().from_csv(row))
+
     db.session.commit()
 
 # @todo Export Dynamic Data
