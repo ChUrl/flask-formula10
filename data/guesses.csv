@@ -1,0 +1,20 @@
+id,user_id,race_id,season_id,p10_id,dnf_id,raceresult_id
+1,Henri,1,2023,Valteri Bottas,Zhou Guanyu,1
+2,Henri,2,2023,Valteri Bottas,Logan Sargeant,2
+3,Henri,3,2023,Alexander Albon,Valteri Bottas,3
+4,Henri,4,2023,Oscar Piastri,Nyck de Vries,4
+5,Henri,5,2023,Esteban Ocon,Charles Leclerc,5
+6,Henri,7,2023,Yuki Tsunoda,Charles Leclerc,6
+7,Henri,8,2023,Charles Leclerc,Carlos Sainz,7
+8,Henri,9,2023,Oscar Piastri,Kevin Magnussen,8
+9,Henri,10,2023,Alexander Albon,NONE,9
+10,Henri,11,2023,Pierre Gasly,Yuki Tsunoda,10
+11,Henri,12,2023,Esteban Ocon,Kevin Magnussen,11
+12,Henri,13,2023,Lance Stroll,Esteban Ocon,12
+13,Henri,14,2023,Lance Stroll,Pierre Gasly,13
+14,Henri,15,2023,Oscar Piastri,Alexander Albon,14
+15,Henri,16,2023,Pierre Gasly,Logan Sargeant,15
+16,Henri,17,2023,Fernando Alonso,Logan Sargeant,16
+17,Henri,18,2023,Alexander Albon,Logan Sargeant,17
+18,Henri,19,2023,Yuki Tsunoda,Logan Sargeant,18
+19,Henri,20,2023,Valteri Bottas,Logan Sargeant,19

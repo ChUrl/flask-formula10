@@ -1,3 +1,12 @@
-id,name,country_code
-1,RedBull,AT
-2,Mercedes,DE
+name,country_code
+NONE,NO
+RedBull,UK
+Mercedes,UK
+Ferrari,IT
+McLaren,UK
+Aston Martin,UK
+Alpine,UK
+Williams,UK
+AlphaTauri,IT
+Alpha Romeo,CH
+Haas,US

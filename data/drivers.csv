@@ -1,2 +1,23 @@
-id,name,team_id,country_code,active
-1,Max Verstappen,1,NL,1
+name,team_id,country_code,active
+NONE,NONE,NO,0
+Max Verstappen,RedBull,NL,1
+Sergio Perez,RedBull,MX,1
+Lewis Hamilton,Mercedes,UK,1
+George Russel,Mercedes,UK,1
+Charles Leclerc,Ferrari,MC,1
+Carlos Sainz,Ferrari,ES,1
+Lando Norris,McLaren,UK,1
+Oscar Piastri,McLaren,AU,1
+Fernando Alonso,Aston Martin,ES,1
+Lance Stroll,Aston Martin,CA,1
+Pierre Gasly,Alpine,FR,1
+Esteban Ocon,Alpine,FR,1
+Alexander Albon,Williams,TH,1
+Logan Sargeant,Williams,US,1
+Yuki Tsunoda,AlphaTauri,JP,1
+Daniel Ricciardo,AlphaTauri,AU,1
+Valteri Bottas,Alfa Romeo,FL,1
+Zhou Guanyu,Alfa Romeo,CN,1
+Nico Hulkenberg,Haas,DE,1
+Kevin Magnussen,Haas,DK,1
+Nyck de Vries,AlphaTauri,NL,1
