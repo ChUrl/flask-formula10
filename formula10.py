@@ -5,16 +5,18 @@ from database_utils import reload_static_data, export_dynamic_data
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///formula10.db";
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False;
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///formula10.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
+
 
 @app.route("/")
 def index():
     reload_static_data(db)
 
     return render_template("index.jinja")
+
 
 # @app.route("/teams", methods=["GET", "POST"])
 # def teams():

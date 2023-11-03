@@ -10,11 +10,13 @@ db = SQLAlchemy()
 
 # Modeling these entities separately should make it easier to add new guess categories, for example team guesses or GP guesses
 
+
 def optional_date(date_string):
     if date_string == "\\N":
         return None
 
     return dt.date.fromisoformat(date_string)
+
 
 def optional_time(time_string):
     if time_string == "\\N":
@@ -26,17 +28,20 @@ def optional_time(time_string):
 
     return dt.time.fromisoformat(time_string)
 
+
 def optional_int(int_string):
     if int_string == "\\N":
         return None
 
     return int(int_string)
 
+
 def optional_str(str_string):
     if str_string == "\\N":
         return None
 
     return str(str_string)
+
 
 class Circuit(db.Model):
     __tablename__ = "circuit"
@@ -55,6 +60,7 @@ class Circuit(db.Model):
     location: Mapped[str] = mapped_column(String(128))
     country: Mapped[str] = mapped_column(String(128))
 
+
 class Season(db.Model):
     __tablename__ = "season"
 
@@ -62,7 +68,8 @@ class Season(db.Model):
         self.year = int(row[0])
         return self
 
-    year: Mapped[int] = mapped_column(Integer, primary_key=True) # This is the year
+    year: Mapped[int] = mapped_column(Integer, primary_key=True)
+
 
 class Race(db.Model):
     __tablename__ = "race"
@@ -73,7 +80,9 @@ class Race(db.Model):
         self.round = int(row[2])
         self.circuitId = int(row[3])
         self.name = str(row[4])
-        self.date = optional_date(row[5]) # optional_date shouldn't return None for this table
+        self.date = optional_date(
+            row[5]
+        )  # optional_date shouldn't return None for this table
         self.time = optional_time(row[6])
         return self
 
@@ -86,6 +95,7 @@ class Race(db.Model):
     time: Mapped[Optional[dt.time]] = mapped_column(Time)
 
     circuit: Mapped["Circuit"] = relationship("Circuit", foreign_keys=[circuitId])
+
 
 class Constructor(db.Model):
     __tablename__ = "constructor"
@@ -102,6 +112,7 @@ class Constructor(db.Model):
     name: Mapped[str] = mapped_column(String(64))
     nationality: Mapped[str] = mapped_column(String(64))
 
+
 class Driver(db.Model):
     __tablename__ = "driver"
 
@@ -112,7 +123,9 @@ class Driver(db.Model):
         self.code = str(row[3])
         self.forename = str(row[4])
         self.surname = str(row[5])
-        self.dob = optional_date(row[6]) # optional_date shouldn't return None for this table
+        self.dob = optional_date(
+            row[6]
+        )  # optional_date shouldn't return None for this table
         self.nationality = str(row[7])
         return self
 
@@ -125,6 +138,7 @@ class Driver(db.Model):
     dob: Mapped[dt.date] = mapped_column(Date)
     nationality: Mapped[str] = mapped_column(String(32))
 
+
 class Status(db.Model):
     __tablename__ = "status"
 
@@ -135,6 +149,7 @@ class Status(db.Model):
 
     statusId: Mapped[int] = mapped_column(Integer, primary_key=True)
     status: Mapped[str] = mapped_column(String(32))
+
 
 class Result(db.Model):
     __tablename__ = "result"
@@ -181,7 +196,9 @@ class Result(db.Model):
 
     race: Mapped["Race"] = relationship("Race", foreign_keys=[raceId])
     driver: Mapped["Driver"] = relationship("Driver", foreign_keys=[driverId])
-    constructor: Mapped["Constructor"] = relationship("Constructor", foreign_keys=[constructorId])
+    constructor: Mapped["Constructor"] = relationship(
+        "Constructor", foreign_keys=[constructorId]
+    )
     status: Mapped["Status"] = relationship("Status", foreign_keys=[statusId])
 
 

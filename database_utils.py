@@ -1,19 +1,20 @@
 import csv
 from model import *
 
+
 def load_csv(filename):
     with open("data/" + filename + ".csv", newline="") as file:
         reader = csv.reader(file, delimiter=",")
-        next(reader, None) # skip header
+        next(reader, None)  # skip header
         return list(reader)
+
 
 # @todo CSV-Writer
 def write_csv(filename):
     with open("data/" + filename + ".csv", newline="") as file:
         writer = csv.writer(file, delimiter=",")
 
-# @todo Complete CSV Files
-# @todo Reload Static Data
+
 # Reload static database data, this has to be called from the app context
 def reload_static_data(db):
     print("Initializing DataBase with Static Values...")
@@ -44,6 +45,7 @@ def reload_static_data(db):
         db.session.add(Result().from_csv(row))
 
     db.session.commit()
+
 
 # @todo Export Dynamic Data
 def export_dynamic_data():
