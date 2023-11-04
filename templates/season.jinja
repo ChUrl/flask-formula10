@@ -1,0 +1,40 @@
+{% extends 'base.jinja' %}
+{% block title %}Formula 10 - {{year}} Season{% endblock title %}
+
+{% block navbar_extra %}
+<div class="d-flex gap-2">
+  <div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+      {{ year }}
+    </button>
+    <ul class="dropdown-menu">
+      {% for season in seasons %}
+      <li><a class="dropdown-item {% if season.year | int == year | int %}active{% endif %}"
+          href="/seasons/{{ season.year }}/{{ statistic }}">{{ season.year }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+      {{ sentence_case(statistic) }}
+    </button>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item {% if statistic == 'p10' %}active{% endif %}" href="/seasons/{{ year }}/p10">P10</a>
+      </li>
+      <li><a class="dropdown-item {% if statistic == 'races' %}active{% endif %}"
+          href="/seasons/{{ year }}/races">Races</a></li>
+      <li><a class="dropdown-item {% if statistic == 'drivers' %}active{% endif %}"
+          href="/seasons/{{ year }}/drivers">Drivers</a></li>
+      <li><a class="dropdown-item {% if statistic == 'constructors' %}active{% endif %}"
+          href="/seasons/{{ year }}/constructors">Constructors</a></li>
+    </ul>
+  </div>
+</div>
+{% endblock navbar_extra %}
+
+{% block body %}
+{% if statistic == "p10" %}{% include "season-p10.jinja" %}{% endif %}
+{% if statistic == "races" %}{% include "season-races.jinja" %}{% endif %}
+{% if statistic == "drivers" %}{% include "season-drivers.jinja" %}{% endif %}
+{% if statistic == "constructors" %}{% include "season-constructors.jinja" %}{% endif %}
+{% endblock body %}

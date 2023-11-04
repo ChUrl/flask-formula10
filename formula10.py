@@ -18,6 +18,25 @@ def index():
     return render_template("index.jinja")
 
 
+@app.route("/seasons/")
+def default_season():
+    return redirect("/seasons/2023/p10")
+
+
+@app.route("/seasons/<year>/")
+def default_statistic(year):
+    return redirect("/seasons/" + year + "/p10")
+
+
+@app.route("/seasons/<year>/<statistic>/")
+def seasons(year, statistic):
+    seasons = Season.query.all()
+
+    return render_template(
+        "season.jinja", year=year, statistic=statistic, seasons=seasons
+    )
+
+
 # @app.route("/teams", methods=["GET", "POST"])
 # def teams():
 #     if request.method == "POST":
