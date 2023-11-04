@@ -27,6 +27,8 @@ def reload_static_data(db):
     Driver.query.delete()
     Race.query.delete()
     Season.query.delete()
+    Status.query.delete()
+    Result.query.delete()
 
     # Reload static data
     for row in load_csv("circuits"):
