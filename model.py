@@ -80,9 +80,7 @@ class Race(db.Model):
         self.round = int(row[2])
         self.circuitId = int(row[3])
         self.name = str(row[4])
-        self.date = optional_date(
-            row[5]
-        )  # optional_date shouldn't return None for this table
+        self.date = optional_date(row[5])  # shouldn't return none here
         self.time = optional_time(row[6])
         return self
 
@@ -123,9 +121,7 @@ class Driver(db.Model):
         self.code = str(row[3])
         self.forename = str(row[4])
         self.surname = str(row[5])
-        self.dob = optional_date(
-            row[6]
-        )  # optional_date shouldn't return None for this table
+        self.dob = optional_date(row[6])  # shouldn't return None here
         self.nationality = str(row[7])
         return self
 
