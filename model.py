@@ -80,8 +80,8 @@ class Race(db.Model):
         self.round = int(row[2])
         self.circuitId = int(row[3])
         self.name = str(row[4])
-        self.date = optional_date(row[5])  # shouldn't return none here
-        self.time = optional_time(row[6])
+        self.date = str(row[5])
+        self.time = optional_str(row[6])
         return self
 
     raceId: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -89,8 +89,8 @@ class Race(db.Model):
     round: Mapped[int] = mapped_column(Integer)
     circuitId: Mapped[int] = mapped_column(ForeignKey("circuit.circuitId"))
     name: Mapped[str] = mapped_column(String(128))
-    date: Mapped[dt.date] = mapped_column(Date)
-    time: Mapped[Optional[dt.time]] = mapped_column(Time)
+    date: Mapped[str] = mapped_column(String(32))
+    time: Mapped[Optional[str]] = mapped_column(String(32))
 
     circuit: Mapped["Circuit"] = relationship("Circuit", foreign_keys=[circuitId])
 
@@ -121,7 +121,7 @@ class Driver(db.Model):
         self.code = str(row[3])
         self.forename = str(row[4])
         self.surname = str(row[5])
-        self.dob = optional_date(row[6])  # shouldn't return None here
+        self.dob = str(row[6])  # shouldn't return None here
         self.nationality = str(row[7])
         return self
 
@@ -131,7 +131,7 @@ class Driver(db.Model):
     code: Mapped[str] = mapped_column(String(8))
     forename: Mapped[str] = mapped_column(String(32))
     surname: Mapped[str] = mapped_column(String(32))
-    dob: Mapped[dt.date] = mapped_column(Date)
+    dob: Mapped[str] = mapped_column(String(32))
     nationality: Mapped[str] = mapped_column(String(32))
 
 
@@ -166,7 +166,7 @@ class Result(db.Model):
         self.milliseconds = optional_int(row[12])
         self.fastestLap = optional_int(row[13])
         self.rank = optional_int(row[14])
-        self.fastestLapTime = optional_time(row[15])
+        self.fastestLapTime = optional_str(row[15])
         self.fastestLapSpeed = optional_str(row[16])
         self.statusId = int(row[17])
         return self
@@ -186,7 +186,7 @@ class Result(db.Model):
     milliseconds: Mapped[Optional[int]] = mapped_column(Integer)
     fastestLap: Mapped[Optional[int]] = mapped_column(Integer)
     rank: Mapped[Optional[int]] = mapped_column(Integer)
-    fastestLapTime: Mapped[Optional[dt.time]] = mapped_column(Time)
+    fastestLapTime: Mapped[Optional[str]] = mapped_column(String(32))
     fastestLapSpeed: Mapped[Optional[str]] = mapped_column(String(16))
     statusId: Mapped[int] = mapped_column(ForeignKey("status.statusId"))
 

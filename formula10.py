@@ -30,11 +30,19 @@ def default_statistic(year):
 
 @app.route("/seasons/<year>/<statistic>/")
 def seasons(year, statistic):
-    seasons = Season.query.all()
+    seasons = db.session.execute(db.select(Season)).all() # For season selector
 
-    return render_template(
-        "season.jinja", year=year, statistic=statistic, seasons=seasons
-    )
+    # @todo
+    races = db.session.execute(db.select(Race).where(Race.year==year)).all()
+    print(races[0].raceId)
+
+    # results = dict()
+    # for race in races:
+    #     results[race.raceId] = db.session.execute(db.select(Result).filter_by(raceId=race.raceId)).all()
+
+    # return render_template(
+    #     "season.jinja", year=year, statistic=statistic, seasons=seasons, races=races, results=results
+    # )
 
 
 # @app.route("/teams", methods=["GET", "POST"])
