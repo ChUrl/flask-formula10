@@ -9,14 +9,16 @@
 <table class="table table-bordered">
     <thead>
     <tr>
-        <th scope="col" colspan="2" rowspan="3" class="text-center">Race</th>
+        <th scope="col" rowspan="3" class="text-center">Race</th>
         <th scope="col" colspan="{{ users | length * 2 }}" class="text-center">Call</th>
         <th scope="col" rowspan="2" colspan="2" class="text-center">Result</th>
     </tr>
     </thead>
+
     <tbody>
+{# Users List #}
     <tr>
-        <td colspan="2">&nbsp;</td>
+        <td>&nbsp;</td>
 
         {% for user in users %}
             <td colspan="2" class="text-center">{{ user.name }}</td>
@@ -24,8 +26,10 @@
 
         <td colspan="2">&nbsp;</td>
     </tr>
+
+{# P10/DNF Header #}
     <tr>
-        <td colspan="2">&nbsp;</td>
+        <td>&nbsp;</td>
 
         {% for user in users %}
             <td class="text-center">P10</td>
@@ -36,20 +40,20 @@
         <td class="text-center">DNF</td>
     </tr>
 
+{# Race Results #}
     {% for raceresult in raceresults %}
         <tr>
-            <td>{{ raceresult.race.number }}</td>
             <td>{{ raceresult.race.grandprix }}</td>
 
             {% for user in users %}
-                {% set p10 = guesses.get(raceresult.race_id).get(user.name).p10.name %}
-                {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.name %}
-                <td class="{% if p10 == raceresult.p10.name %}text-success fw-bold{% endif %}">{{ p10 }}</td>
-                <td class="{% if dnf == raceresult.dnf.name %}text-success fw-bold{% endif %}">{{ dnf }}</td>
+                {% set p10 = guesses.get(raceresult.race_id).get(user.name).p10.abbr %}
+                {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.abbr %}
+                <td class="{% if p10 == raceresult.p10.abbr %}text-success fw-bold{% endif %}">{{ p10 }}</td>
+                <td class="{% if dnf == raceresult.dnf.abbr %}text-success fw-bold{% endif %}">{{ dnf }}</td>
             {% endfor %}
 
-            <td>{{ raceresult.p10.name }}</td>
-            <td class="{% if raceresult.dnf.name == 'NONE' %}text-muted{% endif %}">{{ raceresult.dnf.name }}</td>
+            <td>{{ raceresult.p10.abbr }}</td>
+            <td class="{% if raceresult.dnf.abbr == 'NON' %}text-muted{% endif %}">{{ raceresult.dnf.abbr }}</td>
         </tr>
     {% endfor %}
     </tbody>
