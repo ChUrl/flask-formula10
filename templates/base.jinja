@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
+{# Easy nav-bar entries. When a page sets the active_page variable, the current entry will be underlined #}
+{% macro nav_selector(page='', text='') %}
+    <a class="nav-link" href="/{{ page }}">{% if active_page == page %}<u>{% endif %} {{ text }} {% if active_page == page %}</u>{% endif %}</a>
+{% endmacro %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,25 +20,27 @@
 </head>
 
 <body>
-
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
             <img src="../static/image/f1_logo.svg" alt="Logo" width="120" height="30"
                  class="d-inline-block align-text-top">
-            Formula <i>10</i>
+            Formula <i>10</i> - 2024
         </a>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-                {# <a class="nav-link {% if page == 'teams' %}active{% endif %}" href="/teams">Teams</a> #}
-                {# <a class="nav-link {% if page == 'drivers' %}active{% endif %}" href="/drivers">Drivers</a> #}
+                {{ nav_selector("raceguessresults", "Results for Races") }}
+                {{ nav_selector("seasonguessresults", "Results for Season") }}
+                {{ nav_selector("graphs", "Result Graphs") }}
+                {{ nav_selector("raceguesses", "Guess a Race") }}
+                {{ nav_selector("seasonguesses", "Guess the Season") }}
+                {{ nav_selector("rules", "Rules") }}
             </div>
         </div>
     </div>
 </nav>
 
 {% block body %}{% endblock body %}
-
 </body>
 
 </html>
