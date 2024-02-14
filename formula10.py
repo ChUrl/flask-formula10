@@ -10,6 +10,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False;
 
 db.init_app(app)
 
+
 @app.route("/")
 def index():
     users = User.query.all()
@@ -23,10 +24,12 @@ def index():
 
     return render_template("index.jinja", users=users, raceresults=raceresults, guesses=guesses)
 
+
 @app.route("/reload")
 def reload():
     reload_static_data(db)
     return redirect("/")
+
 
 # @app.route("/teams", methods=["GET", "POST"])
 # def teams():
