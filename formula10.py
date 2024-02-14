@@ -31,7 +31,7 @@ def save():
 @app.route("/race")
 def guessraceresults():
     users = User.query.all()
-    raceresults = RaceResult.query.all()
+    raceresults = RaceResult.query.all()[::-1]
     drivers = Driver.query.all()
 
     guesses = dict()  # The guesses for which raceresults exist
@@ -45,7 +45,7 @@ def guessraceresults():
             nextguesses[guess.user_id] = guess
 
     # TODO: Getting by ID might be stupid, get by date instead?
-    nextid = raceresults[-1].race_id + 1 if len(raceresults) > 0 else 1
+    nextid = raceresults[0].race_id + 1 if len(raceresults) > 0 else 1
     nextrace = Race.query.filter_by(id=nextid).first()
 
     return render_template("race.jinja",
