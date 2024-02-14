@@ -29,7 +29,7 @@ def save():
 
 
 @app.route("/race")
-def race():
+def guessraceresults():
     users = User.query.all()
     raceresults = RaceResult.query.all()
     drivers = Driver.query.all()
@@ -65,29 +65,47 @@ def guessrace(raceid, username):
     if pxx is None or dnf is None:
         return redirect("/race")
 
+    if RaceResult.query.filter_by(race_id=raceid).first() is not None:
+        print("Error: Can't guess race result if the race result is already known!")
+        return redirect("/race")
+
     raceguess: RaceGuess | None = RaceGuess.query.filter_by(user_id=username, race_id=raceid).first()
 
-    if raceguess is not None:
-        raceguess.pxx_id = pxx
-        raceguess.dnf_id = dnf
-    else:
+    if raceguess is None:
         raceguess = RaceGuess()
         raceguess.user_id = username
         raceguess.race_id = raceid
-
-        raceguess.pxx_id = pxx
-        raceguess.dnf_id = dnf
-
         db.session.add(raceguess)
 
+    raceguess.pxx_id = pxx
+    raceguess.dnf_id = dnf
     db.session.commit()
 
     return redirect("/race")
 
 
-@app.route("/enterresult")
-def enterresult():
-    return render_template("enterresult.jinja")
+@app.route("/enterresult/<raceid>", methods=["POST"])
+def enterresult(raceid):
+    pxx = request.form.get("pxxselect")
+    dnf = request.form.get("dnfselect")
+
+    if pxx is None or dnf is None:
+        return redirect("/race")
+
+    raceresult: RaceResult | None = RaceResult.query.filter_by(race_id=raceid).first()
+
+    if raceresult is not None:
+        print("RaceResult already exists!")
+        return redirect("/race")
+
+    raceresult = RaceResult()
+    raceresult.race_id = raceid
+    raceresult.pxx_id = pxx
+    raceresult.dnf_id = dnf
+    db.session.add(raceresult)
+    db.session.commit()
+
+    return redirect("/race")
 
 
 if __name__ == "__main__":
