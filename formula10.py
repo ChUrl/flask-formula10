@@ -13,7 +13,7 @@ db.init_app(app)
 
 @app.route("/")
 def index():
-    return redirect("/raceguessresults")
+    return redirect("/race")
 
 
 @app.route("/reload")
@@ -22,18 +22,18 @@ def reload():
     return redirect("/")
 
 
-@app.route("/raceguessresults")
-def raceguessresults():
+@app.route("/race")
+def race():
     users = User.query.all()
     raceresults = RaceResult.query.all()
 
     guesses = dict()
     for raceresult in raceresults:
         guesses[raceresult.race_id] = dict()
-    for guess in Guess.query.all():
+    for guess in RaceGuess.query.all():
         guesses[guess.race_id][guess.user_id] = guess
 
-    return render_template("raceguessresults.jinja",
+    return render_template("race.jinja",
                            users=users,
                            raceresults=raceresults,
                            guesses=guesses)
