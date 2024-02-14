@@ -24,12 +24,14 @@ class Race(db.Model):
         self.grandprix = str(row[1])
         self.number = int(row[2])
         self.date = datetime.strptime(row[3], "%Y-%m-%d")
+        self.pxx = int(row[4])
         return self
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     grandprix: Mapped[str] = mapped_column(String(32))
     number: Mapped[int] = mapped_column(Integer)
     date: Mapped[datetime] = mapped_column(DateTime)
+    pxx: Mapped[int] = mapped_column(Integer)
 
 
 class Team(db.Model):
@@ -303,7 +305,7 @@ class RaceGuess(db.Model):
         self.dnf_id = str(row[4])
         return self
 
-    def to_csv(self, writer):
+    def to_csv(self):
         return [
             self.id,
             self.user_id,
@@ -330,9 +332,12 @@ class SeasonGuess(db.Model):
     __csv_header__ = ["id", "user_id", "hot_take"]
 
     def from_csv(self, row):
+        self.id = int(row[0])
+        self.user_id = str(row[1])
+        self.hot_take = str(row[2])
         return self
 
-    def to_csv(self, writer):
+    def to_csv(self):
         return [
             self.id,
             self.user_id,

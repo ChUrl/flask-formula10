@@ -1,62 +1,104 @@
 {% extends 'base.jinja' %}
 
-{% set active_page = "raceguessresults" %}
+{% set active_page = "race" %}
 
 {% block title %}Formula 10{% endblock title %}
 
 {% block body %}
 
-<table class="table table-bordered">
-    <thead>
-    <tr>
-        <th scope="col" rowspan="3" class="text-center">Race</th>
-        <th scope="col" colspan="{{ users | length * 2 }}" class="text-center">Call</th>
-        <th scope="col" rowspan="2" colspan="2" class="text-center">Result</th>
-    </tr>
-    </thead>
-
-    <tbody>
-{# Users List #}
-    <tr>
-        <td>&nbsp;</td>
-
-        {% for user in users %}
-            <td colspan="2" class="text-center">{{ user.name }}</td>
-        {% endfor %}
-
-        <td colspan="2">&nbsp;</td>
-    </tr>
-
-{# P10/DNF Header #}
-    <tr>
-        <td>&nbsp;</td>
-
-        {% for user in users %}
-            <td class="text-center">P10</td>
-            <td class="text-center">DNF</td>
-        {% endfor %}
-
-        <td class="text-center">P10</td>
-        <td class="text-center">DNF</td>
-    </tr>
-
-{# Race Results #}
-    {% for raceresult in raceresults %}
+    <table class="table table-bordered">
+        <thead>
         <tr>
-            <td>{{ raceresult.race.grandprix }}</td>
+            <th scope="col" rowspan="2" class="text-center">Race</th>
+            <th scope="col" colspan="{{ users | length }}" class="text-center">Call</th>
+            <th scope="col" rowspan="2" class="text-center">Result</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        {# Users List #}
+        <tr>
+            <td>&nbsp;</td>
 
             {% for user in users %}
-                {% set p10 = guesses.get(raceresult.race_id).get(user.name).p10.abbr %}
-                {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.abbr %}
-                <td class="{% if p10 == raceresult.p10.abbr %}text-success fw-bold{% endif %}">{{ p10 }}</td>
-                <td class="{% if dnf == raceresult.dnf.abbr %}text-success fw-bold{% endif %}">{{ dnf }}</td>
+                <td class="text-center">{{ user.name }}</td>
             {% endfor %}
 
-            <td>{{ raceresult.p10.abbr }}</td>
-            <td class="{% if raceresult.dnf.abbr == 'NON' %}text-muted{% endif %}">{{ raceresult.dnf.abbr }}</td>
+            <td>&nbsp;</td>
         </tr>
-    {% endfor %}
-    </tbody>
-</table>
+
+        {# Race Results #}
+        {% for raceresult in raceresults %}
+            <tr>
+                <td>{{ raceresult.race.grandprix }}</td>
+
+                {% for user in users %}
+                    {% set pxx = guesses.get(raceresult.race_id).get(user.name).pxx.abbr %}
+                    {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.abbr %}
+                    <td>
+                        <ul class="list-group-flush">
+                            <li class="list-group-item {% if pxx == raceresult.pxx.abbr %}text-success fw-bold{% endif %}">
+                                P{{ raceresult.race.pxx }}: {{ pxx }}</li>
+                            <li class="list-group-item {% if dnf == raceresult.dnf.abbr %}text-success fw-bold{% endif %}">
+                                DNF: {{ dnf }}</li>
+                        </ul>
+                    </td>
+                {% endfor %}
+
+
+                <td>
+                    <ul class="list-group-flush">
+                        <li class="list-group-item">PXX: {{ pxx }}</li>
+                        <li class="list-group-item {% if raceresult.dnf.abbr == 'NON' %}text-muted{% endif %}">
+                            DNF: {{ raceresult.dnf.abbr }}</li>
+                    </ul>
+                </td>
+            </tr>
+        {% endfor %}
+
+        {# Next Race Guess #}
+        {% if nextrace is not none %}
+            <tr>
+                <td>{{ nextrace.grandprix }}</td>
+
+                {% for user in users %}
+                    <td>
+                        <form action="/guessrace/{{ nextrace.id }}/{{ user.name }}" method="post">
+                            {# Driver PXX Select #}
+                            <div class="form-floating">
+                                <select name="pxxselect" class="form-select" aria-label="Select PXX">
+                                    <option value="" selected disabled hidden></option>
+                                    {% for driver in drivers %}
+                                        <option {% if (user.name in nextguesses) and (nextguesses.get(user.name).pxx.abbr == driver.abbr) %}selected{% endif %}
+                                                value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                    {% endfor %}
+                                </select>
+                                <label for="pxxselect" class="text-primary">P{{ nextrace.pxx }}:</label>
+                            </div>
+
+                            {# Driver DNF Select #}
+                            <div class="form-floating mt-2">
+                                <select name="dnfselect" class="form-select" aria-label="Select DNF">
+                                    <option value="" selected disabled hidden></option>
+                                    {% for driver in drivers %}
+                                        <option {% if (user.name in nextguesses) and (nextguesses.get(user.name).dnf.abbr == driver.abbr) %}selected{% endif %}
+                                                value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                    {% endfor %}
+                                </select>
+                                <label for="dnfselect" class="text-primary">DNF:</label>
+                            </div>
+
+                            <input type="submit" class="btn btn-primary mt-2 w-100" value="Save">
+                        </form>
+                    </td>
+                {% endfor %}
+
+                <td>&nbsp;</td>
+            </tr>
+        {% endif %}
+
+        </tbody>
+    </table>
 
 {% endblock body %}

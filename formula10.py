@@ -32,31 +32,62 @@ def save():
 def race():
     users = User.query.all()
     raceresults = RaceResult.query.all()
+    drivers = Driver.query.all()
 
-    guesses = dict()
+    guesses = dict()  # The guesses for which raceresults exist
+    nextguesses = dict()  # The guesses that are still open for modification
     for raceresult in raceresults:
         guesses[raceresult.race_id] = dict()
     for guess in RaceGuess.query.all():
-        guesses[guess.race_id][guess.user_id] = guess
+        if guess.race_id in guesses:
+            guesses[guess.race_id][guess.user_id] = guess
+        else:
+            nextguesses[guess.user_id] = guess
+
+    # TODO: Getting by ID might be stupid, get by date instead?
+    nextid = raceresults[-1].race_id + 1 if len(raceresults) > 0 else 1
+    nextrace = Race.query.filter_by(id=nextid).first()
 
     return render_template("race.jinja",
                            users=users,
+                           drivers=drivers,
                            raceresults=raceresults,
-                           guesses=guesses)
+                           guesses=guesses,
+                           nextguesses=nextguesses,
+                           nextrace=nextrace)
 
 
-# @app.route("/teams", methods=["GET", "POST"])
-# def teams():
-#     if request.method == "POST":
-#         new_team = Team(
-#             name = request.form["name"],
-#             country_code = request.form["country_code"]
-#         )
-#         print(new_team.name, new_team.country_code)
-#         db.session.add(new_team)
-#         db.session.commit()
-#
-#     return render_template("teams.jinja", page="teams")
+@app.route("/guessrace/<raceid>/<username>", methods=["POST"])
+def guessrace(raceid, username):
+    pxx = request.form.get("pxxselect")
+    dnf = request.form.get("dnfselect")
+
+    if pxx is None or dnf is None:
+        return redirect("/race")
+
+    raceguess: RaceGuess | None = RaceGuess.query.filter_by(user_id=username, race_id=raceid).first()
+
+    if raceguess is not None:
+        raceguess.pxx_id = pxx
+        raceguess.dnf_id = dnf
+    else:
+        raceguess = RaceGuess()
+        raceguess.user_id = username
+        raceguess.race_id = raceid
+
+        raceguess.pxx_id = pxx
+        raceguess.dnf_id = dnf
+
+        db.session.add(raceguess)
+
+    db.session.commit()
+
+    return redirect("/race")
+
+
+@app.route("/enterresult")
+def enterresult():
+    return render_template("enterresult.jinja")
 
 
 if __name__ == "__main__":
