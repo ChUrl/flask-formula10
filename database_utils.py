@@ -3,21 +3,24 @@ from model import *
 
 
 def load_csv(filename):
-    with open("init_data/" + filename + ".csv", newline="") as file:
+    with open("init_data/" + filename + ".csv", "r", newline="") as file:
         reader = csv.reader(file, delimiter=",")
         next(reader, None)  # skip header
         return list(reader)
 
 
 # @todo CSV-Writer
-def write_csv(filename):
-    with open("dynamic_data/" + filename + ".csv", newline="") as file:
+def write_csv(filename, objects):
+    with open("dynamic_data/" + filename + ".csv", "w", newline="") as file:
         writer = csv.writer(file, delimiter=",")
+        writer.writerow(objects[0].__csv_header__)
+        for obj in objects:
+            writer.writerow(obj.to_csv())
 
 
 # Reload static database data, this has to be called from the app context
 def reload_static_data(db):
-    print("Initializing DataBase with Static Values...")
+    print("Initializing Database with Static Values...")
     # Create it (if it doesn't exist!)
     db.create_all()
 
@@ -40,6 +43,16 @@ def reload_static_data(db):
     db.session.commit()
 
 
-# @todo Export Dynamic Data
 def export_dynamic_data():
-    pass
+    print("Exporting Userdata...")
+
+    raceresults = RaceResult.query.all()
+    raceguesses = RaceGuess.query.all()
+    seasonguesses = SeasonGuess.query.all()
+
+    if len(raceresults) > 0:
+        write_csv("raceresults", raceresults)
+    if len(raceguesses) > 0:
+        write_csv("raceguesses", raceguesses)
+    if len(seasonguesses) > 0:
+        write_csv("seasonguesses", seasonguesses)

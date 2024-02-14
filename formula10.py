@@ -22,6 +22,12 @@ def reload():
     return redirect("/")
 
 
+@app.route("/save")
+def save():
+    export_dynamic_data()
+    return redirect("/")
+
+
 @app.route("/race")
 def race():
     users = User.query.all()

@@ -6,7 +6,6 @@ from datetime import datetime
 db = SQLAlchemy()
 
 
-# This table contains users that can guess
 class User(db.Model):
     __tablename__ = "user"
 
@@ -17,7 +16,6 @@ class User(db.Model):
     name: Mapped[str] = mapped_column(String(32), primary_key=True)
 
 
-# This table contains manifestations of GPs, with dates
 class Race(db.Model):
     __tablename__ = "race"
 
@@ -44,7 +42,6 @@ class Team(db.Model):
     name: Mapped[str] = mapped_column(String(32), primary_key=True)
 
 
-# This table contains drivers and their team associations, e.g. Max Verschtappen
 class Driver(db.Model):
     __tablename__ = "driver"
 
@@ -66,6 +63,50 @@ class Driver(db.Model):
 
 class RaceResult(db.Model):
     __tablename__ = "raceresult"
+    __csv_header__ = [
+        "id",
+        "race_id",
+        "p01_id",
+        "p02_id",
+        "p03_id",
+        "p04_id",
+        "p05_id",
+        "p06_id",
+        "p07_id",
+        "p08_id",
+        "p09_id",
+        "p10_id",
+        "p11_id",
+        "p12_id",
+        "p13_id",
+        "p14_id",
+        "p15_id",
+        "p16_id",
+        "p17_id",
+        "p18_id",
+        "p19_id",
+        "p20_id",
+        "dnf01_id",
+        "dnf02_id",
+        "dnf03_id",
+        "dnf04_id",
+        "dnf05_id",
+        "dnf06_id",
+        "dnf07_id",
+        "dnf08_id",
+        "dnf09_id",
+        "dnf10_id",
+        "dnf11_id",
+        "dnf12_id",
+        "dnf13_id",
+        "dnf14_id",
+        "dnf15_id",
+        "dnf16_id",
+        "dnf17_id",
+        "dnf18_id",
+        "dnf19_id",
+        "dnf20_id"
+    ]
 
     def from_csv(self, row):
         self.id = int(row[0])
@@ -111,6 +152,51 @@ class RaceResult(db.Model):
         self.dnf19_id = str(row[40])
         self.dnf20_id = str(row[41])
         return self
+
+    def to_csv(self):
+        return [
+            self.id,
+            self.p01_id,
+            self.p02_id,
+            self.p03_id,
+            self.p04_id,
+            self.p05_id,
+            self.p06_id,
+            self.p07_id,
+            self.p08_id,
+            self.p09_id,
+            self.p10_id,
+            self.p11_id,
+            self.p12_id,
+            self.p13_id,
+            self.p14_id,
+            self.p15_id,
+            self.p16_id,
+            self.p17_id,
+            self.p18_id,
+            self.p19_id,
+            self.p20_id,
+            self.dnf01_id,
+            self.dnf02_id,
+            self.dnf03_id,
+            self.dnf04_id,
+            self.dnf05_id,
+            self.dnf06_id,
+            self.dnf07_id,
+            self.dnf08_id,
+            self.dnf09_id,
+            self.dnf10_id,
+            self.dnf11_id,
+            self.dnf12_id,
+            self.dnf13_id,
+            self.dnf14_id,
+            self.dnf15_id,
+            self.dnf16_id,
+            self.dnf17_id,
+            self.dnf18_id,
+            self.dnf19_id,
+            self.dnf20_id
+        ]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     race_id: Mapped[str] = mapped_column(ForeignKey("race.id"))
@@ -207,33 +293,51 @@ class RaceResult(db.Model):
 # This table contains race guesses made by users
 class RaceGuess(db.Model):
     __tablename__ = "raceguess"
+    __csv_header__ = ["id", "user_id", "race_id", "pxx_id", "dnf_id"]
 
     def from_csv(self, row):
         self.id = int(row[0])
         self.user_id = str(row[1])
         self.race_id = str(row[2])
-        self.pXX_id = str(row[3])
+        self.pxx_id = str(row[3])
         self.dnf_id = str(row[4])
         return self
+
+    def to_csv(self, writer):
+        return [
+            self.id,
+            self.user_id,
+            self.race_id,
+            self.pxx_id,
+            self.dnf_id
+        ]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("user.name"))
     race_id: Mapped[str] = mapped_column(ForeignKey("race.id"))
-    pXX_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
+    pxx_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
     dnf_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
 
     # Relationships
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
     race: Mapped["Race"] = relationship("Race", foreign_keys=[race_id])
-    pXX: Mapped["Driver"] = relationship("Driver", foreign_keys=[pXX_id])
+    pxx: Mapped["Driver"] = relationship("Driver", foreign_keys=[pxx_id])
     dnf: Mapped["Driver"] = relationship("Driver", foreign_keys=[dnf_id])
 
 
 class SeasonGuess(db.Model):
     __tablename__ = "seasonguess"
+    __csv_header__ = ["id", "user_id", "hot_take"]
 
     def from_csv(self, row):
         return self
+
+    def to_csv(self, writer):
+        return [
+            self.id,
+            self.user_id,
+            self.hot_take
+        ]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("user.name"))
