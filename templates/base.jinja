@@ -16,22 +16,23 @@
 
 <body>
 
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="/">
-            <img src="../static/image/f1_logo.svg" alt="Logo" width="120" height="30" class="d-inline-block align-text-top">
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="../static/image/f1_logo.svg" alt="Logo" width="120" height="30"
+                 class="d-inline-block align-text-top">
             Formula <i>10</i>
-          </a>
-          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        </a>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-              {# <a class="nav-link {% if page == 'teams' %}active{% endif %}" href="/teams">Teams</a> #}
-              {# <a class="nav-link {% if page == 'drivers' %}active{% endif %}" href="/drivers">Drivers</a> #}
+                {# <a class="nav-link {% if page == 'teams' %}active{% endif %}" href="/teams">Teams</a> #}
+                {# <a class="nav-link {% if page == 'drivers' %}active{% endif %}" href="/drivers">Drivers</a> #}
             </div>
-          </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    {% block body %}{% endblock body %}
+{% block body %}{% endblock body %}
 
 </body>
 

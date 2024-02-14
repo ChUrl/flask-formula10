@@ -2,51 +2,54 @@
 {% block title %}Formula 10{% endblock title %}
 
 {% block body %}
+
 <table class="table table-bordered">
-  <thead>
+    <thead>
     <tr>
-      <th scope="col" colspan="2" rowspan="3" class="text-center">Race</th>
-      <th scope="col" colspan="{{ users | length * 2 }}" class="text-center">Call</th>
-      <th scope="col" rowspan="2" colspan="2" class="text-center">Result</th>
+        <th scope="col" colspan="2" rowspan="3" class="text-center">Race</th>
+        <th scope="col" colspan="{{ users | length * 2 }}" class="text-center">Call</th>
+        <th scope="col" rowspan="2" colspan="2" class="text-center">Result</th>
     </tr>
-  </thead>
-  <tbody>
+    </thead>
+    <tbody>
     <tr>
-      <td colspan="2">&nbsp;</td>
+        <td colspan="2">&nbsp;</td>
 
-      {% for user in users %}
-      <td colspan="2" class="text-center">{{ user.name }}</td>
-      {% endfor %}
+        {% for user in users %}
+            <td colspan="2" class="text-center">{{ user.name }}</td>
+        {% endfor %}
 
-      <td colspan="2">&nbsp;</td>
+        <td colspan="2">&nbsp;</td>
     </tr>
     <tr>
-      <td colspan="2">&nbsp;</td>
+        <td colspan="2">&nbsp;</td>
 
-      {% for user in users %}
-      <td class="text-center">P10</td>
-      <td class="text-center">DNF</td>
-      {% endfor %}
+        {% for user in users %}
+            <td class="text-center">P10</td>
+            <td class="text-center">DNF</td>
+        {% endfor %}
 
-      <td class="text-center">P10</td>
-      <td class="text-center">DNF</td>
+        <td class="text-center">P10</td>
+        <td class="text-center">DNF</td>
     </tr>
 
     {% for raceresult in raceresults %}
-    <tr>
-      <td>{{ raceresult.race.number }}</td>
-      <td>{{ raceresult.race.grandprix.name }}</td>
+        <tr>
+            <td>{{ raceresult.race.number }}</td>
+            <td>{{ raceresult.race.grandprix.name }}</td>
 
-      {% for user in users %}
-      {% set p10 = guesses.get(raceresult.race_id).get(user.name).p10.name %}
-      {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.name %}
-      <td class="{% if p10 == raceresult.p10.name %}text-success fw-bold{% endif %}">{{ p10 }}</td>
-      <td class="{% if dnf == raceresult.dnf.name %}text-success fw-bold{% endif %}">{{ dnf }}</td>
-      {% endfor %}
+            {% for user in users %}
+                {% set p10 = guesses.get(raceresult.race_id).get(user.name).p10.name %}
+                {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.name %}
+                <td class="{% if p10 == raceresult.p10.name %}text-success fw-bold{% endif %}">{{ p10 }}</td>
+                <td class="{% if dnf == raceresult.dnf.name %}text-success fw-bold{% endif %}">{{ dnf }}</td>
+            {% endfor %}
 
-      <td>{{ raceresult.p10.name }}</td>
-      <td class="{% if raceresult.dnf.name == 'NONE' %}text-muted{% endif %}">{{ raceresult.dnf.name }}</td>
-    </tr>
+            <td>{{ raceresult.p10.name }}</td>
+            <td class="{% if raceresult.dnf.name == 'NONE' %}text-muted{% endif %}">{{ raceresult.dnf.name }}</td>
+        </tr>
     {% endfor %}
-  </tbody>
+    </tbody>
 </table>
+
+{% endblock body %}
