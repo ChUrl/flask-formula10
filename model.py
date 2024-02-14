@@ -6,49 +6,24 @@ from datetime import datetime
 db = SQLAlchemy()
 
 
-# This table contains meta information about the GPs, not specific to seasons (can be reused).
-class GrandPrix(db.Model):
-    __tablename__ = "grandprix"
-
-    def from_csv(self, row):
-        self.name = str(row[0])
-        self.country_code = str(row[1])
-        return self
-
-    name: Mapped[str] = mapped_column(String(64), primary_key=True)
-    country_code: Mapped[str] = mapped_column(String(2))  # alpha-2 code
-
-
 # This table contains manifestations of GPs, with dates
 class Race(db.Model):
     __tablename__ = "race"
 
     def from_csv(self, row):
         self.id = int(row[0])
-        self.grandprix_id = str(row[1])
+        self.grandprix = str(row[1])
         self.number = int(row[2])
         self.date = datetime.strptime(row[3], "%Y-%m-%d")
         return self
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    grandprix_id: Mapped[str] = mapped_column(ForeignKey("grandprix.name"))
+
+    grandprix: Mapped[str] = mapped_column(String(32))
+
     number: Mapped[int] = mapped_column(Integer)
+
     date: Mapped[datetime] = mapped_column(DateTime)
-
-    grandprix: Mapped["GrandPrix"] = relationship("GrandPrix", foreign_keys=[grandprix_id])
-
-
-# This table contains teams, e.g. RedBull
-class Team(db.Model):
-    __tablename__ = "team"
-
-    def from_csv(self, row):
-        self.name = str(row[0])
-        self.country_code = str(row[1])
-        return self
-
-    name: Mapped[str] = mapped_column(String(32), primary_key=True)
-    country_code: Mapped[str] = mapped_column(String(2))  # alpha-2 code
 
 
 # This table contains drivers and their team associations, e.g. Max Verschtappen
@@ -57,15 +32,15 @@ class Driver(db.Model):
 
     def from_csv(self, row):
         self.name = str(row[0])
-        self.team_id = str(row[1])
+        self.team = str(row[1])
         self.country_code = str(row[2])
         return self
 
     name: Mapped[str] = mapped_column(String(32), primary_key=True)
-    team_id: Mapped[str] = mapped_column(ForeignKey("team.name"))
-    country_code: Mapped[str] = mapped_column(String(2))  # alpha-2 code
 
-    team: Mapped["Team"] = relationship("Team", foreign_keys=[team_id])
+    team: Mapped[str] = mapped_column(String(32))
+
+    country_code: Mapped[str] = mapped_column(String(2))  # alpha-2 code
 
 
 class RaceResult(db.Model):
@@ -79,53 +54,14 @@ class RaceResult(db.Model):
         return self
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
     race_id: Mapped[str] = mapped_column(ForeignKey("race.id"))
-
-    # These map to drivers
-    # p01_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p02_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p03_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p04_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p05_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p06_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p07_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p08_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p09_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    p10_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    # p11_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p12_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p13_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p14_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p15_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p16_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p17_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p18_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p19_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    # p20_id:    Mapped[int]      = mapped_column(ForeignKey("driver.id"))
-    dnf_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-
     race: Mapped["Race"] = relationship("Race", foreign_keys=[race_id])
 
-    # p01:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p01_id]) # Store all places to allow adding guesses
-    # p02:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p02_id])
-    # p03:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p03_id])
-    # p04:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p04_id])
-    # p05:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p05_id])
-    # p06:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p06_id])
-    # p07:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p07_id])
-    # p08:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p08_id])
-    # p09:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p09_id])
+    p10_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
     p10: Mapped["Driver"] = relationship("Driver", foreign_keys=[p10_id])
-    # p11:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p11_id])
-    # p12:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p12_id])
-    # p13:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p13_id])
-    # p14:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p14_id])
-    # p15:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p15_id])
-    # p16:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p16_id])
-    # p17:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p17_id])
-    # p18:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p18_id])
-    # p19:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p19_id])
-    # p20:       Mapped["Driver"] = relationship("Driver", foreign_keys=[p20_id])
+
+    dnf_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
     dnf: Mapped["Driver"] = relationship("Driver", foreign_keys=[dnf_id])  # Only store first DNF
 
 
@@ -138,6 +74,11 @@ class User(db.Model):
         return self
 
     name: Mapped[str] = mapped_column(String(32), primary_key=True)
+
+
+# Per race guesses: PX, DNF
+# Per season guesses: Hot, P2 Constructor, Most overtakes, Most DNFs, Team winner,
+#                     At least 1 podium
 
 
 # This table contains guesses made by users
@@ -154,15 +95,18 @@ class Guess(db.Model):
         return self
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[str] = mapped_column(ForeignKey("user.name"))
-    race_id: Mapped[str] = mapped_column(ForeignKey("race.id"))
-    p10_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    dnf_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    raceresult_id: Mapped[int] = mapped_column(ForeignKey("raceresult.id"))
 
+    user_id: Mapped[str] = mapped_column(ForeignKey("user.name"))
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+
+    race_id: Mapped[str] = mapped_column(ForeignKey("race.id"))
     race: Mapped["Race"] = relationship("Race", foreign_keys=[race_id])
 
+    p10_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
     p10: Mapped["Driver"] = relationship("Driver", foreign_keys=[p10_id])
+
+    dnf_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
     dnf: Mapped["Driver"] = relationship("Driver", foreign_keys=[dnf_id])
+
+    raceresult_id: Mapped[int] = mapped_column(ForeignKey("raceresult.id"))
     raceresult: Mapped["RaceResult"] = relationship("RaceResult", foreign_keys=[raceresult_id])

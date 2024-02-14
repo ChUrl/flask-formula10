@@ -24,21 +24,15 @@ def reload_static_data(db):
     db.create_all()
 
     # Clear static data
-    Team.query.delete()
     Driver.query.delete()
-    GrandPrix.query.delete()
     Race.query.delete()
     RaceResult.query.delete()
     User.query.delete()
     Guess.query.delete()
 
     # Reload static data
-    for row in load_csv("teams"):
-        db.session.add(Team().from_csv(row))
     for row in load_csv("drivers"):
         db.session.add(Driver().from_csv(row))
-    for row in load_csv("grandsprix"):
-        db.session.add(GrandPrix().from_csv(row))
     for row in load_csv("races"):
         db.session.add(Race().from_csv(row))
     for row in load_csv("raceresults"):

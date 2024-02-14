@@ -39,7 +39,7 @@
     {% for raceresult in raceresults %}
         <tr>
             <td>{{ raceresult.race.number }}</td>
-            <td>{{ raceresult.race.grandprix.name }}</td>
+            <td>{{ raceresult.race.grandprix }}</td>
 
             {% for user in users %}
                 {% set p10 = guesses.get(raceresult.race_id).get(user.name).p10.name %}
