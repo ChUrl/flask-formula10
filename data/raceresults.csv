@@ -1,20 +1,20 @@
-id,race_id,season_id,p10_id,dnf_id
-1,1,2023,Alexander Albon,Oscar Piastri
-2,2,2023,Kevin Magnussen,Lance Stroll
-3,3,2023,Yuki Tsunoda,Charles Leclerc
-4,4,2023,Yuki Tsunoda,Nyck de Vries
-5,5,2023,Kevin Magnussen,NONE
-6,7,2023,Oscar Piastri,Lance Stroll
-7,8,2023,Pierre Gasly,NONE
-8,9,2023,Valteri Bottas,Logan Sargeant
-9,10,2023,Pierre Gasly,Nico Hulkenberg
-10,11,2023,Carlos Sainz,Esteban Ocon
-11,12,2023,Lance Stroll,Pierre Gasly
-12,13,2023,Yuki Tsunoda,Oscar Piastri
-13,14,2023,Esteban Ocon,Logan Sargeant
-14,15,2023,Valteri Bottas,Esteban Ocon
-15,16,2023,Kevin Magnussen,Yuki Tsunoda
-16,17,2023,Pierre Gasly,Valteri Bottas
-17,18,2023,Sergio Perez,Lewis Hamilton
-18,19,2023,Logan Sargeant,Esteban Ocon
-19,20,2023,Esteban Ocon,Sergio Perez
+id,race_id,p10_id,dnf_id
+1,1,Alexander Albon,Oscar Piastri
+2,2,Kevin Magnussen,Lance Stroll
+3,3,Yuki Tsunoda,Charles Leclerc
+4,4,Yuki Tsunoda,Nyck de Vries
+5,5,Kevin Magnussen,NONE
+6,7,Oscar Piastri,Lance Stroll
+7,8,Pierre Gasly,NONE
+8,9,Valteri Bottas,Logan Sargeant
+9,10,Pierre Gasly,Nico Hulkenberg
+10,11,Carlos Sainz,Esteban Ocon
+11,12,Lance Stroll,Pierre Gasly
+12,13,Yuki Tsunoda,Oscar Piastri
+13,14,Esteban Ocon,Logan Sargeant
+14,15,Valteri Bottas,Esteban Ocon
+15,16,Kevin Magnussen,Yuki Tsunoda
+16,17,Pierre Gasly,Valteri Bottas
+17,18,Sergio Perez,Lewis Hamilton
+18,19,Logan Sargeant,Esteban Ocon
+19,20,Esteban Ocon,Sergio Perez

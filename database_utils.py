@@ -1,16 +1,19 @@
 import csv
 from model import *
 
+
 def load_csv(filename):
     with open("data/" + filename + ".csv", newline="") as file:
         reader = csv.reader(file, delimiter=",")
-        next(reader, None) # skip header
+        next(reader, None)  # skip header
         return list(reader)
+
 
 # @todo CSV-Writer
 def write_csv(filename):
     with open("data/" + filename + ".csv", newline="") as file:
         writer = csv.writer(file, delimiter=",")
+
 
 # @todo Complete CSV Files
 # @todo Reload Static Data
@@ -24,7 +27,6 @@ def reload_static_data(db):
     Team.query.delete()
     Driver.query.delete()
     GrandPrix.query.delete()
-    Season.query.delete()
     Race.query.delete()
     RaceResult.query.delete()
     User.query.delete()
@@ -37,8 +39,6 @@ def reload_static_data(db):
         db.session.add(Driver().from_csv(row))
     for row in load_csv("grandsprix"):
         db.session.add(GrandPrix().from_csv(row))
-    for row in load_csv("seasons"):
-        db.session.add(Season().from_csv(row))
     for row in load_csv("races"):
         db.session.add(Race().from_csv(row))
     for row in load_csv("raceresults"):
@@ -49,6 +49,7 @@ def reload_static_data(db):
         db.session.add(Guess().from_csv(row))
 
     db.session.commit()
+
 
 # @todo Export Dynamic Data
 def export_dynamic_data():
