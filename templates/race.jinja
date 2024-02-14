@@ -34,22 +34,24 @@
                 <td>{{ raceresult.race.grandprix }}</td>
 
                 {% for user in users %}
-                    {% set pxx = guesses.get(raceresult.race_id).get(user.name).pxx.abbr %}
-                    {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.abbr %}
                     <td>
-                        <ul class="list-group-flush">
-                            <li class="list-group-item {% if pxx == raceresult.pxx.abbr %}text-success fw-bold{% endif %}">
-                                P{{ raceresult.race.pxx }}: {{ pxx }}</li>
-                            <li class="list-group-item {% if dnf == raceresult.dnf.abbr %}text-success fw-bold{% endif %}">
-                                DNF: {{ dnf }}</li>
-                        </ul>
+                        {% if (raceresult.race_id in guesses) and (user.name in guesses.get(raceresult.race_id)) %}
+                            {% set pxx = guesses.get(raceresult.race_id).get(user.name).pxx.abbr %}
+                            {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.abbr %}
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item {% if pxx == raceresult.pxx.abbr %}text-success fw-bold{% endif %}">
+                                    P{{ raceresult.race.pxx }}: {{ pxx }}</li>
+                                <li class="list-group-item {% if dnf == raceresult.dnf.abbr %}text-success fw-bold{% endif %}">
+                                    DNF: {{ dnf }}</li>
+                            </ul>
+                        {% endif %}
                     </td>
                 {% endfor %}
 
 
                 <td>
-                    <ul class="list-group-flush">
-                        <li class="list-group-item">PXX: {{ pxx }}</li>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">P{{ raceresult.race.pxx }}: {{ raceresult.pxx.abbr }}</li>
                         <li class="list-group-item {% if raceresult.dnf.abbr == 'NON' %}text-muted{% endif %}">
                             DNF: {{ raceresult.dnf.abbr }}</li>
                     </ul>
@@ -68,11 +70,20 @@
                             {# Driver PXX Select #}
                             <div class="form-floating">
                                 <select name="pxxselect" class="form-select" aria-label="Select PXX">
-                                    <option value="" selected disabled hidden></option>
+                                    {% set user_has_chosen = namespace(pxx="false") %}
+
                                     {% for driver in drivers %}
-                                        <option {% if (user.name in nextguesses) and (nextguesses.get(user.name).pxx.abbr == driver.abbr) %}selected{% endif %}
-                                                value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                        {% if (user.name in nextguesses) and (nextguesses.get(user.name).pxx.abbr == driver.abbr) %}
+                                            {% set user_has_chosen.pxx = "true" %}
+                                            <option selected="selected" value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                        {% else %}
+                                            <option value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                        {% endif %}
                                     {% endfor %}
+
+                                    {% if user_has_chosen.pxx == "false" %}
+                                        <option value="" selected="selected" disabled="disabled" hidden="hidden"></option>
+                                    {% endif %}
                                 </select>
                                 <label for="pxxselect" class="text-primary">P{{ nextrace.pxx }}:</label>
                             </div>
@@ -80,11 +91,20 @@
                             {# Driver DNF Select #}
                             <div class="form-floating mt-2">
                                 <select name="dnfselect" class="form-select" aria-label="Select DNF">
-                                    <option value="" selected disabled hidden></option>
+                                    {% set user_has_chosen = namespace(dnf="false") %}
+
                                     {% for driver in drivers %}
-                                        <option {% if (user.name in nextguesses) and (nextguesses.get(user.name).dnf.abbr == driver.abbr) %}selected{% endif %}
-                                                value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                        {% if (user.name in nextguesses) and (nextguesses.get(user.name).dnf.abbr == driver.abbr) %}
+                                            {% set user_has_chosen.dnf = "true" %}
+                                            <option selected="selected" value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                        {% else %}
+                                            <option value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                        {% endif %}
                                     {% endfor %}
+
+                                    {% if user_has_chosen.dnf == "false" %}
+                                        <option value="" selected="selected" disabled="disabled" hidden="hidden"></option>
+                                    {% endif %}
                                 </select>
                                 <label for="dnfselect" class="text-primary">DNF:</label>
                             </div>
@@ -94,7 +114,34 @@
                     </td>
                 {% endfor %}
 
-                <td>&nbsp;</td>
+                {# Enter Race Result #}
+                <td>
+                    <form action="/enterresult/{{ nextrace.id }}" method="post">
+                        {# Driver PXX Select #}
+                        <div class="form-floating">
+                            <select name="pxxselect" class="form-select" aria-label="Select PXX">
+                                <option value="" selected disabled hidden></option>
+                                {% for driver in drivers %}
+                                    <option value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="pxxselect" class="text-primary">P{{ nextrace.pxx }}:</label>
+                        </div>
+
+                        {# Driver DNF Select #}
+                        <div class="form-floating mt-2">
+                            <select name="dnfselect" class="form-select" aria-label="Select DNF">
+                                <option value="" selected disabled hidden></option>
+                                {% for driver in drivers %}
+                                    <option value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="dnfselect" class="text-primary">DNF:</label>
+                        </div>
+
+                        <input type="submit" class="btn btn-primary mt-2 w-100" value="Save">
+                    </form>
+                </td>
             </tr>
         {% endif %}
 
