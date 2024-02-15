@@ -1,0 +1,5 @@
+// Disable Bootstrap Grid and use CSS Grid instead
+$enable-grid-classes: false;
+$enable-cssgrid: true;
+
+@import "../../bootstrap/scss/bootstrap";
