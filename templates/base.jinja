@@ -3,7 +3,7 @@
 
 {# Easy nav-bar entries. When a page sets the active_page variable, the current entry will be underlined #}
 {% macro nav_selector(page='', text='') %}
-    <a class="nav-link" href="/{{ page }}">{% if active_page == page %}<u>{% endif %} {{ text }}
+    <a class="nav-link text-nowrap" href="/{{ page }}">{% if active_page == page %}<u>{% endif %} {{ text }}
         {% if active_page == page %}</u>{% endif %}</a>
 {% endmacro %}
 
@@ -110,17 +110,27 @@
         <a class="navbar-brand" href="/">
             <img src="../static/image/f1_logo.svg" alt="Logo" width="120" height="30"
                  class="d-inline-block align-text-top">
-            Formula <i>10</i> - 2024
+            Formula <i>10</i>
         </a>
+
         <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarCollapse">
-            <div class="navbar-nav">
+            <div class="navbar-nav me-2">
                 {{ nav_selector("race", "Guess Race") }}
                 {{ nav_selector("season", "Guess Season") }}
                 {{ nav_selector("graphs", "Statistics") }}
                 {{ nav_selector("rules", "Rules") }}
+            </div>
+
+            {% block navbar_center %}{% endblock navbar_center %}
+            <div class="flex-grow-1"></div>
+
+            <div class="navbar-nav">
+                {{ nav_selector("enter", "Enter Race Result") }}
+                {{ nav_selector("users", "Manage Users") }}
             </div>
         </div>
     </div>

@@ -2,7 +2,22 @@
 
 {% set active_page = "race" %}
 
-{% block title %}Formula 10{% endblock title %}
+{% block title %}Formula 10 - Race{% endblock title %}
+
+{% block navbar_center %}
+    <div class="dropdown">
+        <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ chosenusername }}
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/race/Everyone">Everyone</a></li>
+            <li><hr class="dropdown-divider"></li>
+            {% for user in users %}
+                <li><a class="dropdown-item" href="/race/{{ user.name }}">{{ user.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock navbar_center %}
 
 {% block body %}
 
@@ -10,7 +25,7 @@
         <thead>
         <tr>
             <th scope="col" rowspan="2" class="text-center">Race</th>
-            <th scope="col" colspan="{{ users | length }}" class="text-center">Call</th>
+            <th scope="col" colspan="{{ chosenusers | length }}" class="text-center">Call</th>
             <th scope="col" rowspan="2" class="text-center">Result</th>
         </tr>
         </thead>
@@ -21,7 +36,7 @@
         <tr>
             <td>&nbsp;</td>
 
-            {% for user in users %}
+            {% for user in chosenusers %}
                 <td class="text-center text-nowrap">{{ user.name }}</td>
             {% endfor %}
 
@@ -33,7 +48,7 @@
             <tr class="table-light">
                 <td class="text-nowrap"><span class="fw-bold">{{ nextrace.id }}:</span> {{ nextrace.grandprix }}</td>
 
-                {% for user in users %}
+                {% for user in chosenusers %}
                     <td>
                         <form action="/guessrace/{{ nextrace.id }}/{{ user.name }}" method="post">
                             {# Driver PXX Select #}
@@ -73,7 +88,7 @@
                     <td class="text-nowrap"><span
                             class="fw-bold">{{ raceresult.race.id }}:</span> {{ raceresult.race.grandprix }}</td>
 
-                    {% for user in users %}
+                    {% for user in chosenusers %}
                         <td class="text-center text-nowrap">
                             {% if (raceresult.race_id in pastguesses) and (user.name in pastguesses.get(raceresult.race_id)) %}
                                 {% set pxx = pastguesses.get(raceresult.race_id).get(user.name).pxx.abbr %}

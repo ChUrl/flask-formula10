@@ -2,13 +2,30 @@
 
 {% set active_page = "season" %}
 
-{% block title %}Formula 10{% endblock title %}
+{% block title %}Formula 10 - Season{% endblock title %}
+
+{% block navbar_center %}
+    <div class="dropdown">
+        <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ chosenusername }}
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/season/Everyone">Everyone</a></li>
+            <li><hr class="dropdown-divider"></li>
+            {% for user in users %}
+                <li><a class="dropdown-item" href="/season/{{ user.name }}">{{ user.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock navbar_center %}
 
 {% block body %}
 
+    <h4 class="heading-text text-danger text-center">All fields (of a single user, excluding podiums) must be set or your inputs won't be saved!</h4>
+
     <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
-        {% for user in users %}
-            <div class="card mb-2 shadow-sm">
+        {% for user in chosenusers %}
+            <div class="card mb-2 shadow-sm" style="width: 450px;">
                 <div class="card-body">
                     <h5 class="card-title">{{ user.name }}</h5>
                     <form action="/guessseason/{{ user.name }}" method="post">
@@ -24,31 +41,31 @@
                         {# P2 Constructor #}
                         <div class="mt-2">
                             {{ team_select_with_preselect(currentselection.get(user.name).p2_constructor.name if user.name in currentselection else "",
-                                                              "p2select", "P2 Constructor:") }}
+                                                          "p2select", "P2 Constructor:") }}
                         </div>
 
                         {# Most Overtakes #}
                         <div class="mt-2">
                             {{ driver_select_with_preselect(currentselection.get(user.name).most_overtakes.abbr if user.name in currentselection else "",
-                                                                "overtakeselect", "Most Overtakes:") }}
+                                                            "overtakeselect", "Most Overtakes:") }}
                         </div>
 
                         {# Most DNFs #}
                         <div class="mt-2">
                             {{ driver_select_with_preselect(currentselection.get(user.name).most_dnfs.abbr if user.name in currentselection else "",
-                                                                "dnfselect", "Most DNFs:") }}
+                                                            "dnfselect", "Most DNFs:") }}
                         </div>
 
                         {# Most Gained #}
                         <div class="mt-2">
                             {{ driver_select_with_preselect(currentselection.get(user.name).most_gained.abbr if user.name in currentselection else "",
-                                                                "gainedselect", "Most Championship Positions gained:") }}
+                                                            "gainedselect", "Most Championship Positions gained:") }}
                         </div>
 
                         {# Most Lost #}
                         <div class="mt-2">
                             {{ driver_select_with_preselect(currentselection.get(user.name).most_lost.abbr if user.name in currentselection else "",
-                                                                "lostselect", "Most Championship Positions lost:") }}
+                                                            "lostselect", "Most Championship Positions lost:") }}
                         </div>
 
                         {# Team-internal Winners #}
