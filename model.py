@@ -8,9 +8,9 @@ import json
 
 db = SQLAlchemy()
 
-#
-# Static Data (Defined in Backend)
-#
+####################################
+# Static Data (Defined in Backend) #
+####################################
 
 
 class Race(db.Model):
@@ -60,9 +60,9 @@ class Driver(db.Model):
     team: Mapped["Team"] = relationship("Team", foreign_keys=[team_id])
 
 
-#
-# Dynamic Data (Defined in Frontend)
-#
+######################################
+# Dynamic Data (Defined in Frontend) #
+######################################
 
 
 class User(db.Model):

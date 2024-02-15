@@ -17,15 +17,22 @@ db.init_app(app)
 # - Sortable list to enter full race results (need 7 positions to calculate points),
 #   don't enter race result on guess page
 # - Move guessed place to leftmost column and display actual finishing position of driver instead
-# - Display selector to choose a single user on race guessing page
-# - Display selector to choose a single user on season guessing page?
-# - Choose place to guess late before the race?
+# - Choose "place to guess" late before the race?
 # - Already show coming race in table, to give better feedback once a user has locked in a guess
+# - Set fixed sizes for left- and rightmost column in races table
+# - Fix the weird sizing everywhere when selecting only a single user...
+# - Replace ALL absolute pixel values inside the templates
 
 
 @app.route("/")
 def index():
     return redirect("/race")
+
+
+@app.route("/saveall")
+def savedynamic():
+    export_dynamic_data()
+    return redirect("/")
 
 
 @app.route("/loadall")
@@ -35,37 +42,33 @@ def load():
     return redirect("/")
 
 
-@app.route("/reloadall")
-def reload():
-    export_dynamic_data()
-    reload_static_data(db)
-    reload_dynamic_data(db)
-    return redirect("/")
-
-
-@app.route("/reloadstatic")
+@app.route("/loadstatic")
 def reloadstatic():
     reload_static_data(db)
     return redirect("/")
 
 
-@app.route("/reloaddynamic")
+@app.route("/loaddynamic")
 def reloaddynamic():
     reload_dynamic_data(db)
     return redirect("/")
 
 
-@app.route("/savedynamic")
-def savedynamic():
-    export_dynamic_data()
-    return redirect("/")
-
-
 @app.route("/race")
-def guessraceresults():
+def guessraceresult():
+    return redirect("/race/Everyone")
+
+
+@app.route("/race/<username>")
+def guessuserraceresults(username):
     users: List[User] = User.query.all()
     raceresults: List[RaceResult] = RaceResult.query.all()[::-1]
     drivers: List[Driver] = Driver.query.all()
+
+    # Select User
+    chosenusers = users
+    if username != "Everyone":
+        chosenusers = [user for user in users if user.name == username]
 
     pastguesses = dict()  # The guesses for which raceresults exist
     nextguesses = dict()  # The guesses that are still open for modification
@@ -89,7 +92,9 @@ def guessraceresults():
                            raceresults=raceresults,
                            pastguesses=pastguesses,
                            currentselection=nextguesses,
-                           nextrace=nextrace)
+                           nextrace=nextrace,
+                           chosenusername=username,
+                           chosenusers=chosenusers)
 
 
 @app.route("/guessrace/<raceid>/<username>", methods=["POST"])
@@ -145,12 +150,21 @@ def enterresult(raceid):
 
 @app.route("/season")
 def guessseasonresults():
+    return redirect("/season/Everyone")
+
+
+@app.route("/season/<username>")
+def guessuserseasonresults(username):
     users: List[User] = User.query.all()
     teams: List[Team] = Team.query.all()
     drivers: List[Driver] = Driver.query.all()
 
     # Remove NONE driver
     drivers = [driver for driver in drivers if driver.name != "NONE"]
+    # Select User
+    chosenusers = users
+    if username != "Everyone":
+        chosenusers = [user for user in users if user.name == username]
 
     seasonguesses = dict()
     guess: SeasonGuess
@@ -170,7 +184,9 @@ def guessseasonresults():
                            teams=teams,
                            drivers=drivers,
                            driverpairs=driverpairs,
-                           currentselection=seasonguesses)
+                           currentselection=seasonguesses,
+                           chosenusername=username,
+                           chosenusers=chosenusers)
 
 
 @app.route("/guessseason/<username>", methods=["POST"])
