@@ -3,7 +3,7 @@ from typing import List
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from model import *
-from database_utils import reload_static_data, export_dynamic_data
+from database_utils import reload_static_data, reload_dynamic_data, export_dynamic_data
 
 app = Flask(__name__)
 
@@ -28,14 +28,35 @@ def index():
     return redirect("/race")
 
 
-@app.route("/reload")
+@app.route("/loadall")
+def load():
+    reload_static_data(db)
+    reload_dynamic_data(db)
+    return redirect("/")
+
+
+@app.route("/reloadall")
 def reload():
+    export_dynamic_data()
+    reload_static_data(db)
+    reload_dynamic_data(db)
+    return redirect("/")
+
+
+@app.route("/reloadstatic")
+def reloadstatic():
     reload_static_data(db)
     return redirect("/")
 
 
-@app.route("/save")
-def save():
+@app.route("/reloaddynamic")
+def reloaddynamic():
+    reload_dynamic_data(db)
+    return redirect("/")
+
+
+@app.route("/savedynamic")
+def savedynamic():
     export_dynamic_data()
     return redirect("/")
 

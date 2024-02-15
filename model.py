@@ -8,15 +8,9 @@ import json
 
 db = SQLAlchemy()
 
-
-class User(db.Model):
-    __tablename__ = "user"
-
-    def from_csv(self, row):
-        self.name = str(row[0])
-        return self
-
-    name: Mapped[str] = mapped_column(String(32), primary_key=True)
+#
+# Static Data (Defined in Backend)
+#
 
 
 class Race(db.Model):
@@ -66,6 +60,27 @@ class Driver(db.Model):
     team: Mapped["Team"] = relationship("Team", foreign_keys=[team_id])
 
 
+#
+# Dynamic Data (Defined in Frontend)
+#
+
+
+class User(db.Model):
+    __tablename__ = "user"
+    __csv_header__ = ["name"]
+
+    def from_csv(self, row):
+        self.name = str(row[0])
+        return self
+
+    def to_csv(self):
+        return [
+            self.name
+        ]
+
+    name: Mapped[str] = mapped_column(String(32), primary_key=True)
+
+
 class RaceResult(db.Model):
     __tablename__ = "raceresult"
     __csv_header__ = ["id", "race_id", "pxx_id", "dnf_id"]
@@ -74,7 +89,7 @@ class RaceResult(db.Model):
         self.id = int(row[0])
         self.race_id = int(row[1])
         self.pxx_id = str(row[2])
-        self.dnf_id = str(row[22])
+        self.dnf_id = str(row[3])
         return self
 
     def to_csv(self):
@@ -130,17 +145,13 @@ class RaceGuess(db.Model):
     dnf: Mapped["Driver"] = relationship("Driver", foreign_keys=[dnf_id])
 
 
-# Per season guesses: Hot, P2 Constructor, Most overtakes, Most DNFs, Team winner,
-#                     At least 1 podium
-
-
 class TeamWinners(db.Model):
     __tablename__ = "teamwinners"
     __csv_header__ = ["id", "user_id", "winner_ids_json"]
 
     def from_csv(self, row):
         self.id = int(row[0])
-        self.user_id = int(row[1])
+        self.user_id = str(row[1])
         self.winner_ids_json = str(row[2])
         return self
 
@@ -183,7 +194,7 @@ class PodiumDrivers(db.Model):
 
     def from_csv(self, row):
         self.id = int(row[0])
-        self.user_id = int(row[1])
+        self.user_id = str(row[1])
         self.podium_ids_json = str(row[2])
         return self
 

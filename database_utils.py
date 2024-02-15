@@ -1,17 +1,26 @@
 import csv
+import os.path
+
 from model import *
 
 
 def load_csv(filename):
-    with open("init_data/" + filename + ".csv", "r", newline="") as file:
+    if not os.path.exists(filename):
+        print(f"Could not load data from file {filename}, as it doesn't exist!")
+        return []
+
+    with open(filename, "r", newline="") as file:
         reader = csv.reader(file, delimiter=",")
         next(reader, None)  # skip header
         return list(reader)
 
 
-# @todo CSV-Writer
 def write_csv(filename, objects):
-    with open("dynamic_data/" + filename + ".csv", "w", newline="") as file:
+    if len(objects) == 0:
+        print(f"Could not write objects to file {filename}, as no objects were given!")
+        return
+
+    with open(filename, "w", newline="") as file:
         writer = csv.writer(file, delimiter=",")
         writer.writerow(objects[0].__csv_header__)
         for obj in objects:
@@ -31,14 +40,42 @@ def reload_static_data(db):
     User.query.delete()
 
     # Reload static data
-    for row in load_csv("teams"):
+    for row in load_csv("static_data/teams.csv"):
         db.session.add(Team().from_csv(row))
-    for row in load_csv("drivers"):
+    for row in load_csv("static_data/drivers.csv"):
         db.session.add(Driver().from_csv(row))
-    for row in load_csv("races"):
+    for row in load_csv("static_data/races.csv"):
         db.session.add(Race().from_csv(row))
-    for row in load_csv("users"):
+    for row in load_csv("static_data/users.csv"):
         db.session.add(User().from_csv(row))
+
+    db.session.commit()
+
+
+def reload_dynamic_data(db):
+    print("Initializing Database with Dynamic Values...")
+
+    # Clear dynamic data
+    User.query.delete()
+    RaceResult.query.delete()
+    RaceGuess.query.delete()
+    TeamWinners.query.delete()
+    PodiumDrivers.query.delete()
+    SeasonGuess.query.delete()
+
+    # Reload dynamic data
+    for row in load_csv("dynamic_data/users.csv"):
+        db.session.add(User().from_csv(row))
+    for row in load_csv("dynamic_data/raceresults.csv"):
+        db.session.add(RaceResult().from_csv(row))
+    for row in load_csv("dynamic_data/raceguesses.csv"):
+        db.session.add(RaceGuess().from_csv(row))
+    for row in load_csv("dynamic_data/teamwinners.csv"):
+        db.session.add(TeamWinners().from_csv(row))
+    for row in load_csv("dynamic_data/podiumdrivers.csv"):
+        db.session.add(PodiumDrivers().from_csv(row))
+    for row in load_csv("dynamic_data/seasonguesses.csv"):
+        db.session.add(SeasonGuess().from_csv(row))
 
     db.session.commit()
 
@@ -46,13 +83,16 @@ def reload_static_data(db):
 def export_dynamic_data():
     print("Exporting Userdata...")
 
+    users = User.query.all()
     raceresults = RaceResult.query.all()
     raceguesses = RaceGuess.query.all()
+    teamwinners = TeamWinners.query.all()
+    podiumdrivers = PodiumDrivers.query.all()
     seasonguesses = SeasonGuess.query.all()
 
-    if len(raceresults) > 0:
-        write_csv("raceresults", raceresults)
-    if len(raceguesses) > 0:
-        write_csv("raceguesses", raceguesses)
-    if len(seasonguesses) > 0:
-        write_csv("seasonguesses", seasonguesses)
+    write_csv("dynamic_data/users.csv", users)
+    write_csv("dynamic_data/raceresults.csv", raceresults)
+    write_csv("dynamic_data/raceguesses.csv", raceguesses)
+    write_csv("dynamic_data/teamwinners.csv", teamwinners)
+    write_csv("dynamic_data/podiumdrivers.csv", podiumdrivers)
+    write_csv("dynamic_data/seasonguesses.csv", seasonguesses)
