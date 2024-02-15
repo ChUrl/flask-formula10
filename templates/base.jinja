@@ -7,6 +7,82 @@
         {% if active_page == page %}</u>{% endif %}</a>
 {% endmacro %}
 
+{# Simple driver dropdown. Requires list of drivers. #}
+{% macro driver_select(name='', label='') %}
+    <div class="form-floating">
+        <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
+            <option value="" selected disabled hidden></option>
+            {% for driver in drivers %}
+                <option value="{{ driver.name }}">{{ driver.abbr }}</option>
+            {% endfor %}
+        </select>
+        <label for="{{ name }}" class="text-primary">{{ label }}</label>
+    </div>
+{% endmacro %}
+
+{# Driver dropdown where a value might be preselected. Requires list of drivers. #}
+{% macro driver_select_with_preselect(match='', name='', label='') %}
+    <div class="form-floating">
+        <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
+            {# Use namespace wrapper to persist scope between loop iterations #}
+            {% set user_has_chosen = namespace(driverpre="false") %}
+
+            {% for driver in drivers %}
+                {% if match == driver.abbr %}
+                    {% set user_has_chosen.driverpre = "true" %}
+                    <option selected="selected" value="{{ driver.name }}">{{ driver.abbr }}</option>
+                {% else %}
+                    <option value="{{ driver.name }}">{{ driver.abbr }}</option>
+                {% endif %}
+            {% endfor %}
+
+            {# Add an empty default if nothing has been chosen #}
+            {% if user_has_chosen.driverpre == "false" %}
+                <option value="" selected="selected" disabled="disabled" hidden="hidden"></option>
+            {% endif %}
+        </select>
+        <label for="{{ name }}" class="text-primary">{{ label }}</label>
+    </div>
+{% endmacro %}
+
+{# Simple team dropdown. Requires list of teams. #}
+{% macro team_select(name='', label='') %}
+    <div class="form-floating">
+        <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
+            <option value="" selected disabled hidden></option>
+            {% for team in teams %}
+                <option value="{{ team.name }}">{{ team.name }}</option>
+            {% endfor %}
+        </select>
+        <label for="{{ name }}" class="text-primary">{{ label }}</label>
+    </div>
+{% endmacro %}
+
+{# Team dropdown where a value might be preselected. Requires list of teams. #}
+{% macro team_select_with_preselect(match='', name='', label='') %}
+    <div class="form-floating">
+        <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
+            {# Use namespace wrapper to persist scope between loop iterations #}
+            {% set user_has_chosen = namespace(teampre="false") %}
+
+            {% for team in teams %}
+                {% if match == team.name %}
+                    {% set user_has_chosen.teampre = "true" %}
+                    <option selected="selected" value="{{ team.name }}">{{ team.name }}</option>
+                {% else %}
+                    <option value="{{ team.name }}">{{ team.name }}</option>
+                {% endif %}
+            {% endfor %}
+
+            {# Add an empty default if nothing has been chosen #}
+            {% if user_has_chosen.teampre == "false" %}
+                <option value="" selected="selected" disabled="disabled" hidden="hidden"></option>
+            {% endif %}
+        </select>
+        <label for="{{ name }}" class="text-primary">{{ label }}</label>
+    </div>
+{% endmacro %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,8 +92,15 @@
     <link rel="icon" href="../static/image/favicon.svg" sizes="any" type="image/svg+xml">
 
     <!-- Bootstrap -->
-    <link href="../static/style/bootstrap.min.css" rel="stylesheet">
-    <script src="../static/script/bootstrap.bundle.min.js"></script>
+    <link href="../static/style/bootstrap.css" rel="stylesheet">
+    <script src="../static/script/bootstrap.bundle.js"></script>
+
+    {# <script> #}
+    {#     {# Initialize Bootstrap Tooltips #} #}
+    {#     console.log("Initializing Tooltips...") #}
+    {#     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]') #}
+    {#     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl)) #}
+    {# </script> #}
 </head>
 
 <body>
@@ -43,7 +126,7 @@
     </div>
 </nav>
 
-<div style="margin-top: 55px;">
+<div class="px-2 pt-2" style="margin-top: 32px;">
     {% block body %}{% endblock body %}
 </div>
 
