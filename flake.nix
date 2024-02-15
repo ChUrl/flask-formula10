@@ -31,6 +31,11 @@
 
           packages = with pkgs; [
             myPython
+
+            nodejs_21
+            nodePackages.sass
+            nodePackages.postcss-cli
+            nodePackages.autoprefixer
           ];
 
           # Use $1 for positional args
