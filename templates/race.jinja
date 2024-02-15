@@ -6,7 +6,7 @@
 
 {% block body %}
 
-    <table class="table table-bordered">
+    <table class="table table-bordered table-sm table-responsive">
         <thead>
         <tr>
             <th scope="col" rowspan="2" class="text-center">Race</th>
@@ -22,7 +22,7 @@
             <td>&nbsp;</td>
 
             {% for user in users %}
-                <td class="text-center">{{ user.name }}</td>
+                <td class="text-center text-nowrap">{{ user.name }}</td>
             {% endfor %}
 
             <td>&nbsp;</td>
@@ -30,8 +30,8 @@
 
         {# Next Race Guess #}
         {% if nextrace is not none %}
-            <tr>
-                <td><span class="fw-bold">{{ nextrace.id }}:</span> {{ nextrace.grandprix }}</td>
+            <tr class="table-light">
+                <td class="text-nowrap"><span class="fw-bold">{{ nextrace.id }}:</span> {{ nextrace.grandprix }}</td>
 
                 {% for user in users %}
                     <td>
@@ -44,14 +44,17 @@
                                     {% for driver in drivers %}
                                         {% if (user.name in nextguesses) and (nextguesses.get(user.name).pxx.abbr == driver.abbr) %}
                                             {% set user_has_chosen.pxx = "true" %}
-                                            <option selected="selected" value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                            <option selected="selected"
+                                                    value="{{ driver.name }}">{{ driver.abbr }}</option>
                                         {% else %}
                                             <option value="{{ driver.name }}">{{ driver.abbr }}</option>
                                         {% endif %}
                                     {% endfor %}
 
+                                    {# Add an empty default if nothing has been chosen #}
                                     {% if user_has_chosen.pxx == "false" %}
-                                        <option value="" selected="selected" disabled="disabled" hidden="hidden"></option>
+                                        <option value="" selected="selected" disabled="disabled"
+                                                hidden="hidden"></option>
                                     {% endif %}
                                 </select>
                                 <label for="pxxselect" class="text-primary">P{{ nextrace.pxx }}:</label>
@@ -65,20 +68,23 @@
                                     {% for driver in drivers %}
                                         {% if (user.name in nextguesses) and (nextguesses.get(user.name).dnf.abbr == driver.abbr) %}
                                             {% set user_has_chosen.dnf = "true" %}
-                                            <option selected="selected" value="{{ driver.name }}">{{ driver.abbr }}</option>
+                                            <option selected="selected"
+                                                    value="{{ driver.name }}">{{ driver.abbr }}</option>
                                         {% else %}
                                             <option value="{{ driver.name }}">{{ driver.abbr }}</option>
                                         {% endif %}
                                     {% endfor %}
 
+                                    {# Add an empty default if nothing has been chosen #}
                                     {% if user_has_chosen.dnf == "false" %}
-                                        <option value="" selected="selected" disabled="disabled" hidden="hidden"></option>
+                                        <option value="" selected="selected" disabled="disabled"
+                                                hidden="hidden"></option>
                                     {% endif %}
                                 </select>
                                 <label for="dnfselect" class="text-primary">DNF:</label>
                             </div>
 
-                            <input type="submit" class="btn btn-primary mt-2 w-100" value="Save">
+                            <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
                         </form>
                     </td>
                 {% endfor %}
@@ -108,7 +114,7 @@
                             <label for="dnfselect" class="text-primary">DNF:</label>
                         </div>
 
-                        <input type="submit" class="btn btn-primary mt-2 w-100" value="Save">
+                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
                     </form>
                 </td>
             </tr>
@@ -116,10 +122,10 @@
             {# Race Results #}
             {% for raceresult in raceresults %}
                 <tr>
-                    <td><span class="fw-bold">{{ raceresult.race.id }}:</span> {{ raceresult.race.grandprix }}</td>
+                    <td class="text-nowrap"><span class="fw-bold">{{ raceresult.race.id }}:</span> {{ raceresult.race.grandprix }}</td>
 
                     {% for user in users %}
-                        <td>
+                        <td class="text-center text-nowrap">
                             {% if (raceresult.race_id in guesses) and (user.name in guesses.get(raceresult.race_id)) %}
                                 {% set pxx = guesses.get(raceresult.race_id).get(user.name).pxx.abbr %}
                                 {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.abbr %}
@@ -133,8 +139,7 @@
                         </td>
                     {% endfor %}
 
-
-                    <td>
+                    <td class="text-center text-nowrap">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">P{{ raceresult.race.pxx }}: {{ raceresult.pxx.abbr }}</li>
                             <li class="list-group-item {% if raceresult.dnf.abbr == 'NON' %}text-muted{% endif %}">
