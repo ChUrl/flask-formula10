@@ -1,9 +1,128 @@
 {% extends 'base.jinja' %}
 
-{% set active_page = "race" %}
+{% set active_page = "season" %}
 
 {% block title %}Formula 10{% endblock title %}
 
 {% block body %}
+
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
+        {% for user in users %}
+            <div class="card mb-2 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ user.name }}</h5>
+                    <form action="/guessseason/{{ user.name }}" method="post">
+
+                        {# Hot Take #}
+                        <div class="form-floating">
+                                <textarea class="form-control" id="hot-take-input-{{ user.name }}" name="hottakeselect"
+                                          style="height: 50px">{%- if (user.name in currentselection) -%}
+                                    {{- currentselection.get(user.name).hot_take -}}{%- endif -%}</textarea>
+                            <label for="hot-take-input-{{ user.name }}" class="text-primary">Hot Take:</label>
+                        </div>
+
+                        {# P2 Constructor #}
+                        <div class="mt-2">
+                            {{ team_select_with_preselect(currentselection.get(user.name).p2_constructor.name if user.name in currentselection else "",
+                                                              "p2select", "P2 Constructor:") }}
+                        </div>
+
+                        {# Most Overtakes #}
+                        <div class="mt-2">
+                            {{ driver_select_with_preselect(currentselection.get(user.name).most_overtakes.abbr if user.name in currentselection else "",
+                                                                "overtakeselect", "Most Overtakes:") }}
+                        </div>
+
+                        {# Most DNFs #}
+                        <div class="mt-2">
+                            {{ driver_select_with_preselect(currentselection.get(user.name).most_dnfs.abbr if user.name in currentselection else "",
+                                                                "dnfselect", "Most DNFs:") }}
+                        </div>
+
+                        {# Most Gained #}
+                        <div class="mt-2">
+                            {{ driver_select_with_preselect(currentselection.get(user.name).most_gained.abbr if user.name in currentselection else "",
+                                                                "gainedselect", "Most Championship Positions gained:") }}
+                        </div>
+
+                        {# Most Lost #}
+                        <div class="mt-2">
+                            {{ driver_select_with_preselect(currentselection.get(user.name).most_lost.abbr if user.name in currentselection else "",
+                                                                "lostselect", "Most Championship Positions lost:") }}
+                        </div>
+
+                        {# Team-internal Winners #}
+                        <h6 class="card-subtitle mt-2">Team-Internal Winners:</h6>
+                        <div class="grid mt-2" style="width: 450px; row-gap: 5px;">
+                            {% for team in teams %}
+                                {% set driver_a_name = driverpairs.get(team.name)[0].name %}
+                                {% set driver_b_name = driverpairs.get(team.name)[1].name %}
+
+                                <div class="g-col-6">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio"
+                                               name="teamwinner-{{ team.name }}"
+                                               id="teamwinner-{{ team.name }}-1-{{ user.name }}"
+                                               value="{{ driver_a_name }}"
+                                               {% if (user.name in currentselection) and (driver_a_name in currentselection.get(user.name).team_winners.winner_ids) %}checked="checked"{% endif %}>
+                                        <label class="form-check-label"
+                                               for="teamwinner-{{ team.name }}-1-{{ user.name }}">{{ driver_a_name }}</label>
+                                    </div>
+                                </div>
+
+                                <div class="g-col-6">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio"
+                                               name="teamwinner-{{ team.name }}"
+                                               id="teamwinner-{{ team.name }}-2-{{ user.name }}"
+                                               value="{{ driver_b_name }}"
+                                               {% if (user.name in currentselection) and (driver_b_name in currentselection.get(user.name).team_winners.winner_ids) %}checked="checked"{% endif %}>
+                                        <label class="form-check-label"
+                                               for="teamwinner-{{ team.name }}-2-{{ user.name }}">{{ driver_b_name }}</label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {# Drivers with Podiums #}
+                        <h6 class="card-subtitle mt-2">Drivers with Podium(s):</h6>
+                        <div class="grid mt-2" style="width: 450px; row-gap: 5px;">
+                            {% for team in teams %}
+                                {% set driver_a_name = driverpairs.get(team.name)[0].name %}
+                                {% set driver_b_name = driverpairs.get(team.name)[1].name %}
+
+                                <div class="g-col-6">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="podiumdrivers"
+                                               id="podium-{{ driver_a_name }}-{{ user.name }}"
+                                               value="{{ driver_a_name }}"
+                                               {% if (user.name in currentselection) and (driver_a_name in currentselection.get(user.name).podium_drivers.podium_ids) %}checked="checked"{% endif %}>
+                                        <label class="form-check-label"
+                                               for="podium-{{ driver_a_name }}-{{ user.name }}">{{ driver_a_name }}</label>
+                                    </div>
+                                </div>
+
+                                <div class="g-col-6">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="podiumdrivers"
+                                               id="podium-{{ driver_b_name }}-{{ user.name }}"
+                                               value="{{ driver_b_name }}"
+                                               {% if (user.name in currentselection) and (driver_b_name in currentselection.get(user.name).podium_drivers.podium_ids) %}checked="checked"{% endif %}>
+                                        <label class="form-check-label"
+                                               for="podium-{{ driver_b_name }}-{{ user.name }}">{{ driver_b_name }}</label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
+
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 
 {% endblock body %}
