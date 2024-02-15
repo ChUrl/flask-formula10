@@ -1,3 +1,5 @@
+from typing import List
+
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from model import *
@@ -9,6 +11,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///formula10.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
+
+# TODO
+# - Sortable list to enter full race results (need 7 positions to calculate points),
+#   don't enter race result on guess page
+# - Move guessed place to leftmost column and display actual finishing position of driver instead
+# - Display selector to choose a single user on race guessing page
+# - Display selector to choose a single user on season guessing page?
+# - Choose place to guess late before the race?
+# - Already show coming race in table, to give better feedback once a user has locked in a guess
 
 
 @app.route("/")
@@ -30,30 +42,32 @@ def save():
 
 @app.route("/race")
 def guessraceresults():
-    users = User.query.all()
-    raceresults = RaceResult.query.all()[::-1]
-    drivers = Driver.query.all()
+    users: List[User] = User.query.all()
+    raceresults: List[RaceResult] = RaceResult.query.all()[::-1]
+    drivers: List[Driver] = Driver.query.all()
 
-    guesses = dict()  # The guesses for which raceresults exist
+    pastguesses = dict()  # The guesses for which raceresults exist
     nextguesses = dict()  # The guesses that are still open for modification
+    raceresult: RaceResult
     for raceresult in raceresults:
-        guesses[raceresult.race_id] = dict()
+        pastguesses[raceresult.race_id] = dict()
+    guess: RaceGuess
     for guess in RaceGuess.query.all():
-        if guess.race_id in guesses:
-            guesses[guess.race_id][guess.user_id] = guess
+        if guess.race_id in pastguesses:
+            pastguesses[guess.race_id][guess.user_id] = guess
         else:
             nextguesses[guess.user_id] = guess
 
     # TODO: Getting by ID might be stupid, get by date instead?
     nextid = raceresults[0].race_id + 1 if len(raceresults) > 0 else 1
-    nextrace = Race.query.filter_by(id=nextid).first()
+    nextrace: Race = Race.query.filter_by(id=nextid).first()
 
     return render_template("race.jinja",
                            users=users,
                            drivers=drivers,
                            raceresults=raceresults,
-                           guesses=guesses,
-                           nextguesses=nextguesses,
+                           pastguesses=pastguesses,
+                           currentselection=nextguesses,
                            nextrace=nextrace)
 
 
@@ -106,6 +120,97 @@ def enterresult(raceid):
     db.session.commit()
 
     return redirect("/race")
+
+
+@app.route("/season")
+def guessseasonresults():
+    users: List[User] = User.query.all()
+    teams: List[Team] = Team.query.all()
+    drivers: List[Driver] = Driver.query.all()
+
+    # Remove NONE driver
+    drivers = [driver for driver in drivers if driver.name != "NONE"]
+
+    seasonguesses = dict()
+    guess: SeasonGuess
+    for guess in SeasonGuess.query.all():
+        seasonguesses[guess.user_id] = guess
+
+    driverpairs = dict()
+    team: Team
+    for team in teams:
+        driverpairs[team.name] = []
+    driver: Driver
+    for driver in drivers:
+        driverpairs[driver.team.name] += [driver]
+
+    return render_template("season.jinja",
+                           users=users,
+                           teams=teams,
+                           drivers=drivers,
+                           driverpairs=driverpairs,
+                           currentselection=seasonguesses)
+
+
+@app.route("/guessseason/<username>", methods=["POST"])
+def guessseason(username):
+    guesses = [
+        request.form.get("hottakeselect"),
+        request.form.get("p2select"),
+        request.form.get("overtakeselect"),
+        request.form.get("dnfselect"),
+        request.form.get("gainedselect"),
+        request.form.get("lostselect")
+    ]
+    teamwinnerguesses = [
+        request.form.get(f"teamwinner-{team.name}") for team in Team.query.all()
+    ]
+    podiumdriverguesses = request.form.getlist("podiumdrivers")
+
+    if any(guess is None for guess in guesses + teamwinnerguesses):
+        print("Error: /guessseason could not obtain request data!")
+        return redirect("/season")
+
+    seasonguess: SeasonGuess | None = SeasonGuess.query.filter_by(user_id=username).first()
+    teamwinners: TeamWinners | None = seasonguess.team_winners if seasonguess is not None else None
+    podiumdrivers: PodiumDrivers | None = seasonguess.podium_drivers if seasonguess is not None else None
+
+    if teamwinners is None:
+        teamwinners = TeamWinners()
+        db.session.add(teamwinners)
+
+    teamwinners.winner_ids = teamwinnerguesses
+    teamwinners.user_id = username
+    db.session.commit()
+
+    if podiumdrivers is None:
+        podiumdrivers = PodiumDrivers()
+        db.session.add(podiumdrivers)
+
+    podiumdrivers.podium_ids = podiumdriverguesses
+    podiumdrivers.user_id = username
+    db.session.commit()
+
+    # Refresh teamwinners + podiumdrivers to obtain IDs
+    teamwinners = TeamWinners.query.filter_by(user_id=username).first()
+    podiumdrivers = PodiumDrivers.query.filter_by(user_id=username).first()
+
+    if seasonguess is None:
+        seasonguess = SeasonGuess()
+        seasonguess.user_id = username
+        db.session.add(seasonguess)
+
+    seasonguess.hot_take = guesses[0]
+    seasonguess.p2_constructor_id = guesses[1]
+    seasonguess.most_overtakes_id = guesses[2]
+    seasonguess.most_dnfs_id = guesses[3]
+    seasonguess.most_gained_id = guesses[4]
+    seasonguess.most_lost_id = guesses[5]
+    seasonguess.team_winners_id = teamwinners.id
+    seasonguess.podium_drivers_id = podiumdrivers.id
+    db.session.commit()
+
+    return redirect("/season")
 
 
 if __name__ == "__main__":
