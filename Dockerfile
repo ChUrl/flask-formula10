@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.10.1-slim-buster
+FROM python:3.11.8-slim-bookworm
 RUN apt-get update -y
 WORKDIR /app
 COPY requirements.txt requirements.txt
