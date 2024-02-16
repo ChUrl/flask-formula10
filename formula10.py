@@ -14,14 +14,11 @@ db.init_app(app)
 
 
 # TODO
-# - Sortable list to enter full race results (need 7 positions to calculate points),
-#   don't enter race result on guess page
+# - Sortable list to enter full race results (need 7 positions to calculate points) => remove from race page
 # - Move guessed place to leftmost column and display actual finishing position of driver instead
 # - Choose "place to guess" late before the race?
 # - Already show coming race in table, to give better feedback once a user has locked in a guess
-# - Set fixed sizes for left- and rightmost column in races table
-# - Fix the weird sizing everywhere when selecting only a single user...
-# - Replace ALL absolute pixel values inside the templates
+# - Fix the weird sizing everywhere when selecting only a single user, center the season card...
 
 
 @app.route("/")
