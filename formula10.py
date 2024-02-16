@@ -247,5 +247,44 @@ def guessseason(username):
     return redirect("/season")
 
 
+@app.route("/users")
+def users():
+    users = User.query.all()
+
+    return render_template("users.jinja",
+                           users=users)
+
+
+@app.route("/adduser", methods=["POST"])
+def adduser():
+    username = request.form.get("select-add-user").strip()
+
+    if len(User.query.filter_by(name=username).all()) > 0:
+        print(f"Not adding user {username}: Already exists!")
+        return redirect("/users")
+
+    user = User()
+    user.name = username
+    db.session.add(user)
+    db.session.commit()
+
+    return redirect("/users")
+
+
+@app.route("/deleteuser", methods=["POST"])
+def deleteuser():
+    username = request.form.get("select-delete-user")
+
+    if username == "Select User":
+        return redirect("/users")
+
+    print(f"Deleting user {username}...")
+
+    User.query.filter_by(name=username).delete()
+    db.session.commit()
+
+    return redirect("/users")
+
+
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0")
+    app.run(debug=True, host="0.0.0.0")

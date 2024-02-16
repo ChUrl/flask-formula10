@@ -1,0 +1,63 @@
+{% extends 'base.jinja' %}
+
+{% set active_page = "users" %}
+
+{% block title %}Formula 10 - Users{% endblock title %}
+
+{% block body %}
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Add User</h5>
+
+            <form action="/adduser" method="post">
+                <div class="input-group">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="select-add-user" name="select-add-user" placeholder="Username:">
+                        <label for="select-add-user">Username:</label>
+                    </div>
+
+                    <input type="submit" class="form-control btn btn-danger" value="Add" style="max-width: 200px;">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-2">
+        <div class="card-body">
+            <h5 class="card-title">Registered Users</h5>
+
+            <ul class="list-group list-group-flush">
+                {% for user in users %}
+                    <li class="list-group-item">{{ user.name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card mt-2">
+        <div class="card-body">
+            <h5 class="card-title">Delete User</h5>
+
+            <form action="/deleteuser" method="post">
+                <div class="input-group">
+                    <select class="form-control form-select" aria-label="select-delete-user" name="select-delete-user">
+                        <option selected="selected">Select User</option>
+                        {% for user in users %}
+                            <option value="{{ user.name }}">{{ user.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <input type="submit" class="form-control btn btn-danger" value="Delete" style="max-width: 200px;">
+                </div>
+
+                <div class="form-text">
+                    "Deleting" a user just hides it from the user interface without deleting any inputs, your "pERsoNaL
+                    DaTa" belongs to ME now.<br>
+                    Re-adding a user with the same name will "restore" it. That doesn't mean you're allowed to remove everyone though.
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock body %}
