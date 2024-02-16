@@ -1,0 +1,6 @@
+rich
+numpy
+
+flask
+flask-sqlalchemy
+sqlalchemy

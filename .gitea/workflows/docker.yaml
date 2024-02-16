@@ -1,0 +1,27 @@
+name: Build Formula10 Docker Image
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - ".gitea/workflows/*"
+      - "Dockerfile"
+      - "*.py"
+      - "requirements.txt"
+
+jobs:
+  build-docker:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Login to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: gitea.vps.chriphost.de
+          username: ${{ secrets.CONTAINER_REGISTRY_USER }}
+          password: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
+      - name: Build Docker image
+        run: docker build . --file Dockerfile --tag gitea.vps.chriphost.de/christoph/formula10:latest
+      - name: Push Docker image
+        run: docker push gitea.vps.chriphost.de/christoph/formula10:latest
