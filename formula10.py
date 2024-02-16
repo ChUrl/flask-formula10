@@ -248,7 +248,7 @@ def guessseason(username):
 
 
 @app.route("/users")
-def users():
+def manageusers():
     users = User.query.all()
 
     return render_template("users.jinja",

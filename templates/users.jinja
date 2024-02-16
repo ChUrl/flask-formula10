@@ -39,7 +39,7 @@
 
         <div class="card mt-2">
             <div class="card-body">
-                <h5 class="card-title">Delete User</h5>
+                <h5 class="card-title">Delete user</h5>
 
                 <form action="/deleteuser" method="post">
                     <div class="input-group">
@@ -66,5 +66,17 @@
             </div>
         </div>
     {% endif %}
+
+    <div class="card mt-2 border-danger">
+        <div class="card-body">
+            <h5 class="card-title">Functions that should not be public</h5>
+            <h6 class="card-subtitle mb-2">(Fuck you if you click this without knowing what it does)</h6>
+
+            <a class="btn btn-outline-danger" href="/saveall">Save all data</a>
+            <a class="btn btn-outline-danger" href="/loadall">Load all data</a>
+            <a class="btn btn-outline-danger" href="/loadstatic">Load static data</a>
+            <a class="btn btn-outline-danger" href="/loaddynamic">Load dynamic data</a>
+        </div>
+    </div>
 
 {% endblock body %}

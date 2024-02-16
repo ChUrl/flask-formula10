@@ -40,13 +40,13 @@
                         {# P2 Constructor #}
                         <div class="mt-2">
                             {{ team_select_with_preselect(currentselection.get(user.name).p2_constructor.name if user.name in currentselection else "",
-                                                          "p2select", "P2 Constructor:") }}
+                                                          "p2select", "P2 in WCC:") }}
                         </div>
 
                         {# Most Overtakes + DNFs #}
                         <div class="input-group mt-2">
                             {{ driver_select_with_preselect(currentselection.get(user.name).most_overtakes.abbr if user.name in currentselection else "",
-                                                            "overtakeselect", "Most Overtakes:") }}
+                                                            "overtakeselect", "Most overtakes:") }}
                             {{ driver_select_with_preselect(currentselection.get(user.name).most_dnfs.abbr if user.name in currentselection else "",
                                                             "dnfselect", "Most DNFs:") }}
                         </div>
@@ -54,13 +54,13 @@
                         {# Most Gained + Lost #}
                         <div class="input-group mt-2">
                             {{ driver_select_with_preselect(currentselection.get(user.name).most_gained.abbr if user.name in currentselection else "",
-                                                            "gainedselect", "Most WDC Places gained:") }}
+                                                            "gainedselect", "Most WDC places gained:") }}
                             {{ driver_select_with_preselect(currentselection.get(user.name).most_lost.abbr if user.name in currentselection else "",
-                                                            "lostselect", "Most WDC Places lost:") }}
+                                                            "lostselect", "Most WDC places lost:") }}
                         </div>
 
                         {# Team-internal Winners #}
-                        <h6 class="card-subtitle mt-2">Team-Internal Winners:</h6>
+                        <h6 class="card-subtitle mt-2">Teammate battle winners:</h6>
                         <div class="grid mt-2" style="width: 450px; row-gap: 0;">
                             {% for team in teams %}
                                 {% set driver_a_name = driverpairs.get(team.name)[0].name %}
@@ -93,7 +93,7 @@
                         </div>
 
                         {# Drivers with Podiums #}
-                        <h6 class="card-subtitle mt-2">Drivers with Podium(s):</h6>
+                        <h6 class="card-subtitle mt-2">Drivers with podium(s):</h6>
                         <div class="grid mt-2" style="width: 450px; row-gap: 0;">
                             {% for team in teams %}
                                 {% set driver_a_name = driverpairs.get(team.name)[0].name %}

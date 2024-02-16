@@ -8,6 +8,7 @@ on:
       - "Dockerfile"
       - "*.py"
       - "requirements.txt"
+      - "*.jinja"
 
 jobs:
   build-docker:
