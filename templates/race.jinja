@@ -6,12 +6,15 @@
 
 {% block navbar_center %}
     <div class="dropdown">
-        <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
             {{ chosenusername }}
         </button>
         <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="/race/Everyone">Everyone</a></li>
-            <li><hr class="dropdown-divider"></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
             {% for user in users %}
                 <li><a class="dropdown-item" href="/race/{{ user.name }}">{{ user.name }}</a></li>
             {% endfor %}
@@ -25,7 +28,11 @@
         <thead>
         <tr>
             <th scope="col" rowspan="2" class="text-center" style="width: 200px;">Race</th>
-            <th scope="col" colspan="{{ chosenusers | length }}" class="text-center">Call</th>
+
+            {% if chosenusers | length > 0 %}
+                <th scope="col" colspan="{{ chosenusers | length }}" class="text-center">Call</th>
+            {% endif %}
+
             <th scope="col" rowspan="2" class="text-center" style="width: 200px;">Result</th>
         </tr>
         </thead>
@@ -37,7 +44,7 @@
             <td>&nbsp;</td>
 
             {% for user in chosenusers %}
-                <td class="text-center text-nowrap">{{ user.name }}</td>
+                <td class="text-center text-nowrap" style="min-width: 100px;">{{ user.name }}</td>
             {% endfor %}
 
             <td>&nbsp;</td>
