@@ -18,11 +18,13 @@ db.init_app(app)
 # - Move guessed place to leftmost column and display actual finishing position of driver instead
 # - Show coming race in table, to give better feedback once a user has locked in a guess
 # - Only allow guess entering in user-specific page
-# - Persist chosen user across race/season pages
+# - Remove whitespace from usernames
 
 # - Sortable list to enter full race results (need 7 positions to calculate points) => remove from race page
 # - Make the season card grid left-aligned? So e.g. 2 cards are not spread over the whole screen with large gaps?
 # - Choose "place to guess" late before the race?
+# - Timer until season picks lock + next race timer
+# - A lot of validation (esp. in the model), each input should be checked...
 
 # Statistics page
 # - Auto calculate points
@@ -69,39 +71,31 @@ def guessraceresult():
 @app.route("/race/<username>")
 def guessuserraceresults(username):
     users: List[User] = User.query.all()
+    activeuser: User | None = User.query.filter_by(name=username).first()  # "Everyone" should yield None
     raceresults: List[RaceResult] = RaceResult.query.all()[::-1]
     drivers: List[Driver] = Driver.query.all()
 
     # Select User
-    chosenusers = users
-    if username != "Everyone":
-        chosenusers = [user for user in users if user.name == username]
+    # chosenusers = users
+    # if username != "Everyone":
+    #     chosenusers = [user for user in users if user.name == username]
 
-    pastguesses = dict()  # The guesses for which raceresults exist
-    nextguesses = dict()  # The guesses that are still open for modification
-    raceresult: RaceResult
-    for raceresult in raceresults:
-        pastguesses[raceresult.race_id] = dict()
-    guess: RaceGuess
+    guesses = dict()
     for guess in RaceGuess.query.all():
-        if guess.race_id in pastguesses:
-            pastguesses[guess.race_id][guess.user_id] = guess
-        else:
-            nextguesses[guess.user_id] = guess
+        if guess.race_id not in guesses:
+            guesses[guess.race_id] = dict()
 
-    # TODO: Getting by ID might be stupid, get by date instead?
-    nextid = raceresults[0].race_id + 1 if len(raceresults) > 0 else 1
-    nextrace: Race = Race.query.filter_by(id=nextid).first()
+        guesses[guess.race_id][guess.user_id] = guess
+
+    # nextid = raceresults[0].race_id + 1 if len(raceresults) > 0 else 1
+    # nextrace: Race = Race.query.filter_by(id=nextid).first()
 
     return render_template("race.jinja",
                            users=users,
                            drivers=drivers,
                            raceresults=raceresults,
-                           pastguesses=pastguesses,
-                           currentselection=nextguesses,
-                           nextrace=nextrace,
-                           chosenusername=username,
-                           chosenusers=chosenusers)
+                           guesses=guesses,
+                           activeuser=activeuser)
 
 
 @app.route("/guessrace/<raceid>/<username>", methods=["POST"])
@@ -131,28 +125,28 @@ def guessrace(raceid, username):
     return redirect("/race")
 
 
-@app.route("/enterresult/<raceid>", methods=["POST"])
-def enterresult(raceid):
-    pxx = request.form.get("pxxselect")
-    dnf = request.form.get("dnfselect")
-
-    if pxx is None or dnf is None:
-        return redirect("/race")
-
-    raceresult: RaceResult | None = RaceResult.query.filter_by(race_id=raceid).first()
-
-    if raceresult is not None:
-        print("RaceResult already exists!")
-        return redirect("/race")
-
-    raceresult = RaceResult()
-    raceresult.race_id = raceid
-    raceresult.pxx_id = pxx
-    raceresult.dnf_id = dnf
-    db.session.add(raceresult)
-    db.session.commit()
-
-    return redirect("/race")
+# @app.route("/enterresult/<raceid>", methods=["POST"])
+# def enterresult(raceid):
+#     pxx = request.form.get("pxxselect")
+#     dnf = request.form.get("dnfselect")
+#
+#     if pxx is None or dnf is None:
+#         return redirect("/race")
+#
+#     raceresult: RaceResult | None = RaceResult.query.filter_by(race_id=raceid).first()
+#
+#     if raceresult is not None:
+#         print("RaceResult already exists!")
+#         return redirect("/race")
+#
+#     raceresult = RaceResult()
+#     raceresult.race_id = raceid
+#     raceresult.pxx_id = pxx
+#     raceresult.dnf_id = dnf
+#     db.session.add(raceresult)
+#     db.session.commit()
+#
+#     return redirect("/race")
 
 
 @app.route("/season")
@@ -163,20 +157,17 @@ def guessseasonresults():
 @app.route("/season/<username>")
 def guessuserseasonresults(username):
     users: List[User] = User.query.all()
+    activeuser: User | None = User.query.filter_by(name=username).first()
     teams: List[Team] = Team.query.all()
     drivers: List[Driver] = Driver.query.all()
 
     # Remove NONE driver
     drivers = [driver for driver in drivers if driver.name != "NONE"]
-    # Select User
-    chosenusers = users
-    if username != "Everyone":
-        chosenusers = [user for user in users if user.name == username]
 
-    seasonguesses = dict()
+    guesses = dict()
     guess: SeasonGuess
     for guess in SeasonGuess.query.all():
-        seasonguesses[guess.user_id] = guess
+        guesses[guess.user_id] = guess
 
     driverpairs = dict()
     team: Team
@@ -191,9 +182,8 @@ def guessuserseasonresults(username):
                            teams=teams,
                            drivers=drivers,
                            driverpairs=driverpairs,
-                           currentselection=seasonguesses,
-                           chosenusername=username,
-                           chosenusers=chosenusers)
+                           guesses=guesses,
+                           activeuser=activeuser)
 
 
 @app.route("/guessseason/<username>", methods=["POST"])
@@ -255,6 +245,11 @@ def guessseason(username):
     db.session.commit()
 
     return redirect("/season")
+
+
+@app.route("/enter")
+def enterraceresult():
+    return render_template("enter.jinja")
 
 
 @app.route("/users")
