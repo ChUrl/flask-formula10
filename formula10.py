@@ -14,11 +14,21 @@ db.init_app(app)
 
 
 # TODO
-# - Sortable list to enter full race results (need 7 positions to calculate points) => remove from race page
+# General
 # - Move guessed place to leftmost column and display actual finishing position of driver instead
+# - Show coming race in table, to give better feedback once a user has locked in a guess
+# - Only allow guess entering in user-specific page
+# - Persist chosen user across race/season pages
+
+# - Sortable list to enter full race results (need 7 positions to calculate points) => remove from race page
+# - Make the season card grid left-aligned? So e.g. 2 cards are not spread over the whole screen with large gaps?
 # - Choose "place to guess" late before the race?
-# - Already show coming race in table, to give better feedback once a user has locked in a guess
-# - Fix the weird sizing everywhere when selecting only a single user, center the season card...
+
+# Statistics page
+# - Auto calculate points
+# - Generate static diagram using chart.js + templating the js (yikes)
+
+# Rules page
 
 
 @app.route("/")

@@ -1,6 +1,7 @@
 {% extends 'base.jinja' %}
 
-{% set active_page = "season" %}
+{% set active_page = "/season/" ~ chosenusername %}
+{% set active_user = chosenusername %}
 
 {% block title %}Formula 10 - Season{% endblock title %}
 
