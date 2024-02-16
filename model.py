@@ -83,32 +83,66 @@ class User(db.Model):
 
 class RaceResult(db.Model):
     __tablename__ = "raceresult"
-    __csv_header__ = ["id", "race_id", "pxx_id", "dnf_id"]
+    __csv_header__ = ["id", "race_id", "pxx_ids_json", "dnf_ids_json"]
 
     def from_csv(self, row):
         self.id = int(row[0])
         self.race_id = int(row[1])
-        self.pxx_id = str(row[2])
-        self.dnf_id = str(row[3])
+        self.pxx_ids_json = str(row[2])
+        self.dnf_ids_json = str(row[3])
         return self
 
     def to_csv(self):
         return [
             self.id,
             self.race_id,
-            self.pxx_id,
-            self.dnf_id
+            self.pxx_ids_json,
+            self.dnf_ids_json
         ]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     race_id: Mapped[int] = mapped_column(ForeignKey("race.id"))
-    pxx_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    dnf_id: Mapped[str] = mapped_column(ForeignKey("driver.name"))
+    pxx_ids_json: Mapped[str] = mapped_column(String(1024))
+    dnf_ids_json: Mapped[str] = mapped_column(String(1024))
+
+    @property
+    def pxx_ids(self) -> List[str]:
+        return json.loads(self.pxx_ids_json)
+
+    @pxx_ids.setter
+    def pxx_ids(self, new_pxx_ids: List[str]):
+        self.pxx_ids_json = json.dumps(new_pxx_ids)
+
+    @property
+    def dnf_ids(self) -> List[str]:
+        return json.loads(self.dnf_ids_json)
+
+    @dnf_ids.setter
+    def dnf_ids(self, new_dnf_ids: List[str]):
+        self.dnf_ids_json = json.dumps(new_dnf_ids)
 
     # Relationships
     race: Mapped["Race"] = relationship("Race", foreign_keys=[race_id])
-    pxx: Mapped["Driver"] = relationship("Driver", foreign_keys=[pxx_id])
-    dnf: Mapped["Driver"] = relationship("Driver", foreign_keys=[dnf_id])
+    _pxxs = None
+    _dnfs = None
+
+    @property
+    def pxxs(self) -> List[Driver]:
+        if self._pxxs is None:
+            self._pxxs = [
+                driver for driver in Driver.query.all() if driver.name in self.pxx_ids
+            ]
+
+        return self._pxxs
+
+    @property
+    def dnfs(self) -> List[Driver]:
+        if self._dnfs is None:
+            self._dnfs = [
+                driver for driver in Driver.query.all() if driver.name in self.dnf_ids
+            ]
+
+        return self._dnfs
 
 
 class RaceGuess(db.Model):
