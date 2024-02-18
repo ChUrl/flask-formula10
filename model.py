@@ -83,13 +83,14 @@ class User(db.Model):
 
 class RaceResult(db.Model):
     __tablename__ = "raceresult"
-    __csv_header__ = ["id", "race_id", "pxx_ids_json", "dnf_ids_json"]
+    __csv_header__ = ["id", "race_id", "pxx_ids_json", "dnf_ids_json", "exclude_ids_json"]
 
     def from_csv(self, row):
         self.id = int(row[0])
         self.race_id = int(row[1])
         self.pxx_ids_json = str(row[2])
         self.dnf_ids_json = str(row[3])
+        self.exclude_ids_json = str(row[4])
         return self
 
     def to_csv(self):
@@ -97,13 +98,15 @@ class RaceResult(db.Model):
             self.id,
             self.race_id,
             self.pxx_ids_json,
-            self.dnf_ids_json
+            self.dnf_ids_json,
+            self.exclude_ids_json
         ]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     race_id: Mapped[int] = mapped_column(ForeignKey("race.id"))
     pxx_ids_json: Mapped[str] = mapped_column(String(1024))
     dnf_ids_json: Mapped[str] = mapped_column(String(1024))
+    exclude_ids_json: Mapped[str] = mapped_column(String(1024))
 
     @property
     def pxx_ids(self) -> List[str]:
@@ -121,10 +124,19 @@ class RaceResult(db.Model):
     def dnf_ids(self, new_dnf_ids: List[str]):
         self.dnf_ids_json = json.dumps(new_dnf_ids)
 
+    @property
+    def exclude_ids(self) -> List[str]:
+        return json.loads(self.exclude_ids_json)
+
+    @exclude_ids.setter
+    def exclude_ids(self, new_exclude_ids: List[str]):
+        self.exclude_ids_json = json.dumps(new_exclude_ids)
+
     # Relationships
     race: Mapped["Race"] = relationship("Race", foreign_keys=[race_id])
     _pxxs = None
     _dnfs = None
+    _excludes = None
 
     @property
     def pxxs(self) -> List[Driver]:
@@ -143,6 +155,15 @@ class RaceResult(db.Model):
             ]
 
         return self._dnfs
+
+    @property
+    def excludes(self) -> List[Driver]:
+        if self._excludes is None:
+            self._excludes = [
+                driver for driver in Driver.query.all() if driver.name in self.exclude_ids
+            ]
+
+        return self._excludes
 
 
 class RaceGuess(db.Model):
