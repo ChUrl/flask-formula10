@@ -37,7 +37,6 @@ def reload_static_data(db):
     Team.query.delete()
     Driver.query.delete()
     Race.query.delete()
-    User.query.delete()
 
     # Reload static data
     for row in load_csv("static_data/teams.csv"):
@@ -46,14 +45,14 @@ def reload_static_data(db):
         db.session.add(Driver().from_csv(row))
     for row in load_csv("static_data/races.csv"):
         db.session.add(Race().from_csv(row))
-    for row in load_csv("static_data/users.csv"):
-        db.session.add(User().from_csv(row))
 
     db.session.commit()
 
 
 def reload_dynamic_data(db):
     print("Initializing Database with Dynamic Values...")
+
+    db.create_all()
 
     # Clear dynamic data
     User.query.delete()
