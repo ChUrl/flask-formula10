@@ -15,12 +15,13 @@ db.init_app(app)
 
 # TODO
 # General
-# - Move guessed place to leftmost column and display actual finishing position of driver instead
-# - Show coming race in table, to give better feedback once a user has locked in a guess
-# - Only allow guess entering in user-specific page
-# - Remove whitespace from usernames
+# - Store standing/dnf orders as dicts, since lists lose their order
+# - Make user headers in race table clickable, to reach the specific page. Do the same for the season cards
+# - When showing correct guesses in green, show semi-correct ones in a weaker tone (probably need to prepare those here, instead of in the template)
+# - Also show previous race results, and allow to change them. Or at least, allow editing the current one and show current state (do it like the activeuser select for results)
+# - Remove whitespace from usernames + races. Sanitization should only happen inside the templates + endpoint controllers, for the URLs
+# - Add doc comments to model
 
-# - Sortable list to enter full race results (need 7 positions to calculate points) => remove from race page
 # - Make the season card grid left-aligned? So e.g. 2 cards are not spread over the whole screen with large gaps?
 # - Choose "place to guess" late before the race?
 # - Timer until season picks lock + next race timer
@@ -28,7 +29,7 @@ db.init_app(app)
 
 # Statistics page
 # - Auto calculate points
-# - Generate static diagram using chart.js + templating the js (yikes)
+# - Generate static diagram using chart.js + templating the js (funny yikes)
 
 # Rules page
 
@@ -75,40 +76,39 @@ def guessuserraceresults(username):
     raceresults: List[RaceResult] = RaceResult.query.all()[::-1]
     drivers: List[Driver] = Driver.query.all()
 
-    # Select User
-    # chosenusers = users
-    # if username != "Everyone":
-    #     chosenusers = [user for user in users if user.name == username]
+    print(raceresults)
 
-    guesses = dict()
+    guesses: Dict[int, Dict[str, RaceGuess]] = dict()
+    guess: RaceGuess
     for guess in RaceGuess.query.all():
         if guess.race_id not in guesses:
             guesses[guess.race_id] = dict()
 
         guesses[guess.race_id][guess.user_id] = guess
 
-    # nextid = raceresults[0].race_id + 1 if len(raceresults) > 0 else 1
-    # nextrace: Race = Race.query.filter_by(id=nextid).first()
+    nextid = raceresults[0].race_id + 1 if len(raceresults) > 0 else 1
+    nextrace: Race | None = Race.query.filter_by(id=nextid).first()
 
     return render_template("race.jinja",
                            users=users,
                            drivers=drivers,
                            raceresults=raceresults,
                            guesses=guesses,
-                           activeuser=activeuser)
+                           activeuser=activeuser,
+                           currentrace=nextrace)
 
 
 @app.route("/guessrace/<raceid>/<username>", methods=["POST"])
 def guessrace(raceid, username):
-    pxx = request.form.get("pxxselect")
-    dnf = request.form.get("dnfselect")
+    pxx: str | None = request.form.get("pxxselect")
+    dnf: str | None = request.form.get("dnfselect")
 
     if pxx is None or dnf is None:
-        return redirect("/race")
+        return redirect(f"/race/{username}")
 
     if RaceResult.query.filter_by(race_id=raceid).first() is not None:
         print("Error: Can't guess race result if the race result is already known!")
-        return redirect("/race")
+        return redirect(f"/race/{username}")
 
     raceguess: RaceGuess | None = RaceGuess.query.filter_by(user_id=username, race_id=raceid).first()
 
@@ -123,30 +123,6 @@ def guessrace(raceid, username):
     db.session.commit()
 
     return redirect("/race")
-
-
-# @app.route("/enterresult/<raceid>", methods=["POST"])
-# def enterresult(raceid):
-#     pxx = request.form.get("pxxselect")
-#     dnf = request.form.get("dnfselect")
-#
-#     if pxx is None or dnf is None:
-#         return redirect("/race")
-#
-#     raceresult: RaceResult | None = RaceResult.query.filter_by(race_id=raceid).first()
-#
-#     if raceresult is not None:
-#         print("RaceResult already exists!")
-#         return redirect("/race")
-#
-#     raceresult = RaceResult()
-#     raceresult.race_id = raceid
-#     raceresult.pxx_id = pxx
-#     raceresult.dnf_id = dnf
-#     db.session.add(raceresult)
-#     db.session.commit()
-#
-#     return redirect("/race")
 
 
 @app.route("/season")
@@ -164,12 +140,12 @@ def guessuserseasonresults(username):
     # Remove NONE driver
     drivers = [driver for driver in drivers if driver.name != "NONE"]
 
-    guesses = dict()
+    guesses: Dict[str, SeasonGuess] = dict()
     guess: SeasonGuess
     for guess in SeasonGuess.query.all():
         guesses[guess.user_id] = guess
 
-    driverpairs = dict()
+    driverpairs: Dict[str, List[Driver]] = dict()
     team: Team
     for team in teams:
         driverpairs[team.name] = []
@@ -187,8 +163,8 @@ def guessuserseasonresults(username):
 
 
 @app.route("/guessseason/<username>", methods=["POST"])
-def guessseason(username):
-    guesses = [
+def guessseason(username: str):
+    guesses: List[str | None] = [
         request.form.get("hottakeselect"),
         request.form.get("p2select"),
         request.form.get("overtakeselect"),
@@ -196,10 +172,10 @@ def guessseason(username):
         request.form.get("gainedselect"),
         request.form.get("lostselect")
     ]
-    teamwinnerguesses = [
+    teamwinnerguesses: List[str | None] = [
         request.form.get(f"teamwinner-{team.name}") for team in Team.query.all()
     ]
-    podiumdriverguesses = request.form.getlist("podiumdrivers")
+    podiumdriverguesses: List[str] = request.form.getlist("podiumdrivers")
 
     if any(guess is None for guess in guesses + teamwinnerguesses):
         print("Error: /guessseason could not obtain request data!")
@@ -213,7 +189,7 @@ def guessseason(username):
         teamwinners = TeamWinners()
         db.session.add(teamwinners)
 
-    teamwinners.winner_ids = teamwinnerguesses
+    teamwinners.winner_ids = teamwinnerguesses  # Pylance throws error, but nullcheck is done
     teamwinners.user_id = username
     db.session.commit()
 
@@ -234,27 +210,86 @@ def guessseason(username):
         seasonguess.user_id = username
         db.session.add(seasonguess)
 
-    seasonguess.hot_take = guesses[0]
-    seasonguess.p2_constructor_id = guesses[1]
-    seasonguess.most_overtakes_id = guesses[2]
-    seasonguess.most_dnfs_id = guesses[3]
-    seasonguess.most_gained_id = guesses[4]
-    seasonguess.most_lost_id = guesses[5]
-    seasonguess.team_winners_id = teamwinners.id
-    seasonguess.podium_drivers_id = podiumdrivers.id
+    seasonguess.hot_take = guesses[0]  # Pylance throws error but nullcheck is done
+    seasonguess.p2_constructor_id = guesses[1]  # Pylance throws error but nullcheck is done
+    seasonguess.most_overtakes_id = guesses[2]  # Pylance throws error but nullcheck is done
+    seasonguess.most_dnfs_id = guesses[3]  # Pylance throws error but nullcheck is done
+    seasonguess.most_gained_id = guesses[4]  # Pylance throws error but nullcheck is done
+    seasonguess.most_lost_id = guesses[5]  # Pylance throws error but nullcheck is done
+    seasonguess.team_winners_id = teamwinners.id  # Pylance throws error but nullcheck is done
+    seasonguess.podium_drivers_id = podiumdrivers.id  # Pylance throws error but nullcheck is done
     db.session.commit()
 
     return redirect("/season")
 
 
 @app.route("/enter")
-def enterraceresult():
-    return render_template("enter.jinja")
+def entercurrentraceresult():
+    return redirect("/enter/Current")
+
+
+@app.route("/enter/<resultname>")
+def enterraceresult(resultname: str):
+    drivers: List[Driver] = Driver.query.all()
+    raceresults: List[RaceResult] = RaceResult.query.all()[::-1]
+
+    # Find next race without result
+    nextid = raceresults[0].race_id + 1 if len(raceresults) > 0 else 1
+    nextrace: Race | None = Race.query.filter_by(id=nextid).first()
+
+    activeresult: RaceResult | None = None
+    if resultname != "Current":
+        # Obtain the chosen result
+        activeresult = list(filter(lambda result: result.race.grandprix == resultname, raceresults))[0]
+    else:
+        # Obtain the current result if it exists
+        activeresult = raceresults[0] if len(raceresults) > 0 and raceresults[0].race_id == nextrace else None
+
+    # Remove NONE driver
+    drivers = [driver for driver in drivers if driver.name != "NONE"]
+
+    return render_template("enter.jinja",
+                           drivers=drivers,
+                           race=nextrace,
+                           results=raceresults,
+                           activeresult=activeresult)
+
+
+@app.route("/enterresult/<raceid>", methods=["POST"])
+def enterresult(raceid):
+    pxxs: List[str] = request.form.getlist("pxxdrivers")
+    dnfs: List[str] = request.form.getlist("dnf-drivers")
+    excludes: List[str] = request.form.getlist("exclude-drivers")
+
+    # Use strings as keys, as these dicts will be serialized to json
+    pxxs_dict: Dict[str, str] = {str(position + 1): driver for position, driver in enumerate(pxxs)}
+    dnfs_dict: Dict[str, str] = {str(position + 1): driver for position, driver in enumerate(pxxs) if driver in dnfs}
+
+    print(pxxs_dict)
+
+    raceresult: RaceResult | None = RaceResult.query.filter_by(race_id=raceid).first()
+
+    if raceresult is None:
+        raceresult = RaceResult()
+        db.session.add(raceresult)
+
+    raceresult.race_id = raceid
+    raceresult.pxx_ids = pxxs_dict
+    raceresult.dnf_ids = dnfs_dict if len(dnfs) > 0 else {"20": "NONE"}
+    raceresult.exclude_ids = excludes
+    db.session.commit()
+
+    race: Race | None = Race.query.filter_by(id=raceid).first()
+    if race is None:
+        print("Error: Can't redirect to /enter/<GrandPrix> because race couldn't be found")
+        return redirect("/enter")
+
+    return redirect(f"/enter/{race.grandprix}")
 
 
 @app.route("/users")
 def manageusers():
-    users = User.query.all()
+    users: List[User] = User.query.all()
 
     return render_template("users.jinja",
                            users=users)
@@ -262,7 +297,11 @@ def manageusers():
 
 @app.route("/adduser", methods=["POST"])
 def adduser():
-    username = request.form.get("select-add-user").strip()
+    username: str | None = request.form.get("select-add-user")
+
+    if username is None or len(username) == 0:
+        print(f"Not adding user, since no username was received")
+        return redirect("/users")
 
     if len(User.query.filter_by(name=username).all()) > 0:
         print(f"Not adding user {username}: Already exists!")
@@ -279,6 +318,10 @@ def adduser():
 @app.route("/deleteuser", methods=["POST"])
 def deleteuser():
     username = request.form.get("select-delete-user")
+
+    if username is None or len(username) == 0:
+        print(f"Not deleting user, since no username was received")
+        return redirect("/users")
 
     if username == "Select User":
         return redirect("/users")

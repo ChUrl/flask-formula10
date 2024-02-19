@@ -1,4 +1,4 @@
-from typing import List
+from typing import ClassVar, List, Dict
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, Boolean, DateTime, ForeignKey, PickleType
@@ -14,6 +14,10 @@ db = SQLAlchemy()
 
 
 class Race(db.Model):
+    """
+    A single race at a certain date and GrandPrix in the calendar.
+    It stores the place to guess for this race.
+    """
     __tablename__ = "race"
 
     def from_csv(self, row):
@@ -32,6 +36,9 @@ class Race(db.Model):
 
 
 class Team(db.Model):
+    """
+    A constructor/team (name only).
+    """
     __tablename__ = "team"
 
     def from_csv(self, row):
@@ -42,6 +49,10 @@ class Team(db.Model):
 
 
 class Driver(db.Model):
+    """
+    A F1 driver.
+    It stores the corresponding team + name abbreviation.
+    """
     __tablename__ = "driver"
 
     def from_csv(self, row):
@@ -66,6 +77,9 @@ class Driver(db.Model):
 
 
 class User(db.Model):
+    """
+    A user that can guess races (name only).
+    """
     __tablename__ = "user"
     __csv_header__ = ["name"]
 
@@ -82,7 +96,12 @@ class User(db.Model):
 
 
 class RaceResult(db.Model):
+    """
+    The result of a past race.
+    It stores the corresponding race and dictionaries of place-/dnf-order and a list of drivers that are excluded from the standings for this race.
+    """
     __tablename__ = "raceresult"
+    __allow_unmapped__ = True
     __csv_header__ = ["id", "race_id", "pxx_ids_json", "dnf_ids_json", "exclude_ids_json"]
 
     def from_csv(self, row):
@@ -109,19 +128,19 @@ class RaceResult(db.Model):
     exclude_ids_json: Mapped[str] = mapped_column(String(1024))
 
     @property
-    def pxx_ids(self) -> List[str]:
+    def pxx_ids(self) -> Dict[str, str]:
         return json.loads(self.pxx_ids_json)
 
     @pxx_ids.setter
-    def pxx_ids(self, new_pxx_ids: List[str]):
+    def pxx_ids(self, new_pxx_ids: Dict[str, str]):
         self.pxx_ids_json = json.dumps(new_pxx_ids)
 
     @property
-    def dnf_ids(self) -> List[str]:
+    def dnf_ids(self) -> Dict[str, str]:
         return json.loads(self.dnf_ids_json)
 
     @dnf_ids.setter
-    def dnf_ids(self, new_dnf_ids: List[str]):
+    def dnf_ids(self, new_dnf_ids: Dict[str, str]):
         self.dnf_ids_json = json.dumps(new_dnf_ids)
 
     @property
@@ -134,39 +153,68 @@ class RaceResult(db.Model):
 
     # Relationships
     race: Mapped["Race"] = relationship("Race", foreign_keys=[race_id])
-    _pxxs = None
-    _dnfs = None
-    _excludes = None
+    _pxxs: Dict[str, Driver] | None = None
+    _dnfs: Dict[str, Driver] | None = None
+    _excludes: List[Driver] | None = None
 
     @property
-    def pxxs(self) -> List[Driver]:
+    def pxxs(self) -> Dict[str, Driver]:
         if self._pxxs is None:
-            self._pxxs = [
-                driver for driver in Driver.query.all() if driver.name in self.pxx_ids
-            ]
+            self._pxxs = dict()
+            for position, driver_id in self.pxx_ids.items():
+                driver = Driver.query.filter_by(name=driver_id).first()
+                if driver is None:
+                    raise Exception(f"Error: Couldn't find driver with id {driver_id}")
+
+                self._pxxs[position] = driver
 
         return self._pxxs
 
     @property
-    def dnfs(self) -> List[Driver]:
+    def dnfs(self) -> Dict[str, Driver]:
         if self._dnfs is None:
-            self._dnfs = [
-                driver for driver in Driver.query.all() if driver.name in self.dnf_ids
-            ]
+            self._dnfs = dict()
+            for position, driver_id in self.dnf_ids.items():
+                driver = Driver.query.filter_by(name=driver_id).first()
+                if driver is None:
+                    raise Exception(f"Error: Couldn't find driver with id {driver_id}")
+
+                self._dnfs[position] = driver
 
         return self._dnfs
 
     @property
     def excludes(self) -> List[Driver]:
         if self._excludes is None:
-            self._excludes = [
-                driver for driver in Driver.query.all() if driver.name in self.exclude_ids
-            ]
+            self._excludes = []
+            for driver_id in self.exclude_ids:
+                driver = Driver.query.filter_by(name=driver_id).first()
+                if driver is None:
+                    raise Exception(f"Error: Couldn't find driver with id {driver_id}")
+
+                self._excludes += [driver]
 
         return self._excludes
 
+    @property
+    def pxx(self) -> Driver:
+        pxx_num: str = str(self.race.pxx)
+        if pxx_num not in self.pxxs:
+            print(self.pxxs)
+            raise Exception(f"Error: Position {self.race.pxx} not contained in race result")
+
+        return self.pxxs[pxx_num]
+
+    @property
+    def dnf(self) -> Driver:
+        return sorted(self.dnfs.items(), reverse=True)[0][1]
+
 
 class RaceGuess(db.Model):
+    """
+    A guess a user made for a race.
+    It stores the corresponding race and the guessed drivers for PXX and DNF.
+    """
     __tablename__ = "raceguess"
     __csv_header__ = ["id", "user_id", "race_id", "pxx_id", "dnf_id"]
 
@@ -201,7 +249,11 @@ class RaceGuess(db.Model):
 
 
 class TeamWinners(db.Model):
+    """
+    A guessed list of each best driver per team.
+    """
     __tablename__ = "teamwinners"
+    __allow_unmapped__ = True
     __csv_header__ = ["id", "user_id", "winner_ids_json"]
 
     def from_csv(self, row):
@@ -231,20 +283,29 @@ class TeamWinners(db.Model):
 
     # Relationships
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
-    _winners = None
+    _winners: List[Driver] | None = None
 
     @property
     def winners(self) -> List[Driver]:
         if self._winners is None:
-            self._winners = [
-                driver for driver in Driver.query.all() if driver.name in self.winner_ids
-            ]
+            self._winners = []
+            for driver_id in self.winner_ids:
+                driver = Driver.query.filter_by(name=driver_id).first()
+                if driver is None:
+                    raise Exception(f"Error: Couldn't find driver with id {driver_id}")
+
+                self._winners += [driver]
+
 
         return self._winners
 
 
 class PodiumDrivers(db.Model):
+    """
+    A guessed list of each driver that will reach at least a single podium.
+    """
     __tablename__ = "podiumdrivers"
+    __allow_unmapped__ = True
     __csv_header__ = ["id", "user_id", "podium_ids_json"]
 
     def from_csv(self, row):
@@ -274,19 +335,26 @@ class PodiumDrivers(db.Model):
 
     # Relationships
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
-    _podiums = None
+    _podiums: List[Driver] | None = None
 
     @property
     def podiums(self) -> List[Driver]:
         if self._podiums is None:
-            self._podiums = [
-                driver for driver in Driver.query.all() if driver.name in self.podium_ids
-            ]
+            self._podiums = []
+            for driver_id in self.podium_ids:
+                driver = Driver.query.filter_by(name=driver_id).first()
+                if driver is None:
+                    raise Exception(f"Error: Couldn't find driver with id {driver_id}")
+
+                self._podiums += [driver]
 
         return self._podiums
 
 
 class SeasonGuess(db.Model):
+    """
+    A collection of bonus guesses for the entire season.
+    """
     __tablename__ = "seasonguess"
     __csv_header__ = ["id", "user_id",
                       "hot_take", "p2_constructor_id", "most_overtakes_id", "most_dnfs_id", "most_gained_id",
