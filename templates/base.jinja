@@ -95,7 +95,9 @@
     <link href="../static/style/bootstrap.css" rel="stylesheet">
     <script src="../static/script/bootstrap.bundle.js"></script>
 
-    {# <script> #}
+    {% block head_extra %}{% endblock head_extra %}
+
+    {# <script defer> #}
     {#     {# Initialize Bootstrap Tooltips #} #}
     {#     console.log("Initializing Tooltips...") #}
     {#     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]') #}
@@ -107,7 +109,7 @@
 
 <nav class="navbar fixed-top navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/">
+        <a class="navbar-brand" href="/race">
             <img src="../static/image/f1_logo.svg" alt="Logo" width="120" height="30"
                  class="d-inline-block align-text-top">
             Formula 10
