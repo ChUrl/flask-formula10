@@ -36,9 +36,9 @@
                     {% if activeuser is not none %}
                         <h5 class="card-title">{{ user.name }}</h5>
                     {% else %}
-                        <a href="/season/Christoph" class="link-dark"><h5 class="card-title">{{ user.name }}</h5></a>
+                        <a href="/season/{{ user.name }}" class="link-dark"><h5 class="card-title">{{ user.name }}</h5></a>
                     {% endif %}
-                
+
                     <form action="/guessseason/{{ user.name }}" method="post">
 
                         {# Hot Take #}
