@@ -4,6 +4,14 @@
 
 {% set active_page = "/race" %}
 
+{% block head_extra %}
+    <script defer>
+        {# Initialize Bootstrap Tooltips #}
+        let tooltipTriggerList = document.querySelectorAll("[data-bs-toggle='tooltip']")
+        let tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
+{% endblock head_extra %}
+
 {% block navbar_center %}
     {% if model.all_users() | length > 1 %}
         <div class="dropdown">
@@ -82,9 +90,11 @@
                         {% if user_guess is not none %}
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item" style="background-color: inherit;">
-                                    P{{ current_race.pxx }}: {{ user_guess.pxx.abbr }}</li>
+                                    P{{ current_race.pxx }}: {{ user_guess.pxx.abbr }}
+                                </li>
                                 <li class="list-group-item" style="background-color: inherit;">
-                                    DNF: {{ user_guess.dnf.abbr }}</li>
+                                    DNF: {{ user_guess.dnf.abbr }}
+                                </li>
                             </ul>
                         {% else %}
                             &nbsp;
@@ -138,6 +148,7 @@
                 {% else %}
                     {% set users = [active_user] %}
                 {% endif %}
+
                 {% for user in users %}
                     <td class="text-center text-nowrap">
                         {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=past_result.race.name) %}
@@ -145,9 +156,15 @@
                         {% if user_guess is not none %}
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item {{ pxx_guess_colorization(user_guess.pxx.abbr, past_result) }}">
-                                    P{{ past_result.race.pxx }}: {{ user_guess.pxx.abbr }}</li>
+                                    <span data-bs-toggle="tooltip" title="{{ pxx_points_tooltip_text(user_guess.pxx.abbr, past_result) }}">
+                                        P{{ past_result.race.pxx }}: {{ user_guess.pxx.abbr }}
+                                    </span>
+                                </li>
                                 <li class="list-group-item {% if user_guess.dnf.abbr == past_result.dnf.abbr %}text-success fw-bold{% endif %}">
-                                    DNF: {{ user_guess.dnf.abbr }}</li>
+                                    <span data-bs-toggle="tooltip" title="{% if user_guess.dnf.abbr == past_result.dnf.abbr %}10 Points{% else %}0 Points{% endif %}">
+                                        DNF: {{ user_guess.dnf.abbr }}
+                                    </span>
+                                </li>
                             </ul>
                         {% else %}
                             &nbsp;
@@ -157,7 +174,11 @@
 
                 <td class="text-center text-nowrap">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item">P{{ past_result.race.pxx }}: {{ past_result.pxx().abbr }}</li>
+                        <li class="list-group-item">
+                            <span data-bs-toggle="tooltip" title="{{ pxx_standing_tooltip_text(past_result) }}">
+                                P{{ past_result.race.pxx }}: {{ past_result.pxx().abbr }}
+                            </span>
+                        </li>
                         <li class="list-group-item {% if past_result.dnf.abbr == 'NON' %}text-muted{% endif %}">
                             DNF: {{ past_result.dnf.abbr }}</li>
                     </ul>

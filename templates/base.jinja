@@ -96,15 +96,38 @@
         {% if active_page == page %}</u>{% endif %}</a>
 {% endmacro %}
 
-{% macro pxx_guess_colorization(driver_abbr='', result=none) %}
-    {% if driver_abbr == result.pxx(0).abbr %}text-success fw-bold{% endif %}
-    {% if driver_abbr == result.pxx(1).abbr %}text-warning fw-bold{% endif %}
-    {% if driver_abbr == result.pxx(2).abbr %}text-danger fw-bold{% endif %}
-    {% if driver_abbr == result.pxx(3).abbr %}fw-bold{% endif %}
-    {% if driver_abbr == result.pxx(-1).abbr %}text-warning fw-bold{% endif %}
-    {% if driver_abbr == result.pxx(-2).abbr %}text-danger fw-bold{% endif %}
-    {% if driver_abbr == result.pxx(-3).abbr %}fw-bold{% endif %}
+{#@formatter:off#}
+{% macro pxx_guess_colorization(driver_abbr='', result=none) -%}
+{% if driver_abbr == result.pxx(-3).abbr %}fw-bold
+{% elif driver_abbr == result.pxx(-2).abbr %}text-danger fw-bold
+{% elif driver_abbr == result.pxx(-1).abbr %}text-warning fw-bold
+{% elif driver_abbr == result.pxx(0).abbr %}text-success fw-bold
+{% elif driver_abbr == result.pxx(1).abbr %}text-warning fw-bold
+{% elif driver_abbr == result.pxx(2).abbr %}text-danger fw-bold
+{% elif driver_abbr == result.pxx(3).abbr %}fw-bold{% endif %}
 {% endmacro %}
+
+{% macro pxx_points_tooltip_text(driver_abbr='', result=none) -%}
+{% if driver_abbr == result.pxx(-3).abbr %}1 Point
+{% elif driver_abbr == result.pxx(-2).abbr %}3 Points
+{% elif driver_abbr == result.pxx(-1).abbr %}6 Points
+{% elif driver_abbr == result.pxx(0).abbr %}10 Points
+{% elif driver_abbr == result.pxx(1).abbr %}6 Points
+{% elif driver_abbr == result.pxx(2).abbr %}3 Points
+{% elif driver_abbr == result.pxx(3).abbr %}1 Point
+{% else %}0 Points{% endif %}
+{%- endmacro %}
+
+{% macro pxx_standing_tooltip_text(result=none) -%}
+P{{ result.race.pxx - 3 }}: {{ result.pxx(-3).abbr }}
+P{{ result.race.pxx - 2 }}: {{ result.pxx(-2).abbr }}
+P{{ result.race.pxx - 1 }}: {{ result.pxx(-1).abbr }}
+P{{ result.race.pxx }}: {{ result.pxx(0).abbr }}
+P{{ result.race.pxx + 1 }}: {{ result.pxx(1).abbr }}
+P{{ result.race.pxx + 2 }}: {{ result.pxx(2).abbr }}
+P{{ result.race.pxx + 3 }}: {{ result.pxx(3).abbr }}
+{% endmacro %}
+{#@formatter:on#}
 
 <head>
     <meta charset="UTF-8">
@@ -119,13 +142,6 @@
     <script src="../static/script/bootstrap.bundle.js"></script>
 
     {% block head_extra %}{% endblock head_extra %}
-
-    {# <script defer> #}
-    {#     {# Initialize Bootstrap Tooltips #}
-    {#     console.log("Initializing Tooltips...") #}
-    {#     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]') #}
-    {#     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl)) #}
-    {# </script> #}
 </head>
 
 <body>

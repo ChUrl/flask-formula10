@@ -14,14 +14,11 @@ db.init_app(app)
 # TODO
 # General
 
-# - When showing correct guesses in green, show semi-correct ones in a weaker tone (probably need to prepare those here,
-#   instead of in the template)
-# - Show cards of previous race results, like with season guesses?
+# - A lot of validation (esp. in the model), each input should be checked...
 
+# - Show cards of previous race results, like with season guesses?
 # - Make the season card grid left-aligned? So e.g. 2 cards are not spread over the whole screen with large gaps?
 # - Choose "place to guess" late before the race?
-# - Timer until season picks lock + next race timer
-# - A lot of validation (esp. in the model), each input should be checked...
 
 # Statistics page
 # - Auto calculate points
