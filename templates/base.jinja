@@ -2,10 +2,16 @@
 <html lang="en">
 
 {# Simple driver dropdown. Requires list of drivers. #}
-{% macro driver_select(name='', label='') %}
+{% macro driver_select(name='', label='', include_none=true) %}
     <div class="form-floating">
         <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
             <option value="" selected disabled hidden></option>
+            {% if include_none == true %}
+                {% set drivers = model.all_drivers() %}
+            {% else %}
+                {% set drivers = model.all_drivers_except_none() %}
+            {% endif %}
+
             {% for driver in drivers %}
                 <option value="{{ driver.name }}">{{ driver.abbr }}</option>
             {% endfor %}
@@ -15,11 +21,17 @@
 {% endmacro %}
 
 {# Driver dropdown where a value might be preselected. Requires list of drivers. #}
-{% macro driver_select_with_preselect(match='', name='', label='') %}
+{% macro driver_select_with_preselect(match='', name='', label='', include_none=true) %}
     <div class="form-floating">
         <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
             {# Use namespace wrapper to persist scope between loop iterations #}
             {% set user_has_chosen = namespace(driverpre="false") %}
+
+            {% if include_none == true %}
+                {% set drivers = model.all_drivers() %}
+            {% else %}
+                {% set drivers = model.all_drivers_except_none() %}
+            {% endif %}
 
             {% for driver in drivers %}
                 {% if match == driver.abbr %}
@@ -44,7 +56,7 @@
     <div class="form-floating">
         <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
             <option value="" selected disabled hidden></option>
-            {% for team in teams %}
+            {% for team in model.all_teams() %}
                 <option value="{{ team.name }}">{{ team.name }}</option>
             {% endfor %}
         </select>
@@ -59,7 +71,7 @@
             {# Use namespace wrapper to persist scope between loop iterations #}
             {% set user_has_chosen = namespace(teampre="false") %}
 
-            {% for team in teams %}
+            {% for team in model.all_teams() %}
                 {% if match == team.name %}
                     {% set user_has_chosen.teampre = "true" %}
                     <option selected="selected" value="{{ team.name }}">{{ team.name }}</option>
@@ -80,6 +92,7 @@
 {# Easy nav-bar entries. When a page sets the active_page variable, the current entry will be underlined #}
 {% macro nav_selector(page='', text='') %}
     <a class="nav-link text-nowrap" href="{{ page }}">{% if active_page == page %}<u>{% endif %} {{ text }}
+        {# NOTE: This should be set at the top of each template #}
         {% if active_page == page %}</u>{% endif %}</a>
 {% endmacro %}
 
@@ -98,7 +111,7 @@
     {% block head_extra %}{% endblock head_extra %}
 
     {# <script defer> #}
-    {#     {# Initialize Bootstrap Tooltips #} #}
+    {#     {# Initialize Bootstrap Tooltips #}
     {#     console.log("Initializing Tooltips...") #}
     {#     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]') #}
     {#     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl)) #}
@@ -121,8 +134,8 @@
 
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav me-2">
-                {{ nav_selector("/race/" ~ active_user.name | default("Everyone"), "Race Picks") }}
-                {{ nav_selector("/season/" ~ active_user.name | default("Everyone"), "Season Picks") }}
+                {{ nav_selector("/race", "Race Picks") }}
+                {{ nav_selector("/season", "Season Picks") }}
                 {{ nav_selector("/graphs", "Statistics") }}
                 {{ nav_selector("/rules", "Rules") }}
             </div>
@@ -131,14 +144,14 @@
             <div class="flex-grow-1"></div>
 
             <div class="navbar-nav">
-                {{ nav_selector("/enter", "Enter Race Result") }}
-                {{ nav_selector("/users", "Manage Users") }}
+                {{ nav_selector("/result", "Enter Race Result") }}
+                {{ nav_selector("/user", "Manage Users") }}
             </div>
         </div>
     </div>
 </nav>
 
-<div class="px-2 pt-2" style="margin-top: 32px;">
+<div class="px-2 pt-2" style="margin-top: 55px !important;">
     {% block body %}{% endblock body %}
 </div>
 

@@ -51,7 +51,7 @@ def reload_static_data(db):
 
 def reload_dynamic_data(db):
     print("Initializing Database with Dynamic Values...")
-
+    # Create it (if it doesn't exist!)
     db.create_all()
 
     # Clear dynamic data

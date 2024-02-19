@@ -1,77 +1,70 @@
 {% extends 'base.jinja' %}
 
-{% set active_page = "/enter" %}
-{% set active_user = none %}
-
 {% block title %}Formula 10 - Race Result{% endblock title %}
+
+{% set active_page = "/result" %}
 
 {% block head_extra %}
     <link href="../static/style/draggable.css" rel="stylesheet">
     <script src="../static/script/draggable.js" defer></script>
 {% endblock head_extra %}
 
+{% set current_race = model.first_race_without_result() %}
+
 {% block navbar_center %}
-    {% if results | length > 0 %}
+
+    {% if model.all_race_results() | length > 0 %}
         <div class="dropdown">
             <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
-                {% if activeresult is not none %}{{ activeresult.race.grandprix }}{% else %}
-                    {{ race.grandprix }}{% endif %}
+                {% if active_result is not none %}
+                    {{ active_result.race.name }}
+                {% else %}
+                    {{ current_race.name }}
+                {% endif %}
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/enter/Current">{{ race.grandprix }}</a></li>
+                <li>
+                    <a class="dropdown-item" href="/result/{{ current_race.name }}">{{ current_race.name }}</a>
+                </li>
                 <li>
                     <hr class="dropdown-divider">
                 </li>
-                {% for result in results %}
-                    <li><a class="dropdown-item"
-                           href="/enter/{{ result.race.grandprix }}">{{ result.race.grandprix }}</a>
+
+                {% for result in model.all_race_results() %}
+                    <li>
+                        <a class="dropdown-item"
+                           href="/result/{{ result.race.name }}">{{ result.race.name }}</a>
                     </li>
                 {% endfor %}
             </ul>
         </div>
     {% endif %}
+
 {% endblock navbar_center %}
 
 {% block body %}
 
-    <div class="card shadow-sm" style="width: 450px;">
-        <div class="card-body">
-            <h5 class="card-title">{% if activeresult is not none %}{{ activeresult.race.grandprix }}{% else %}
-                {{ race.grandprix }}{% endif %}</h5>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
 
-            <form action="/enterresult/
-                    {% if activeresult is not none %}{{ activeresult.race.id }}{% else %}{{ race.id }}{% endif %}"
-                  method="post">
-                <ul id="columns" class="list-group list-group-flush">
-                    {% if activeresult is not none %}
-                        {% for driver in activeresult.pxxs.values() %}
-                            <li class="list-group-item column p-1" draggable="true">
-                                {{ driver.name }}
+        <div class="card shadow-sm" style="width: 450px;">
+            <div class="card-body">
 
-                                <div class="d-inline-block float-end">
-                                    {# Driver DNFed #}
-                                    <div class="form-check form-check-reverse d-inline-block">
-                                        <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
-                                               id="dnf-{{ driver.name }}" name="dnf-drivers"
-                                               {% if driver in activeresult.dnfs.values() %}checked{% endif %}>
-                                        <label for="dnf-{{ driver.name }}"
-                                               class="form-check-label text-muted">DNF</label>
-                                    </div>
+                <h5 class="card-title">{% if active_result is not none %}{{ active_result.race.name }}{% else %}
+                    {{ current_race.name }}{% endif %}</h5>
 
-                                    {# Driver Excluded #}
-                                    <div class="form-check form-check-reverse d-inline-block mx-2">
-                                        <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
-                                               id="exclude-{{ driver.name }}" name="exclude-drivers"
-                                               {% if driver in activeresult.excludes %}checked{% endif %}>
-                                        <label for="exclude-{{ driver.name }}" class="form-check-label text-muted">Exclude</label>
-                                    </div>
-                                </div>
+                <form action="/result-enter/
 
-                                {# Standing order #}
-                                <input type="hidden" name="pxxdrivers" value="{{ driver.name }}"></li>
-                        {% endfor %}
-                    {% else %}
+                        {%- if active_result is not none %}{{ active_result.race.name }}{% else %}{{ current_race.name }}{% endif %}"
+                      method="post">
+                    <ul id="columns" class="list-group list-group-flush">
+
+                        {% if active_result is not none %}
+                            {% set drivers = active_result.pxx_drivers_values %}
+                        {% else %}
+                            {% set drivers = model.all_drivers_except_none() %}
+                        {% endif %}
+
                         {% for driver in drivers %}
                             <li class="list-group-item column p-1" draggable="true">
                                 {{ driver.name }}
@@ -80,7 +73,8 @@
                                     {# Driver DNFed #}
                                     <div class="form-check form-check-reverse d-inline-block">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
-                                               id="dnf-{{ driver.name }}" name="dnf-drivers">
+                                               id="dnf-{{ driver.name }}" name="dnf-drivers"
+                                               {% if (active_result is not none) and (driver in active_result.dnf_drivers.values()) %}checked{% endif %}>
                                         <label for="dnf-{{ driver.name }}"
                                                class="form-check-label text-muted">DNF</label>
                                     </div>
@@ -88,20 +82,22 @@
                                     {# Driver Excluded #}
                                     <div class="form-check form-check-reverse d-inline-block mx-2">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
-                                               id="exclude-{{ driver.name }}" name="exclude-drivers">
-                                        <label for="exclude-{{ driver.name }}" class="form-check-label text-muted">Exclude</label>
+                                               id="exclude-{{ driver.name }}" name="exclude-drivers"
+                                               {% if (active_result is not none) and (driver in active_result.excluded_drivers) %}checked{% endif %}>
+                                        <label for="exclude-{{ driver.name }}"
+                                               class="form-check-label text-muted">Exclude</label>
                                     </div>
                                 </div>
 
                                 {# Standing order #}
                                 <input type="hidden" name="pxxdrivers" value="{{ driver.name }}"></li>
                         {% endfor %}
-                    {% endif %}
-                </ul>
+                    </ul>
 
-                <input type="submit" class="btn btn-danger mt-2" value="Save">
-            </form>
+                    <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
+                </form>
 
+            </div>
         </div>
     </div>
 

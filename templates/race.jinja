@@ -1,26 +1,32 @@
 {% extends 'base.jinja' %}
 
-{% set active_page = "/race/" ~ activeuser.name | default("Everyone") %}
-{% set active_user = activeuser %}
-
 {% block title %}Formula 10 - Race{% endblock title %}
 
+{% set active_page = "/race" %}
+
 {% block navbar_center %}
-    <div class="dropdown">
-        <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                aria-expanded="false">
-            {% if activeuser is not none %}{{ activeuser.name }}{% else %}Everyone{% endif %}
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="/race/Everyone">Everyone</a></li>
-            <li>
-                <hr class="dropdown-divider">
-            </li>
-            {% for user in users %}
-                <li><a class="dropdown-item" href="/race/{{ user.name }}">{{ user.name }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
+    {% if model.all_users() | length > 1 %}
+        <div class="dropdown">
+            <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                {% if active_user is none %}
+                    Everyone
+                {% else %}
+                    {{ active_user.name }}
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/race/Everyone">Everyone</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+
+                {% for user in model.all_users() %}
+                    <li><a class="dropdown-item" href="/race/{{ user.name }}">{{ user.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
 {% endblock navbar_center %}
 
 {% block body %}
@@ -30,11 +36,9 @@
         <tr>
             <th scope="col" rowspan="2" class="text-center" style="width: 200px;">Race</th>
 
-            {% if activeuser is none %}
-                <th scope="col" colspan="{{ users | length }}" class="text-center">Call</th>
-            {% else %}
-                <th scope="col" class="text-center">Call</th>
-            {% endif %}
+            <th scope="col" {% if active_user is none %}colspan="{{ model.all_users() | length }}"{% endif %}
+                class="text-center">Call
+            </th>
 
             <th scope="col" rowspan="2" class="text-center" style="width: 200px;">Result</th>
         </tr>
@@ -46,35 +50,43 @@
         <tr>
             <td>&nbsp;</td>
 
-            {% if activeuser is none %}
-                {% for user in users %}
-                    <td class="text-center text-nowrap" style="min-width: 100px;"><a href="/race/{{ user.name }}" class="link-dark">{{ user.name }}</a></td>
+            {% if active_user is none %}
+                {% for user in model.all_users() %}
+                    <td class="text-center text-nowrap" style="min-width: 100px;">
+                        <a href="/race/{{ user.name }}" class="link-dark">{{ user.name }}</a>
+                    </td>
                 {% endfor %}
             {% else %}
-                <td class="text-center text-nowrap" style="min-width: 100px;">{{ activeuser.name }}</td>
+                <td class="text-center text-nowrap" style="min-width: 100px;">{{ active_user.name }}</td>
             {% endif %}
 
             <td>&nbsp;</td>
         </tr>
 
+        {% set current_race = model.first_race_without_result() %}
+
         {# Current Result, only displayed for all users overview #}
-        {% if activeuser is none %}
+        {% if active_user is none %}
+
             <tr class="table-danger">
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ currentrace.id }}:</span> {{ currentrace.grandprix }}<br>
-                    <small><span class="fw-bold">Guess:</span> P{{ currentrace.pxx }}</small>
+                    <span class="fw-bold">{{ current_race.number }}:</span> <a href="/result" class="link-dark">{{ current_race.name }}</a><br>
+                    <small><span class="fw-bold">Guess:</span> P{{ current_race.pxx }}</small>
                 </td>
 
-                {% for user in users %}
-                    <td class="text-center text-nowrap">
-                        {% if (currentrace.id in guesses) and (user.name in guesses.get(currentrace.id)) %}
-                            {% set pxx = guesses.get(currentrace.id).get(user.name).pxx.abbr %}
-                            {% set dnf = guesses.get(currentrace.id).get(user.name).dnf.abbr %}
+                {% for user in model.all_users() %}
+                    {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=current_race.name) %}
 
+                    <td class="text-center text-nowrap">
+                        {% if user_guess is not none %}
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item" style="background-color: inherit;">P{{ currentrace.pxx }}: {{ pxx }}</li>
-                                <li class="list-group-item" style="background-color: inherit;">DNF: {{ dnf }}</li>
+                                <li class="list-group-item" style="background-color: inherit;">
+                                    P{{ current_race.pxx }}: {{ user_guess.pxx.abbr }}</li>
+                                <li class="list-group-item" style="background-color: inherit;">
+                                    DNF: {{ user_guess.dnf.abbr }}</li>
                             </ul>
+                        {% else %}
+                            &nbsp;
                         {% endif %}
                     </td>
                 {% endfor %}
@@ -84,24 +96,24 @@
         {% endif %}
 
         {# Enter Guess, only displayed for single user focused view #}
-        {% if activeuser is not none %}
+        {% if active_user is not none %}
             <tr class="table-danger">
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ currentrace.id }}:</span> {{ currentrace.grandprix }}<br>
-                    <small><span class="fw-bold">Guess:</span> P{{ currentrace.pxx }}</small>
+                    <span class="fw-bold">{{ current_race.number }}:</span> {{ current_race.name }}<br>
+                    <small><span class="fw-bold">Guess:</span> P{{ current_race.pxx }}</small>
                 </td>
 
                 <td>
-                    <form action="/guessrace/{{ currentrace.id }}/{{ activeuser.name }}" method="post">
+                    <form action="/race-guess/{{ current_race.name }}/{{ active_user.name }}" method="post">
+                        {% set user_guess = model.race_guesses_by(user_name=active_user.name, race_name=current_race.name) %}
+
                         {# Driver PXX Select #}
-                        {{ driver_select_with_preselect(guesses.get(currentrace.id).get(activeuser.name).pxx.abbr if (currentrace.id in guesses and activeuser.name in guesses.get(currentrace.id)) else "",
-                                                        "pxxselect", "P" ~ currentrace.pxx ~ ":") }}
+                        {{ driver_select_with_preselect(user_guess.pxx.abbr if user_guess is not none else "", "pxxselect", "P" ~ current_race.pxx ~ ":") }}
+
+                        <div class="mt-2"></div>
 
                         {# Driver DNF Select #}
-                        <div class="mt-2">
-                            {{ driver_select_with_preselect(guesses.get(currentrace.id).get(activeuser.name).dnf.abbr if (currentrace.id in guesses and activeuser.name in guesses.get(currentrace.id)) else "",
-                                                            "dnfselect", "DNF:") }}
-                        </div>
+                        {{ driver_select_with_preselect(user_guess.dnf.abbr if user_guess is not none else "", "dnfselect", "DNF:") }}
 
                         <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
                     </form>
@@ -112,35 +124,40 @@
         {% endif %}
 
         {# Past Race Results #}
-        {% for raceresult in raceresults %}
+        {% for past_result in model.all_race_results() %}
             <tr>
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ raceresult.race.id }}:</span> {{ raceresult.race.grandprix }}<br>
-                    <small><span class="fw-bold">Guessed:</span> P{{ raceresult.race.pxx }}</small>
+                    <span class="fw-bold">{{ past_result.race.number }}:</span> <a href="/result/{{ past_result.race.name }}" class="link-dark">{{ past_result.race.name }}</a><br>
+                    <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.pxx }}</small>
                 </td>
 
-                {% if activeuser is not none %}{% set users = [activeuser] %}{% endif %}
+                {% if active_user is none %}
+                    {% set users = model.all_users() %}
+                {% else %}
+                    {% set users = [active_user] %}
+                {% endif %}
                 {% for user in users %}
                     <td class="text-center text-nowrap">
-                        {% if (raceresult.race_id in guesses) and (user.name in guesses.get(raceresult.race_id)) %}
-                            {% set pxx = guesses.get(raceresult.race_id).get(user.name).pxx.abbr %}
-                            {% set dnf = guesses.get(raceresult.race_id).get(user.name).dnf.abbr %}
+                        {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=past_result.race.name) %}
 
+                        {% if user_guess is not none %}
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item {% if pxx == raceresult.pxx.abbr %}text-success fw-bold{% endif %}">
-                                    P{{ raceresult.race.pxx }}: {{ pxx }}</li>
-                                <li class="list-group-item {% if dnf == raceresult.dnf.abbr %}text-success fw-bold{% endif %}">
-                                    DNF: {{ dnf }}</li>
+                                <li class="list-group-item {% if user_guess.pxx.abbr == past_result.pxx.abbr %}text-success fw-bold{% endif %}">
+                                    P{{ past_result.race.pxx }}: {{ user_guess.pxx.abbr }}</li>
+                                <li class="list-group-item {% if user_guess.dnf.abbr == past_result.dnf.abbr %}text-success fw-bold{% endif %}">
+                                    DNF: {{ user_guess.dnf.abbr }}</li>
                             </ul>
+                        {% else %}
+                            &nbsp;
                         {% endif %}
                     </td>
                 {% endfor %}
 
                 <td class="text-center text-nowrap">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item">P{{ raceresult.race.pxx }}: {{ raceresult.pxx.abbr }}</li>
-                        <li class="list-group-item {% if raceresult.dnf.abbr == 'NON' %}text-muted{% endif %}">
-                            DNF: {{ raceresult.dnf.abbr }}</li>
+                        <li class="list-group-item">P{{ past_result.race.pxx }}: {{ past_result.pxx.abbr }}</li>
+                        <li class="list-group-item {% if past_result.dnf.abbr == 'NON' %}text-muted{% endif %}">
+                            DNF: {{ past_result.dnf.abbr }}</li>
                     </ul>
                 </td>
             </tr>

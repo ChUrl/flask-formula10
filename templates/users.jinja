@@ -1,7 +1,6 @@
 {% extends 'base.jinja' %}
 
 {% set active_page = "/users" %}
-{% set active_user = none %}
 
 {% block title %}Formula 10 - Users{% endblock title %}
 
@@ -11,7 +10,7 @@
         <div class="card-body">
             <h5 class="card-title">Add User</h5>
 
-            <form action="/adduser" method="post">
+            <form action="/user-add" method="post">
                 <div class="input-group">
                     <div class="form-floating">
                         <input type="text" class="form-control" id="select-add-user" name="select-add-user"
@@ -42,7 +41,7 @@
             <div class="card-body">
                 <h5 class="card-title">Delete user</h5>
 
-                <form action="/deleteuser" method="post">
+                <form action="/user-delete" method="post">
                     <div class="input-group">
                         <select class="form-control form-select" aria-label="select-delete-user"
                                 name="select-delete-user">
@@ -73,10 +72,10 @@
             <h5 class="card-title">Functions that should not be public</h5>
             <h6 class="card-subtitle mb-2">(Fuck you if you click this without knowing what it does)</h6>
 
-            <a class="btn btn-outline-danger" href="/saveall">Save all data</a>
-            <a class="btn btn-outline-danger" href="/loadall">Load all data</a>
-            <a class="btn btn-outline-danger" href="/loadstatic">Load static data</a>
-            <a class="btn btn-outline-danger" href="/loaddynamic">Load dynamic data</a>
+            <a class="btn btn-outline-danger" href="/save/all">Save all data</a>
+            <a class="btn btn-outline-danger" href="/load/all">Load all data</a>
+            <a class="btn btn-outline-danger" href="/load/static">Load static data</a>
+            <a class="btn btn-outline-danger" href="/load/dynamic">Load dynamic data</a>
         </div>
     </div>
 
