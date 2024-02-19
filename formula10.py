@@ -1,7 +1,6 @@
 from typing import List
 
 from flask import Flask, render_template, request, redirect
-from flask_sqlalchemy import SQLAlchemy
 from model import *
 from database_utils import reload_static_data, reload_dynamic_data, export_dynamic_data
 
@@ -15,7 +14,6 @@ db.init_app(app)
 
 # TODO
 # General
-# - Store standing/dnf orders as dicts, since lists lose their order
 # - Make user headers in race table clickable, to reach the specific page. Do the same for the season cards
 # - When showing correct guesses in green, show semi-correct ones in a weaker tone (probably need to prepare those here, instead of in the template)
 # - Also show previous race results, and allow to change them. Or at least, allow editing the current one and show current state (do it like the activeuser select for results)

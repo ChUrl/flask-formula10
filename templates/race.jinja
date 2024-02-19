@@ -48,7 +48,7 @@
 
             {% if activeuser is none %}
                 {% for user in users %}
-                    <td class="text-center text-nowrap" style="min-width: 100px;">{{ user.name }}</td>
+                    <td class="text-center text-nowrap" style="min-width: 100px;"><a href="/race/{{ user.name }}" class="link-dark">{{ user.name }}</a></td>
                 {% endfor %}
             {% else %}
                 <td class="text-center text-nowrap" style="min-width: 100px;">{{ activeuser.name }}</td>

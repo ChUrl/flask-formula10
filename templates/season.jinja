@@ -33,7 +33,12 @@
 
             <div class="card mb-2 shadow-sm" style="width: 450px;">
                 <div class="card-body">
-                    <h5 class="card-title">{{ user.name }}</h5>
+                    {% if activeuser is not none %}
+                        <h5 class="card-title">{{ user.name }}</h5>
+                    {% else %}
+                        <a href="/season/Christoph" class="link-dark"><h5 class="card-title">{{ user.name }}</h5></a>
+                    {% endif %}
+                
                     <form action="/guessseason/{{ user.name }}" method="post">
 
                         {# Hot Take #}
