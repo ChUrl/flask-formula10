@@ -25,7 +25,7 @@
 
 {% block body %}
 
-    <table class="table table-bordered table-sm table-responsive">
+    <table class="table table-bordered table-sm table-responsive shadow-sm">
         <thead>
         <tr>
             <th scope="col" rowspan="2" class="text-center" style="width: 200px;">Race</th>
@@ -57,51 +57,61 @@
             <td>&nbsp;</td>
         </tr>
 
-        {# Next Race Guess #}
-        {#        {% if nextrace is not none %}#}
-        {#            <tr class="table-light">#}
-        {#                <td class="text-nowrap">#}
-        {#                    <span class="fw-bold">{{ nextrace.id }}:</span> {{ nextrace.grandprix }}<br>#}
-        {#                    <small><span class="fw-bold">Guess:</span> P{{ nextrace.pxx }}</small>#}
-        {#                </td>#}
-        {##}
-        {#                {% for user in users %}#}
-        {#                    <td>#}
-        {#                        <form action="/guessrace/{{ nextrace.id }}/{{ user.name }}" method="post">#}
-        {# Driver PXX Select #}
-        {#                            {{ driver_select_with_preselect(currentselection.get(user.name).pxx.abbr if user.name in currentselection else "",#}
-        {#                                                            "pxxselect", "P" ~ nextrace.pxx ~ ":") }}#}
-        {##}
-        {# Driver DNF Select #}
-        {#                            <div class="mt-2">#}
-        {#                                {{ driver_select_with_preselect(currentselection.get(user.name).dnf.abbr if user.name in currentselection else "",#}
-        {#                                                                "dnfselect", "DNF:") }}#}
-        {#                            </div>#}
-        {##}
-        {#                            <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">#}
-        {#                        </form>#}
-        {#                    </td>#}
-        {#                {% endfor %}#}
-        {##}
-        {# Enter Race Result #}
-        {#                <td>&nbsp;</td>#}
-        {#                <td>#}
-        {#                    <form action="/enterresult/{{ nextrace.id }}" method="post">#}
-        {#                        Driver PXX Select#}
-        {#                        {{ driver_select("pxxselect", "P" ~ nextrace.pxx ~ ":") }}#}
-        {##}
-        {#                        Driver DNF Select#}
-        {#                        <div class="mt-2">#}
-        {#                            {{ driver_select("dnfselect", "DNF:") }}#}
-        {#                        </div>#}
-        {##}
-        {#                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">#}
-        {#                    </form>#}
-        {#                </td>#}
-        {#            </tr>#}
-        {#        {% endif %}#}
+        {# Current Result, only displayed for all users overview #}
+        {% if activeuser is none %}
+            <tr class="table-danger">
+                <td class="text-nowrap">
+                    <span class="fw-bold">{{ currentrace.id }}:</span> {{ currentrace.grandprix }}<br>
+                    <small><span class="fw-bold">Guess:</span> P{{ currentrace.pxx }}</small>
+                </td>
 
-        {# Race Results #}
+                {% for user in users %}
+                    <td class="text-center text-nowrap">
+                        {% if (currentrace.id in guesses) and (user.name in guesses.get(currentrace.id)) %}
+                            {% set pxx = guesses.get(currentrace.id).get(user.name).pxx.abbr %}
+                            {% set dnf = guesses.get(currentrace.id).get(user.name).dnf.abbr %}
+
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item" style="background-color: inherit;">P{{ currentrace.pxx }}: {{ pxx }}</li>
+                                <li class="list-group-item" style="background-color: inherit;">DNF: {{ dnf }}</li>
+                            </ul>
+                        {% endif %}
+                    </td>
+                {% endfor %}
+
+                <td>&nbsp;</td>
+            </tr>
+        {% endif %}
+
+        {# Enter Guess, only displayed for single user focused view #}
+        {% if activeuser is not none %}
+            <tr class="table-danger">
+                <td class="text-nowrap">
+                    <span class="fw-bold">{{ currentrace.id }}:</span> {{ currentrace.grandprix }}<br>
+                    <small><span class="fw-bold">Guess:</span> P{{ currentrace.pxx }}</small>
+                </td>
+
+                <td>
+                    <form action="/guessrace/{{ currentrace.id }}/{{ activeuser.name }}" method="post">
+                        {# Driver PXX Select #}
+                        {{ driver_select_with_preselect(guesses.get(currentrace.id).get(activeuser.name).pxx.abbr if (currentrace.id in guesses and activeuser.name in guesses.get(currentrace.id)) else "",
+                                                        "pxxselect", "P" ~ currentrace.pxx ~ ":") }}
+
+                        {# Driver DNF Select #}
+                        <div class="mt-2">
+                            {{ driver_select_with_preselect(guesses.get(currentrace.id).get(activeuser.name).dnf.abbr if (currentrace.id in guesses and activeuser.name in guesses.get(currentrace.id)) else "",
+                                                            "dnfselect", "DNF:") }}
+                        </div>
+
+                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
+                    </form>
+                </td>
+
+                <td>&nbsp;</td>
+            </tr>
+        {% endif %}
+
+        {# Past Race Results #}
         {% for raceresult in raceresults %}
             <tr>
                 <td class="text-nowrap">
