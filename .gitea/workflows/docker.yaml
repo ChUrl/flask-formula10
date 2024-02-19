@@ -6,9 +6,11 @@ on:
     paths:
       - ".gitea/workflows/*"
       - "Dockerfile"
-      - "*.py"
       - "requirements.txt"
-      - "*.jinja"
+      - "*.py"
+      - "templates/*"
+      - "static/*"
+
 
 jobs:
   build-docker:
