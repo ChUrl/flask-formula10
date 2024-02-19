@@ -73,8 +73,8 @@
 
         {% set current_race = model.first_race_without_result() %}
 
-        {# Current Result, only displayed for all users overview #}
-        {% if active_user is none %}
+        {# Current Result, only displayed for all users overview and if guess is remaining #}
+        {% if (active_user is none) and (model.first_race_without_result() is not none) %}
 
             <tr class="table-danger">
                 <td class="text-nowrap">
@@ -106,8 +106,8 @@
             </tr>
         {% endif %}
 
-        {# Enter Guess, only displayed for single user focused view #}
-        {% if active_user is not none %}
+        {# Enter Guess, only displayed for single user focused view and if guess is remaining #}
+        {% if (active_user is not none) and (model.first_race_without_result() is not none) %}
             <tr class="table-danger">
                 <td class="text-nowrap">
                     <span class="fw-bold">{{ current_race.number }}:</span> {{ current_race.name }}<br>

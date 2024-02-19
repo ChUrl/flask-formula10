@@ -14,6 +14,7 @@ db.init_app(app)
 # TODO
 # General
 
+# - Sanitize URLs
 # - A lot of validation (esp. in the model), each input should be checked...
 
 # - Show cards of previous race results, like with season guesses?

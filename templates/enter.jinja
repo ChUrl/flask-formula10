@@ -20,17 +20,21 @@
                     aria-expanded="false">
                 {% if active_result is not none %}
                     {{ active_result.race.name }}
-                {% else %}
+                {% elif current_race is not none %}
                     {{ current_race.name }}
+                {% else %}
+                    {{ model.all_race_results()[0].race.name }}
                 {% endif %}
             </button>
             <ul class="dropdown-menu">
-                <li>
-                    <a class="dropdown-item" href="/result/{{ current_race.name }}">{{ current_race.name }}</a>
-                </li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
+                {% if model.first_race_without_result() is not none %}
+                    <li>
+                        <a class="dropdown-item" href="/result/{{ current_race.name }}">{{ current_race.name }}</a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                {% endif %}
 
                 {% for result in model.all_race_results() %}
                     <li>
@@ -51,10 +55,20 @@
         <div class="card shadow-sm" style="width: 450px;">
             <div class="card-body">
 
-                <h5 class="card-title">{% if active_result is not none %}{{ active_result.race.name }}{% else %}
-                    {{ current_race.name }}{% endif %}</h5>
+                <h5 class="card-title">
+                    {% if active_result is not none %}
+                        {{ active_result.race.name }}
+                    {% elif current_race is not none %}
+                        {{ current_race.name }}
+                    {% else %}
+                        {{ model.all_race_results()[0].race.name }}
+                    {% endif %}
+                </h5>
 
                 <form action="/result-enter/
+
+
+
 
                         {%- if active_result is not none %}{{ active_result.race.name }}{% else %}{{ current_race.name }}{% endif %}"
                       method="post">
