@@ -160,8 +160,8 @@ P{{ result.race.pxx + 3 }}: {{ result.pxx(3).abbr }}
 
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav me-2">
-                {{ nav_selector("/race", "Race Picks") }}
-                {{ nav_selector("/season", "Season Picks") }}
+                {{ nav_selector("/race/" ~ (active_user.name if active_user is not none else "Everyone"), "Race Picks") }}
+                {{ nav_selector("/season/" ~ (active_user.name if active_user is not none else "Everyone"), "Season Picks") }}
                 {{ nav_selector("/graphs", "Statistics") }}
                 {{ nav_selector("/rules", "Rules") }}
             </div>
