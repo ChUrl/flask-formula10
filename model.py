@@ -210,9 +210,8 @@ class RaceResult(db.Model):
 
         return self._excluded_drivers
 
-    @property
-    def pxx(self) -> Driver:
-        pxx_num: str = str(self.race.pxx)
+    def pxx(self, offset: int = 0) -> Driver:
+        pxx_num: str = str(self.race.pxx + offset)
         if pxx_num not in self.pxx_drivers:
             raise Exception(f"Error: Position {self.race.pxx} not contained in race result")
 

@@ -70,7 +70,8 @@
 
             <tr class="table-danger">
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ current_race.number }}:</span> <a href="/result" class="link-dark">{{ current_race.name }}</a><br>
+                    <span class="fw-bold">{{ current_race.number }}:</span> <a href="/result"
+                                                                               class="link-dark">{{ current_race.name }}</a><br>
                     <small><span class="fw-bold">Guess:</span> P{{ current_race.pxx }}</small>
                 </td>
 
@@ -127,7 +128,8 @@
         {% for past_result in model.all_race_results() %}
             <tr>
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ past_result.race.number }}:</span> <a href="/result/{{ past_result.race.name }}" class="link-dark">{{ past_result.race.name }}</a><br>
+                    <span class="fw-bold">{{ past_result.race.number }}:</span> <a
+                        href="/result/{{ past_result.race.name }}" class="link-dark">{{ past_result.race.name }}</a><br>
                     <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.pxx }}</small>
                 </td>
 
@@ -142,7 +144,7 @@
 
                         {% if user_guess is not none %}
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item {% if user_guess.pxx.abbr == past_result.pxx.abbr %}text-success fw-bold{% endif %}">
+                                <li class="list-group-item {{ pxx_guess_colorization(user_guess.pxx.abbr, past_result) }}">
                                     P{{ past_result.race.pxx }}: {{ user_guess.pxx.abbr }}</li>
                                 <li class="list-group-item {% if user_guess.dnf.abbr == past_result.dnf.abbr %}text-success fw-bold{% endif %}">
                                     DNF: {{ user_guess.dnf.abbr }}</li>
@@ -155,7 +157,7 @@
 
                 <td class="text-center text-nowrap">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item">P{{ past_result.race.pxx }}: {{ past_result.pxx.abbr }}</li>
+                        <li class="list-group-item">P{{ past_result.race.pxx }}: {{ past_result.pxx().abbr }}</li>
                         <li class="list-group-item {% if past_result.dnf.abbr == 'NON' %}text-muted{% endif %}">
                             DNF: {{ past_result.dnf.abbr }}</li>
                     </ul>

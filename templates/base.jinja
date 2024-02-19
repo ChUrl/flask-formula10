@@ -96,6 +96,16 @@
         {% if active_page == page %}</u>{% endif %}</a>
 {% endmacro %}
 
+{% macro pxx_guess_colorization(driver_abbr='', result=none) %}
+    {% if driver_abbr == result.pxx(0).abbr %}text-success fw-bold{% endif %}
+    {% if driver_abbr == result.pxx(1).abbr %}text-warning fw-bold{% endif %}
+    {% if driver_abbr == result.pxx(2).abbr %}text-danger fw-bold{% endif %}
+    {% if driver_abbr == result.pxx(3).abbr %}fw-bold{% endif %}
+    {% if driver_abbr == result.pxx(-1).abbr %}text-warning fw-bold{% endif %}
+    {% if driver_abbr == result.pxx(-2).abbr %}text-danger fw-bold{% endif %}
+    {% if driver_abbr == result.pxx(-3).abbr %}fw-bold{% endif %}
+{% endmacro %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
