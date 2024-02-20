@@ -1,13 +1,12 @@
 import json
 from datetime import datetime
-from typing import List, Dict
+from typing import Any, List, Dict
 from urllib.parse import quote
-
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-db = SQLAlchemy()
+db: SQLAlchemy = SQLAlchemy()
 
 ####################################
 # Static Data (Defined in Backend) #
@@ -21,7 +20,7 @@ class Race(db.Model):
     """
     __tablename__ = "race"
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.name = str(row[0])
         self.number = int(row[1])
         self.date = datetime.strptime(row[2], "%Y-%m-%d")
@@ -44,7 +43,7 @@ class Team(db.Model):
     """
     __tablename__ = "team"
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.name = str(row[0])
         return self
 
@@ -58,7 +57,7 @@ class Driver(db.Model):
     """
     __tablename__ = "driver"
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.name = str(row[0])
         self.abbr = str(row[1])
         self.team_name = str(row[2])
@@ -86,11 +85,11 @@ class User(db.Model):
     __tablename__ = "user"
     __csv_header__ = ["name"]
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.name = str(row[0])
         return self
 
-    def to_csv(self):
+    def to_csv(self) -> List[Any]:
         return [
             self.name
         ]
@@ -111,14 +110,14 @@ class RaceResult(db.Model):
     __allow_unmapped__ = True  # TODO: Used for json conversion, move this to some other class instead
     __csv_header__ = ["race_name", "pxx_driver_names_json", "dnf_driver_names_json", "excluded_driver_names_json"]
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.race_name = str(row[0])
         self.pxx_driver_names_json = str(row[1])
         self.dnf_driver_names_json = str(row[2])
         self.excluded_driver_names_json = str(row[3])
         return self
 
-    def to_csv(self):
+    def to_csv(self) -> List[Any]:
         return [
             self.race_name,
             self.pxx_driver_names_json,
@@ -166,7 +165,7 @@ class RaceResult(db.Model):
         if self._pxx_drivers is None:
             self._pxx_drivers = dict()
             for position, driver_name in self.pxx_driver_names.items():
-                driver = Driver.query.filter_by(name=driver_name).first()
+                driver: Driver | None = db.session.query(Driver).filter_by(name=driver_name).first()
                 if driver is None:
                     raise Exception(f"Error: Couldn't find driver with id {driver_name}")
 
@@ -176,11 +175,11 @@ class RaceResult(db.Model):
 
     @property
     def pxx_drivers_values(self) -> List[Driver]:
-        drivers: List[Driver] = []
+        drivers: List[Driver] = list()
 
         # I don't know what order dict.values() etc. will return...
         for position in range(1, 21):
-            drivers += [self.pxx_drivers[str(position)]]
+            drivers.append(self.pxx_drivers[str(position)])
 
         return drivers
 
@@ -189,7 +188,7 @@ class RaceResult(db.Model):
         if self._dnf_drivers is None:
             self._dnf_drivers = dict()
             for position, driver_name in self.dnf_driver_names.items():
-                driver = Driver.query.filter_by(name=driver_name).first()
+                driver: Driver | None = db.session.query(Driver).filter_by(name=driver_name).first()
                 if driver is None:
                     raise Exception(f"Error: Couldn't find driver with id {driver_name}")
 
@@ -200,13 +199,13 @@ class RaceResult(db.Model):
     @property
     def excluded_drivers(self) -> List[Driver]:
         if self._excluded_drivers is None:
-            self._excluded_drivers = []
+            self._excluded_drivers = list()
             for driver_name in self.excluded_driver_names:
-                driver = Driver.query.filter_by(name=driver_name).first()
+                driver: Driver | None = db.session.query(Driver).filter_by(name=driver_name).first()
                 if driver is None:
                     raise Exception(f"Error: Couldn't find driver with id {driver_name}")
 
-                self._excluded_drivers += [driver]
+                self._excluded_drivers.append(driver)
 
         return self._excluded_drivers
 
@@ -230,14 +229,14 @@ class RaceGuess(db.Model):
     __tablename__ = "raceguess"
     __csv_header__ = ["user_name", "race_name", "pxx_driver_name", "dnf_driver_name"]
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.user_name = str(row[0])
         self.race_name = str(row[1])
         self.pxx_driver_name = str(row[2])
         self.dnf_driver_name = str(row[3])
         return self
 
-    def to_csv(self):
+    def to_csv(self) -> List[Any]:
         return [
             self.user_name,
             self.race_name,
@@ -265,12 +264,12 @@ class TeamWinners(db.Model):
     __allow_unmapped__ = True
     __csv_header__ = ["user_name", "teamwinner_driver_names_json"]
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.user_name = str(row[0])
         self.teamwinner_driver_names_json = str(row[1])
         return self
 
-    def to_csv(self):
+    def to_csv(self) -> List[Any]:
         return [
             self.user_name,
             self.teamwinner_driver_names_json
@@ -294,13 +293,13 @@ class TeamWinners(db.Model):
     @property
     def teamwinners(self) -> List[Driver]:
         if self._teamwinner_drivers is None:
-            self._teamwinner_drivers = []
+            self._teamwinner_drivers = list()
             for driver_name in self.teamwinner_driver_names:
-                driver = Driver.query.filter_by(name=driver_name).first()
+                driver: Driver | None = db.session.query(Driver).filter_by(name=driver_name).first()
                 if driver is None:
                     raise Exception(f"Error: Couldn't find driver with id {driver_name}")
 
-                self._teamwinner_drivers += [driver]
+                self._teamwinner_drivers.append(driver)
 
         return self._teamwinner_drivers
 
@@ -313,12 +312,12 @@ class PodiumDrivers(db.Model):
     __allow_unmapped__ = True
     __csv_header__ = ["user_name", "podium_driver_names_json"]
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.user_name = str(row[0])
         self.podium_driver_names_json = str(row[1])
         return self
 
-    def to_csv(self):
+    def to_csv(self) -> List[Any]:
         return [
             self.user_name,
             self.podium_driver_names_json
@@ -342,13 +341,13 @@ class PodiumDrivers(db.Model):
     @property
     def podium_drivers(self) -> List[Driver]:
         if self._podium_drivers is None:
-            self._podium_drivers = []
+            self._podium_drivers = list()
             for driver_name in self.podium_driver_names:
-                driver = Driver.query.filter_by(name=driver_name).first()
+                driver: Driver | None = db.session.query(Driver).filter_by(name=driver_name).first()
                 if driver is None:
                     raise Exception(f"Error: Couldn't find driver with id {driver_name}")
 
-                self._podium_drivers += [driver]
+                self._podium_drivers.append(driver)
 
         return self._podium_drivers
 
@@ -362,7 +361,7 @@ class SeasonGuess(db.Model):
                       "overtake_driver_name", "dnf_driver_name", "gained_driver_name", "lost_driver_name",
                       "team_winners_id", "podium_drivers_id"]
 
-    def from_csv(self, row):
+    def from_csv(self, row: List[str]):
         self.user_name = str(row[0])  # Also used as foreign key for teamwinners + podiumdrivers
         self.hot_take = str(row[1])
         self.p2_team_name = str(row[2])
@@ -374,7 +373,7 @@ class SeasonGuess(db.Model):
         self.podium_drivers_id = str(row[8])
         return self
 
-    def to_csv(self):
+    def to_csv(self) -> List[Any]:
         return [
             self.user_name,
             self.hot_take,

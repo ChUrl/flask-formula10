@@ -1,8 +1,6 @@
-from typing import List, Iterable, Callable, TypeVar, Dict, overload, Any
-
+from typing import List, Iterable, Callable, TypeVar, Dict, overload
 from sqlalchemy import desc
-
-from model import User, RaceResult, RaceGuess, Race, Driver, Team, SeasonGuess
+from model import User, RaceResult, RaceGuess, Race, Driver, Team, SeasonGuess, db
 
 _T = TypeVar("_T")
 
@@ -73,7 +71,7 @@ class TemplateModel:
         Returns a list of all users in the database.
         """
         if self._all_users is None:
-            self._all_users = User.query.all()
+            self._all_users = db.session.query(User).all()
 
         return self._all_users
 
@@ -106,7 +104,7 @@ class TemplateModel:
         Returns a list of all race results in the database, in descending order (most recent first).
         """
         if self._all_race_results is None:
-            self._all_race_results = RaceResult.query.join(RaceResult.race).order_by(desc(Race.number)).all()
+            self._all_race_results = db.session.query(RaceResult).join(RaceResult.race).order_by(desc(Race.number)).all()
 
         return self._all_race_results
 
@@ -122,26 +120,26 @@ class TemplateModel:
         Returns a list of all race guesses in the database.
         """
         if self._all_race_guesses is None:
-            self._all_race_guesses = RaceGuess.query.all()
+            self._all_race_guesses = db.session.query(RaceGuess).all()
 
         return self._all_race_guesses
 
     @overload
-    def race_guesses_by(self, *, user_name) -> List[RaceGuess]:
+    def race_guesses_by(self, *, user_name: str) -> List[RaceGuess]:
         """
         Returns a list of all race guesses made by a specific user.
         """
         return self.race_guesses_by(user_name=user_name)
 
     @overload
-    def race_guesses_by(self, *, race_name) -> List[RaceGuess]:
+    def race_guesses_by(self, *, race_name: str) -> List[RaceGuess]:
         """
         Returns a list of all race guesses made for a specific race.
         """
         return self.race_guesses_by(race_name=race_name)
 
     @overload
-    def race_guesses_by(self, *, user_name, race_name) -> RaceGuess | None:
+    def race_guesses_by(self, *, user_name: str, race_name: str) -> RaceGuess | None:
         """
         Returns a single race guess by a specific user for a specific race, or None, if this guess doesn't exist.
         """
@@ -154,7 +152,7 @@ class TemplateModel:
         """
         return self.race_guesses_by()
 
-    def race_guesses_by(self, *, user_name=None, race_name=None) -> RaceGuess | List[RaceGuess] | Dict[str, Dict[str, RaceGuess]] | None:
+    def race_guesses_by(self, *, user_name: str | None = None, race_name: str | None = None) -> RaceGuess | List[RaceGuess] | Dict[str, Dict[str, RaceGuess]] | None:
         # List of all guesses by a single user
         if user_name is not None and race_name is None:
             predicate: Callable[[RaceGuess], bool] = lambda guess: guess.user_name == user_name
@@ -187,12 +185,12 @@ class TemplateModel:
 
     def all_season_guesses(self) -> List[SeasonGuess]:
         if self._all_season_guesses is None:
-            self._all_season_guesses = SeasonGuess.query.all()
+            self._all_season_guesses = db.session.query(SeasonGuess).all()
 
         return self._all_season_guesses
 
     @overload
-    def season_guesses_by(self, *, user_name) -> SeasonGuess:
+    def season_guesses_by(self, *, user_name: str) -> SeasonGuess:
         """
         Returns the season guess made by a specific user.
         """
@@ -205,7 +203,7 @@ class TemplateModel:
         """
         return self.season_guesses_by()
 
-    def season_guesses_by(self, *, user_name=None) -> SeasonGuess | Dict[str, SeasonGuess] | None:
+    def season_guesses_by(self, *, user_name: str | None = None) -> SeasonGuess | Dict[str, SeasonGuess] | None:
         if user_name is not None:
             predicate: Callable[[SeasonGuess], bool] = lambda guess: guess.user_name == user_name
             return find_single_or_none(predicate, self.all_season_guesses())
@@ -226,7 +224,7 @@ class TemplateModel:
         Returns a list of all races in the database.
         """
         if self._all_races is None:
-            self._all_races = Race.query.order_by(desc(Race.number)).all()
+            self._all_races = db.session.query(Race).order_by(desc(Race.number)).all()
 
         return self._all_races
 
@@ -248,7 +246,7 @@ class TemplateModel:
         Returns a list of all teams in the database.
         """
         if self._all_teams is None:
-            self._all_teams = Team.query.all()
+            self._all_teams = db.session.query(Team).all()
 
         return self._all_teams
 
@@ -257,7 +255,7 @@ class TemplateModel:
         Returns a list of all drivers in the database, including the NONE driver.
         """
         if self._all_drivers is None:
-            self._all_drivers = Driver.query.all()
+            self._all_drivers = db.session.query(Driver).all()
 
         return self._all_drivers
 
@@ -269,7 +267,7 @@ class TemplateModel:
         return find_multiple(predicate, self.all_drivers())
 
     @overload
-    def drivers_by(self, *, team_name) -> List[Driver]:
+    def drivers_by(self, *, team_name: str) -> List[Driver]:
         """
         Returns a list of all drivers driving for a certain team.
         """
@@ -282,7 +280,7 @@ class TemplateModel:
         """
         return self.drivers_by()
 
-    def drivers_by(self, *, team_name=None) -> List[Driver] | Dict[str, List[Driver]]:
+    def drivers_by(self, *, team_name: str | None = None) -> List[Driver] | Dict[str, List[Driver]]:
         if team_name is not None:
             predicate: Callable[[Driver], bool] = lambda driver: driver.team.name == team_name
             return find_multiple(predicate, self.all_drivers_except_none(), 2)

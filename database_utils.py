@@ -1,10 +1,11 @@
 import csv
 import os.path
+from typing import List, Any
+from flask_sqlalchemy import SQLAlchemy
+from model import Team, Driver, Race, User, RaceResult, RaceGuess, TeamWinners, PodiumDrivers, SeasonGuess
 
-from model import *
 
-
-def load_csv(filename):
+def load_csv(filename: str) -> List[List[str]]:
     if not os.path.exists(filename):
         print(f"Could not load data from file {filename}, as it doesn't exist!")
         return []
@@ -15,7 +16,7 @@ def load_csv(filename):
         return list(reader)
 
 
-def write_csv(filename, objects):
+def write_csv(filename: str, objects: List[Any]):
     if len(objects) == 0:
         print(f"Could not write objects to file {filename}, as no objects were given!")
         return
@@ -28,15 +29,15 @@ def write_csv(filename, objects):
 
 
 # Reload static database data, this has to be called from the app context
-def reload_static_data(db):
+def reload_static_data(db: SQLAlchemy):
     print("Initializing Database with Static Values...")
     # Create it (if it doesn't exist!)
     db.create_all()
 
     # Clear static data
-    Team.query.delete()
-    Driver.query.delete()
-    Race.query.delete()
+    db.session.query(Team).delete()
+    db.session.query(Driver).delete()
+    db.session.query(Race).delete()
 
     # Reload static data
     for row in load_csv("static_data/teams.csv"):
@@ -49,18 +50,18 @@ def reload_static_data(db):
     db.session.commit()
 
 
-def reload_dynamic_data(db):
+def reload_dynamic_data(db: SQLAlchemy):
     print("Initializing Database with Dynamic Values...")
     # Create it (if it doesn't exist!)
     db.create_all()
 
     # Clear dynamic data
-    User.query.delete()
-    RaceResult.query.delete()
-    RaceGuess.query.delete()
-    TeamWinners.query.delete()
-    PodiumDrivers.query.delete()
-    SeasonGuess.query.delete()
+    db.session.query(User).delete()
+    db.session.query(RaceResult).delete()
+    db.session.query(RaceGuess).delete()
+    db.session.query(TeamWinners).delete()
+    db.session.query(PodiumDrivers).delete()
+    db.session.query(SeasonGuess).delete()
 
     # Reload dynamic data
     for row in load_csv("dynamic_data/users.csv"):
@@ -82,12 +83,12 @@ def reload_dynamic_data(db):
 def export_dynamic_data():
     print("Exporting Userdata...")
 
-    users = User.query.all()
-    raceresults = RaceResult.query.all()
-    raceguesses = RaceGuess.query.all()
-    teamwinners = TeamWinners.query.all()
-    podiumdrivers = PodiumDrivers.query.all()
-    seasonguesses = SeasonGuess.query.all()
+    users: List[User] = User.query.all()
+    raceresults: List[RaceResult] = RaceResult.query.all()
+    raceguesses: List[RaceGuess] = RaceGuess.query.all()
+    teamwinners: List[TeamWinners] = TeamWinners.query.all()
+    podiumdrivers: List[PodiumDrivers] = PodiumDrivers.query.all()
+    seasonguesses: List[SeasonGuess] = SeasonGuess.query.all()
 
     write_csv("dynamic_data/users.csv", users)
     write_csv("dynamic_data/raceresults.csv", raceresults)
