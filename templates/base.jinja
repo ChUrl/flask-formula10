@@ -40,6 +40,10 @@
                 {% else %}
                     <option value="{{ driver.name }}">{{ driver.abbr }}</option>
                 {% endif %}
+
+                {% if (include_none == true) and (driver.abbr == "NON") %}
+                    <option disabled>──────────</option>
+                {% endif %}
             {% endfor %}
 
             {# Add an empty default if nothing has been chosen #}
