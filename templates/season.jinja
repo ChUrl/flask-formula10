@@ -85,7 +85,7 @@
                         <div class="input-group mt-2">
                             {{ driver_select_with_preselect(user_guess.gained_driver.abbr if user_guess is not none else "",
                                                             "gainedselect", "Most WDC places gained:", false) }}
-                            {{ driver_select_with_preselect(user_guess.gained_driver.abbr if user_guess is not none else "",
+                            {{ driver_select_with_preselect(user_guess.lost_driver.abbr if user_guess is not none else "",
                                                             "lostselect", "Most WDC places lost:", false) }}
                         </div>
 
