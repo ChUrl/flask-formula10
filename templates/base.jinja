@@ -4,7 +4,7 @@
 {# Simple driver dropdown. Requires list of drivers. #}
 {% macro driver_select(name='', label='', include_none=true) %}
     <div class="form-floating">
-        <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
+        <select name="{{ name }}" id="{{ name }}" class="form-select" aria-label="{{ name }}">
             <option value="" selected disabled hidden></option>
             {% if include_none == true %}
                 {% set drivers = model.all_drivers() %}
@@ -23,7 +23,7 @@
 {# Driver dropdown where a value might be preselected. Requires list of drivers. #}
 {% macro driver_select_with_preselect(match='', name='', label='', include_none=true) %}
     <div class="form-floating">
-        <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
+        <select name="{{ name }}" id="{{ name }}" class="form-select" aria-label="{{ name }}">
             {# Use namespace wrapper to persist scope between loop iterations #}
             {% set user_has_chosen = namespace(driverpre="false") %}
 
@@ -54,7 +54,7 @@
 {# Simple team dropdown. Requires list of teams. #}
 {% macro team_select(name='', label='') %}
     <div class="form-floating">
-        <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
+        <select name="{{ name }}" id="{{ name }}" class="form-select" aria-label="{{ name }}">
             <option value="" selected disabled hidden></option>
             {% for team in model.all_teams() %}
                 <option value="{{ team.name }}">{{ team.name }}</option>
@@ -67,7 +67,7 @@
 {# Team dropdown where a value might be preselected. Requires list of teams. #}
 {% macro team_select_with_preselect(match='', name='', label='') %}
     <div class="form-floating">
-        <select name="{{ name }}" class="form-select" aria-label="{{ name }}">
+        <select name="{{ name }}" id="{{ name }}" class="form-select" aria-label="{{ name }}">
             {# Use namespace wrapper to persist scope between loop iterations #}
             {% set user_has_chosen = namespace(teampre="false") %}
 
