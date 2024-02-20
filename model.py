@@ -161,18 +161,18 @@ class RaceResult(db.Model):
         self.dnf_driver_names_json = json.dumps(new_dnf_driver_names)
 
     @property
-    def excluded_driver_names(self) -> List[str]:
+    def excluded_driver_names(self) -> Dict[str, str]:
         return json.loads(self.excluded_driver_names_json)
 
     @excluded_driver_names.setter
-    def excluded_driver_names(self, new_excluded_driver_names: List[str]):
+    def excluded_driver_names(self, new_excluded_driver_names: Dict[str, str]):
         self.excluded_driver_names_json = json.dumps(new_excluded_driver_names)
 
     # Relationships
     race: Mapped["Race"] = relationship("Race", foreign_keys=[race_name])
     _pxx_drivers: Dict[str, Driver] | None = None
     _dnf_drivers: Dict[str, Driver] | None = None
-    _excluded_drivers: List[Driver] | None = None
+    _excluded_drivers: Dict[str, Driver] | None = None
 
     @property
     def pxx_drivers(self) -> Dict[str, Driver]:
@@ -188,16 +188,6 @@ class RaceResult(db.Model):
         return self._pxx_drivers
 
     @property
-    def pxx_drivers_values(self) -> List[Driver]:
-        drivers: List[Driver] = list()
-
-        # I don't know what order dict.values() etc. will return...
-        for position in range(1, 21):
-            drivers.append(self.pxx_drivers[str(position)])
-
-        return drivers
-
-    @property
     def dnf_drivers(self) -> Dict[str, Driver]:
         if self._dnf_drivers is None:
             self._dnf_drivers = dict()
@@ -211,28 +201,55 @@ class RaceResult(db.Model):
         return self._dnf_drivers
 
     @property
-    def excluded_drivers(self) -> List[Driver]:
+    def excluded_drivers(self) -> Dict[str, Driver]:
         if self._excluded_drivers is None:
-            self._excluded_drivers = list()
-            for driver_name in self.excluded_driver_names:
+            self._excluded_drivers = dict()
+            for position, driver_name in self.excluded_driver_names.items():
                 driver: Driver | None = db.session.query(Driver).filter_by(name=driver_name).first()
                 if driver is None:
                     raise Exception(f"Error: Couldn't find driver with id {driver_name}")
 
-                self._excluded_drivers.append(driver)
+                self._excluded_drivers[position] = driver
 
         return self._excluded_drivers
 
-    def pxx(self, offset: int = 0) -> Driver:
+    def pxx(self, offset: int = 0) -> Driver | None:
         pxx_num: str = str(self.race.pxx + offset)
+
         if pxx_num not in self.pxx_drivers:
-            raise Exception(f"Error: Position {self.race.pxx} not contained in race result")
+            none_driver: Driver | None = db.session.query(Driver).filter_by(name="NONE").first()
+            if none_driver is None:
+                raise Exception("NONE-driver not found in database")
+
+            return none_driver
 
         return self.pxx_drivers[pxx_num]
 
     @property
     def dnf(self) -> Driver:
-        return sorted(self.dnf_drivers.items(), reverse=True)[0][1]  # SortedList[FirstElement][KeyPairValue]
+        none_driver: Driver | None = db.session.query(Driver).filter_by(name="NONE").first()
+        if none_driver is None:
+            raise Exception("NONE-driver not found in database")
+
+        return sorted(self.dnf_drivers.items(), reverse=True)[0][1] if len(self.dnf_drivers) > 0 else none_driver
+
+    def single_position(self, position: str) -> Driver:
+        if position in self.pxx_drivers:
+            return self.pxx_drivers[position]
+
+        if position in self.dnf_drivers:
+            return self.dnf_drivers[position]
+
+        if position in self.excluded_drivers:
+            return self.excluded_drivers[position]
+
+        raise Exception(f"Driver for position {position} not found in pxx/dnf/excluded")
+
+    @property
+    def all_positions(self) -> List[Driver]:
+        return [
+            self.single_position(str(position)) for position in range(1, 21)
+        ]
 
 
 class RaceGuess(db.Model):

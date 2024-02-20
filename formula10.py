@@ -19,9 +19,7 @@ db.init_app(app)
 # TODO
 # General
 
-# - A lot of validation (esp. in the model), each input should be checked (e.g. DNF, excluded order)...
-# - NONE driver handling: If PXX = NONE is selected, excluded drivers have to be taken into account
-# - Show place when entering race result
+# - Show place when entering race result (would require updating the drag'n'drop code...)
 
 # - Show cards of previous race results, like with season guesses?
 # - Make the season card grid left-aligned? So e.g. 2 cards are not spread over the whole screen with large gaps?

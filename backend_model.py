@@ -154,40 +154,51 @@ def find_or_create_race_result(race_name: str) -> RaceResult:
 
 def update_race_result(race_name: str, pxx_driver_names_list: List[str], dnf_driver_names_list: List[str], excluded_driver_names_list: List[str]) -> Response:
     # Use strings as keys, as these dicts will be serialized to json
-    pxx_driver_names: Dict[str, str] = {str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list)}
-    dnf_driver_names: Dict[str, str] = {str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list) if driver in dnf_driver_names_list}
+    # The pxx_driver_names_list contains all 20 drivers, so use that one to determine positions for dnf_driver_names and excluded_driver_names
+    pxx_driver_names: Dict[str, str] = {
+        str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list)
+        if driver not in dnf_driver_names_list and driver not in excluded_driver_names_list
+    }
+    dnf_driver_names: Dict[str, str] = {
+        str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list)
+        if driver in dnf_driver_names_list and driver not in excluded_driver_names_list
+    }
+    excluded_driver_names: Dict[str, str] = {
+        str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list)
+        if driver in excluded_driver_names_list
+    }
 
-    # This one is only used for validation
-    excluded_driver_names: Dict[str, str] = {str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list) if driver in excluded_driver_names_list}
-    best_excluded_driver_position: int = sorted(list(map(int, list(excluded_driver_names.keys()))))[0] if len(excluded_driver_names) > 0 else 21
-    worst_dnf_driver_position: int = sorted(list(map(int, list(dnf_driver_names.keys()))), reverse=True)[0] if len(dnf_driver_names) > 0 else best_excluded_driver_position - 1
-
-    if not positions_are_contiguous(list(dnf_driver_names.keys())):
+    # All dictionaries should be disjunct and result in a complete list from P1-P20 if merged
+    union: Dict[str, str] = pxx_driver_names | dnf_driver_names | excluded_driver_names
+    if len(union) != 20 or not positions_are_contiguous(list(union.keys())) or "1" not in union or "20" not in union:
         return redirect(f"/result/{quote(race_name)}")
 
-    if not positions_are_contiguous(list(excluded_driver_names.keys())):
-        return redirect(f"/result/{quote(race_name)}")
+    # dnf_drivers have positions above excluded_drivers
+    if len(excluded_driver_names) > 0:
+        best_excluded_driver_position: int = min(map(int, excluded_driver_names.keys()))
+        for position in dnf_driver_names.keys():
+            if int(position) >= best_excluded_driver_position:
+                return redirect(f"/result/{quote(race_name)}")
 
-    # DNF + exclude is exclusive
-    for driver_name in dnf_driver_names_list:
-        if driver_name in excluded_driver_names_list:
-            return redirect(f"/result/{quote(race_name)}")
+    # pxx_drivers have positions above dnf_drivers
+    if len(dnf_driver_names) > 0:
+        best_dnf_driver_position: int = min(map(int, dnf_driver_names.keys()))
+        for position in pxx_driver_names.keys():
+            if int(position) >= best_dnf_driver_position:
+                return redirect(f"/result/{quote(race_name)}")
 
-    # Excluded drivers occupy the last positions, if any are excluded
-    if len(excluded_driver_names_list) > 0 and not "20" in excluded_driver_names:
-        return redirect(f"/result/{quote(race_name)}")
-
-    # DNF drivers occupy the positions between finishing and excluded drivers
-    if len(dnf_driver_names_list) > 0 and worst_dnf_driver_position + 1 != best_excluded_driver_position:
-        print(dnf_driver_names, worst_dnf_driver_position)
-        print(excluded_driver_names, best_excluded_driver_position)
-        return redirect(f"/result/{quote(race_name)}")
+    # pxx_drivers have positions above excluded_drivers
+    if len(excluded_driver_names) > 0:
+        best_excluded_driver_position: int = min(map(int, excluded_driver_names.keys()))
+        for position in pxx_driver_names.keys():
+            if int(position) >= best_excluded_driver_position:
+                return redirect(f"/result/{quote(race_name)}")
 
 
     race_result: RaceResult = find_or_create_race_result(race_name)
     race_result.pxx_driver_names = pxx_driver_names
-    race_result.dnf_driver_names = dnf_driver_names if len(dnf_driver_names_list) > 0 else {"20": "NONE"}
-    race_result.excluded_driver_names = excluded_driver_names_list
+    race_result.dnf_driver_names = dnf_driver_names
+    race_result.excluded_driver_names = excluded_driver_names
 
     db.session.commit()
 
