@@ -12,6 +12,9 @@ def any_is_none(*args: Any) -> bool:
 
 
 def positions_are_contiguous(positions: List[str]) -> bool:
+    if len(positions) == 0:
+        return True
+
     positions_unique = set(positions)  # Remove duplicates
     positions_sorted: List[int] = sorted([int(position) for position in positions_unique])
 
