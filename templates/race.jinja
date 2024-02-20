@@ -2,7 +2,7 @@
 
 {% block title %}Formula 10 - Race{% endblock title %}
 
-{% set active_page = "/race/" ~ (active_user.name if active_user is not none else "Everyone") %}
+{% set active_page = "/race/" ~ (active_user.name_sanitized if active_user is not none else "Everyone") %}
 
 {% block head_extra %}
     <script defer>
@@ -30,7 +30,7 @@
                 </li>
 
                 {% for user in model.all_users() %}
-                    <li><a class="dropdown-item" href="/race/{{ user.name }}">{{ user.name }}</a></li>
+                    <li><a class="dropdown-item" href="/race/{{ user.name_sanitized }}">{{ user.name }}</a></li>
                 {% endfor %}
             </ul>
         </div>
@@ -61,7 +61,7 @@
             {% if active_user is none %}
                 {% for user in model.all_users() %}
                     <td class="text-center text-nowrap" style="min-width: 100px;">
-                        <a href="/race/{{ user.name }}" class="link-dark">{{ user.name }}</a>
+                        <a href="/race/{{ user.name_sanitized }}" class="link-dark">{{ user.name }}</a>
                     </td>
                 {% endfor %}
             {% else %}
@@ -115,7 +115,7 @@
                 </td>
 
                 <td>
-                    <form action="/race-guess/{{ current_race.name }}/{{ active_user.name }}" method="post">
+                    <form action="/race-guess/{{ current_race.name_sanitized }}/{{ active_user.name_sanitized }}" method="post">
                         {% set user_guess = model.race_guesses_by(user_name=active_user.name, race_name=current_race.name) %}
 
                         {# Driver PXX Select #}
@@ -139,7 +139,7 @@
             <tr>
                 <td class="text-nowrap">
                     <span class="fw-bold">{{ past_result.race.number }}:</span> <a
-                        href="/result/{{ past_result.race.name }}" class="link-dark">{{ past_result.race.name }}</a><br>
+                        href="/result/{{ past_result.race.name_sanitized }}" class="link-dark">{{ past_result.race.name }}</a><br>
                     <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.pxx }}</small>
                 </td>
 

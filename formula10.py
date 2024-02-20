@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 from flask import Flask, render_template, request, redirect
 from model import *
 from database_utils import reload_static_data, reload_dynamic_data, export_dynamic_data
@@ -65,6 +67,7 @@ def race_root():
 
 @app.route("/race/<user_name>")
 def race_active_user(user_name: str):
+    user_name = unquote(user_name)
     model = TemplateModel()
     return render_template("race.jinja",
                            active_user=model.user_by(user_name=user_name, ignore=["Everyone"]),
@@ -73,15 +76,18 @@ def race_active_user(user_name: str):
 
 @app.route("/race-guess/<race_name>/<user_name>", methods=["POST"])
 def race_guess_post(race_name: str, user_name: str):
+    race_name = unquote(race_name)
+    user_name = unquote(user_name)
+
     pxx: str | None = request.form.get("pxxselect")
     dnf: str | None = request.form.get("dnfselect")
 
     if pxx is None or dnf is None:
-        return race_active_user(user_name)
+        return redirect(f"/race/{quote(user_name)}")
 
     if RaceResult.query.filter_by(race_name=race_name).first() is not None:
         print("Error: Can't guess race result if the race result is already known!")
-        return redirect(f"/race/{user_name}")
+        return redirect(f"/race/{quote(user_name)}")
 
     raceguess: RaceGuess | None = RaceGuess.query.filter_by(user_name=user_name, race_name=race_name).first()
 
@@ -105,6 +111,7 @@ def season_root():
 
 @app.route("/season/<user_name>")
 def season_active_user(user_name: str):
+    user_name = unquote(user_name)
     model = TemplateModel()
     return render_template("season.jinja",
                            active_user=model.user_by(user_name=user_name, ignore=["Everyone"]),
@@ -113,6 +120,7 @@ def season_active_user(user_name: str):
 
 @app.route("/season-guess/<user_name>", methods=["POST"])
 def season_guess_post(user_name: str):
+    user_name = unquote(user_name)
     guesses: List[str | None] = [
         request.form.get("hottakeselect"),
         request.form.get("p2select"),
@@ -128,7 +136,7 @@ def season_guess_post(user_name: str):
 
     if any(guess is None for guess in guesses + teamwinnerguesses):
         print("Error: /guessseason could not obtain request data!")
-        return redirect(f"/season/{user_name}")
+        return redirect(f"/season/{quote(user_name)}")
 
     seasonguess: SeasonGuess | None = SeasonGuess.query.filter_by(user_name=user_name).first()
     teamwinners: TeamWinners | None = seasonguess.team_winners if seasonguess is not None else None
@@ -165,7 +173,7 @@ def season_guess_post(user_name: str):
     seasonguess.podium_drivers_id = user_name
     db.session.commit()
 
-    return redirect(f"/season/{user_name}")
+    return redirect(f"/season/{quote(user_name)}")
 
 
 @app.route("/result")
@@ -175,6 +183,7 @@ def result_root():
 
 @app.route("/result/<race_name>")
 def result_active_race(race_name: str):
+    race_name = unquote(race_name)
     model = TemplateModel()
     return render_template("enter.jinja",
                            active_result=model.race_result_by(race_name=race_name),
@@ -183,6 +192,7 @@ def result_active_race(race_name: str):
 
 @app.route("/result-enter/<result_race_name>", methods=["POST"])
 def result_enter_post(result_race_name: str):
+    result_race_name = unquote(result_race_name)
     pxxs: List[str] = request.form.getlist("pxxdrivers")
     dnfs: List[str] = request.form.getlist("dnf-drivers")
     excludes: List[str] = request.form.getlist("exclude-drivers")
@@ -208,7 +218,7 @@ def result_enter_post(result_race_name: str):
         print("Error: Can't redirect to /enter/<GrandPrix> because race couldn't be found")
         return redirect(f"/result/Current")
 
-    return redirect(f"/result/{race.name}")
+    return redirect(f"/result/{quote(race.name)}")
 
 
 @app.route("/user")

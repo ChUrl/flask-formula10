@@ -29,7 +29,7 @@ class Race(db.Model):
         return self
 
     @property
-    def name_sanitized(self):
+    def name_sanitized(self) -> str:
         return quote(self.name)
 
     name: Mapped[str] = mapped_column(String(64), primary_key=True)
@@ -96,7 +96,7 @@ class User(db.Model):
         ]
 
     @property
-    def name_sanitized(self):
+    def name_sanitized(self) -> str:
         return quote(self.name)
 
     name: Mapped[str] = mapped_column(String(32), primary_key=True)
