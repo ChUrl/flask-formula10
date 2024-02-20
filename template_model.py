@@ -108,7 +108,6 @@ class TemplateModel:
         if self._all_race_results is None:
             self._all_race_results = RaceResult.query.join(RaceResult.race).order_by(desc(Race.number)).all()
 
-        print(self._all_race_results)
         return self._all_race_results
 
     def race_result_by(self, *, race_name: str) -> RaceResult | None:

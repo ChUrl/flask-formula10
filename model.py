@@ -359,7 +359,8 @@ class SeasonGuess(db.Model):
     """
     __tablename__ = "seasonguess"
     __csv_header__ = ["user_name", "hot_take", "p2_team_name",
-                      "overtake_driver_name", "dnf_driver_name", "gained_driver_name", "lost_driver_name"]
+                      "overtake_driver_name", "dnf_driver_name", "gained_driver_name", "lost_driver_name",
+                      "team_winners_id", "podium_drivers_id"]
 
     def from_csv(self, row):
         self.user_name = str(row[0])  # Also used as foreign key for teamwinners + podiumdrivers
@@ -369,6 +370,8 @@ class SeasonGuess(db.Model):
         self.dnf_driver_name = str(row[4])
         self.gained_driver_name = str(row[5])
         self.lost_driver_name = str(row[6])
+        self.team_winners_id = str(row[7])
+        self.podium_drivers_id = str(row[8])
         return self
 
     def to_csv(self):
@@ -380,6 +383,8 @@ class SeasonGuess(db.Model):
             self.dnf_driver_name,
             self.gained_driver_name,
             self.lost_driver_name,
+            self.team_winners_id,
+            self.podium_drivers_id
         ]
 
     user_name: Mapped[str] = mapped_column(ForeignKey("user.name"), primary_key=True)
@@ -390,6 +395,9 @@ class SeasonGuess(db.Model):
     gained_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
     lost_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
 
+    team_winners_id: Mapped[str] = mapped_column(ForeignKey("teamwinners.user_name"))
+    podium_drivers_id: Mapped[str] = mapped_column(ForeignKey("podiumdrivers.user_name"))
+
     # Relationships
     user: Mapped["User"] = relationship("User", foreign_keys=[user_name])
     p2_team: Mapped["Team"] = relationship("Team", foreign_keys=[p2_team_name])
@@ -398,7 +406,5 @@ class SeasonGuess(db.Model):
     gained_driver: Mapped["Driver"] = relationship("Driver", foreign_keys=[gained_driver_name])
     lost_driver: Mapped["Driver"] = relationship("Driver", foreign_keys=[lost_driver_name])
 
-    team_winners: Mapped["TeamWinners"] = relationship("TeamWinners", foreign_keys=[user_name],
-                                                       primaryjoin="SeasonGuess.user_name == TeamWinners.user_name")
-    podium_drivers: Mapped["PodiumDrivers"] = relationship("PodiumDrivers", foreign_keys=[user_name],
-                                                           primaryjoin="SeasonGuess.user_name == PodiumDrivers.user_name")
+    team_winners: Mapped["TeamWinners"] = relationship("TeamWinners", foreign_keys=[team_winners_id])
+    podium_drivers: Mapped["PodiumDrivers"] = relationship("PodiumDrivers", foreign_keys=[podium_drivers_id])

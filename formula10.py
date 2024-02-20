@@ -161,6 +161,8 @@ def season_guess_post(user_name: str):
     seasonguess.dnf_driver_name = guesses[3]  # Pylance throws error but nullcheck is done
     seasonguess.gained_driver_name = guesses[4]  # Pylance throws error but nullcheck is done
     seasonguess.lost_driver_name = guesses[5]  # Pylance throws error but nullcheck is done
+    seasonguess.team_winners_id = user_name
+    seasonguess.podium_drivers_id = user_name
     db.session.commit()
 
     return redirect(f"/season/{user_name}")
