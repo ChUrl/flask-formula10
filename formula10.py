@@ -1,14 +1,17 @@
+from typing import List
 from urllib.parse import unquote
 from flask import Flask, render_template, request, redirect
 from werkzeug import Response
-from model import *
-from database_utils import reload_static_data, reload_dynamic_data, export_dynamic_data
+from model import Team, db
+from file_utils import reload_static_data, reload_dynamic_data, export_dynamic_data
 from template_model import TemplateModel
+from backend_model import update_race_guess, update_race_result, update_season_guess, update_user
 
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///formula10.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.url_map.strict_slashes = False
 
 db.init_app(app)
 
@@ -17,13 +20,16 @@ db.init_app(app)
 # General
 
 # - A lot of validation (esp. in the model), each input should be checked (e.g. DNF, excluded order)...
+# - NONE driver handling: If PXX = NONE is selected, excluded drivers have to be taken into account
 
 # - Show cards of previous race results, like with season guesses?
 # - Make the season card grid left-aligned? So e.g. 2 cards are not spread over the whole screen with large gaps?
 # - Choose "place to guess" late before the race?
 
-# Statistics page
+# Statistics
 # - Auto calculate points
+# - Order user table by points + display points somewhere
+# - Show current values for some season guesses (e.g. current most dnfs)
 # - Generate static diagram using chart.js + templating the js (funny yikes)
 
 # Rules page
@@ -42,20 +48,20 @@ def save() -> Response:
 
 @app.route("/load/all")
 def load() -> Response:
-    reload_static_data(db)
-    reload_dynamic_data(db)
+    reload_static_data()
+    reload_dynamic_data()
     return redirect("/")
 
 
 @app.route("/load/static")
 def load_static() -> Response:
-    reload_static_data(db)
+    reload_static_data()
     return redirect("/")
 
 
 @app.route("/load/dynamic")
 def load_dynamic() -> Response:
-    reload_dynamic_data(db)
+    reload_dynamic_data()
     return redirect("/")
 
 
@@ -81,26 +87,7 @@ def race_guess_post(race_name: str, user_name: str) -> Response:
     pxx: str | None = request.form.get("pxxselect")
     dnf: str | None = request.form.get("dnfselect")
 
-    if pxx is None or dnf is None:
-        return redirect(f"/race/{quote(user_name)}")
-
-    if RaceResult.query.filter_by(race_name=race_name).first() is not None:
-        print("Error: Can't guess race result if the race result is already known!")
-        return redirect(f"/race/{quote(user_name)}")
-
-    raceguess: RaceGuess | None = db.session.query(RaceGuess).filter_by(user_name=user_name, race_name=race_name).first()
-
-    if raceguess is None:
-        raceguess = RaceGuess()
-        raceguess.user_name = user_name
-        raceguess.race_name = race_name
-        db.session.add(raceguess)
-
-    raceguess.pxx_driver_name = pxx
-    raceguess.dnf_driver_name = dnf
-    db.session.commit()
-
-    return redirect("/race/Everyone")
+    return update_race_guess(race_name, user_name, pxx, dnf)
 
 
 @app.route("/season")
@@ -128,51 +115,12 @@ def season_guess_post(user_name: str) -> Response:
         request.form.get("gainedselect"),
         request.form.get("lostselect")
     ]
-    teamwinnerguesses: List[str | None] = [
+    team_winner_guesses: List[str | None] = [
         request.form.get(f"teamwinner-{team.name}") for team in db.session.query(Team).all()
     ]
-    podiumdriverguesses: List[str] = request.form.getlist("podiumdrivers")
+    podium_driver_guesses: List[str] = request.form.getlist("podiumdrivers")
 
-    if any(guess is None for guess in guesses + teamwinnerguesses):
-        print("Error: /guessseason could not obtain request data!")
-        return redirect(f"/season/{quote(user_name)}")
-
-    seasonguess: SeasonGuess | None = db.session.query(SeasonGuess).filter_by(user_name=user_name).first()
-    teamwinners: TeamWinners | None = seasonguess.team_winners if seasonguess is not None else None
-    podiumdrivers: PodiumDrivers | None = seasonguess.podium_drivers if seasonguess is not None else None
-
-    if teamwinners is None:
-        teamwinners = TeamWinners()
-        db.session.add(teamwinners)
-
-    teamwinners.user_name = user_name
-    teamwinners.teamwinner_driver_names = teamwinnerguesses  # Pylance throws error, but nullcheck is done
-    db.session.commit()
-
-    if podiumdrivers is None:
-        podiumdrivers = PodiumDrivers()
-        db.session.add(podiumdrivers)
-
-    podiumdrivers.podium_driver_names = podiumdriverguesses
-    podiumdrivers.user_name = user_name
-    db.session.commit()
-
-    if seasonguess is None:
-        seasonguess = SeasonGuess()
-        seasonguess.user_name = user_name
-        db.session.add(seasonguess)
-
-    seasonguess.hot_take = guesses[0]  # Pylance throws error but nullcheck is done
-    seasonguess.p2_team_name = guesses[1]  # Pylance throws error but nullcheck is done
-    seasonguess.overtake_driver_name = guesses[2]  # Pylance throws error but nullcheck is done
-    seasonguess.dnf_driver_name = guesses[3]  # Pylance throws error but nullcheck is done
-    seasonguess.gained_driver_name = guesses[4]  # Pylance throws error but nullcheck is done
-    seasonguess.lost_driver_name = guesses[5]  # Pylance throws error but nullcheck is done
-    seasonguess.team_winners_id = user_name
-    seasonguess.podium_drivers_id = user_name
-    db.session.commit()
-
-    return redirect(f"/season/{quote(user_name)}")
+    return update_season_guess(user_name, guesses, team_winner_guesses, podium_driver_guesses)
 
 
 @app.route("/result")
@@ -189,84 +137,34 @@ def result_active_race(race_name: str) -> str:
                            model=model)
 
 
-@app.route("/result-enter/<result_race_name>", methods=["POST"])
-def result_enter_post(result_race_name: str) -> Response:
-    result_race_name = unquote(result_race_name)
+@app.route("/result-enter/<race_name>", methods=["POST"])
+def result_enter_post(race_name: str) -> Response:
+    race_name = unquote(race_name)
     pxxs: List[str] = request.form.getlist("pxxdrivers")
     dnfs: List[str] = request.form.getlist("dnf-drivers")
     excludes: List[str] = request.form.getlist("exclude-drivers")
 
-    # Use strings as keys, as these dicts will be serialized to json
-    pxxs_dict: Dict[str, str] = {str(position + 1): driver for position, driver in enumerate(pxxs)}
-    dnfs_dict: Dict[str, str] = {str(position + 1): driver for position, driver in enumerate(pxxs) if driver in dnfs}
-
-    raceresult: RaceResult | None = db.session.query(RaceResult).filter_by(race_name=result_race_name).first()
-
-    if raceresult is None:
-        raceresult = RaceResult()
-        db.session.add(raceresult)
-
-    raceresult.race_name = result_race_name
-    raceresult.pxx_driver_names = pxxs_dict
-    raceresult.dnf_driver_names = dnfs_dict if len(dnfs) > 0 else {"20": "NONE"}
-    raceresult.excluded_driver_names = excludes
-    db.session.commit()
-
-    race: Race | None = db.session.query(Race).filter_by(name=result_race_name).first()
-    if race is None:
-        print("Error: Can't redirect to /enter/<GrandPrix> because race couldn't be found")
-        return redirect(f"/result/Current")
-
-    return redirect(f"/result/{quote(race.name)}")
+    return update_race_result(race_name, pxxs, dnfs, excludes)
 
 
 @app.route("/user")
 def user_root() -> str:
-    users: List[User] = User.query.all()
-
+    model = TemplateModel()
     return render_template("users.jinja",
-                           users=users)
+                           model=model)
 
 
 @app.route("/user-add", methods=["POST"])
 def user_add_post() -> Response:
     username: str | None = request.form.get("select-add-user")
-
-    if username is None or len(username) == 0:
-        print(f"Not adding user, since no username was received")
-        return redirect("/user")
-
-    if len(db.session.query(User).filter_by(name=username).all()) > 0:
-        print(f"Not adding user {username}: Already exists!")
-        return redirect("/user")
-
-    user = User()
-    user.name = username
-    db.session.add(user)
-    db.session.commit()
-
-    return redirect("/user")
+    return update_user(username, add=True)
 
 
 @app.route("/user-delete", methods=["POST"])
 def user_delete_post() -> Response:
-    username = request.form.get("select-delete-user")
-
-    if username is None or len(username) == 0:
-        print(f"Not deleting user, since no username was received")
-        return redirect("/user")
-
-    if username == "Select User":
-        return redirect("/user")
-
-    print(f"Deleting user {username}...")
-
-    User.query.filter_by(name=username).delete()
-    db.session.commit()
-
-    return redirect("/user")
+    username: str | None = request.form.get("select-delete-user")
+    return update_user(username, delete=True)
 
 
 if __name__ == "__main__":
-    app.url_map.strict_slashes = False
     app.run(debug=True, host="0.0.0.0")

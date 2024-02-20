@@ -100,7 +100,7 @@
                                                id="exclude-{{ driver.name }}" name="exclude-drivers"
                                                {% if (active_result is not none) and (driver in active_result.excluded_drivers) %}checked{% endif %}>
                                         <label for="exclude-{{ driver.name }}"
-                                               class="form-check-label text-muted">Exclude</label>
+                                               class="form-check-label text-muted" data-bs-toggle="tooltip" title="Exclude driver from points calculation">Exclude</label>
                                     </div>
                                 </div>
 

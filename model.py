@@ -20,12 +20,14 @@ class Race(db.Model):
     """
     __tablename__ = "race"
 
-    def from_csv(self, row: List[str]):
-        self.name = str(row[0])
-        self.number = int(row[1])
-        self.date = datetime.strptime(row[2], "%Y-%m-%d")
-        self.pxx = int(row[3])
-        return self
+    @staticmethod
+    def from_csv(row: List[str]):
+        race: Race = Race()
+        race.name = str(row[0])
+        race.number = int(row[1])
+        race.date = datetime.strptime(row[2], "%Y-%m-%d")
+        race.pxx = int(row[3])
+        return race
 
     @property
     def name_sanitized(self) -> str:
@@ -43,9 +45,11 @@ class Team(db.Model):
     """
     __tablename__ = "team"
 
-    def from_csv(self, row: List[str]):
-        self.name = str(row[0])
-        return self
+    @staticmethod
+    def from_csv(row: List[str]):
+        team: Team = Team()
+        team.name = str(row[0])
+        return team
 
     name: Mapped[str] = mapped_column(String(32), primary_key=True)
 
@@ -57,12 +61,14 @@ class Driver(db.Model):
     """
     __tablename__ = "driver"
 
-    def from_csv(self, row: List[str]):
-        self.name = str(row[0])
-        self.abbr = str(row[1])
-        self.team_name = str(row[2])
-        self.country_code = str(row[3])
-        return self
+    @staticmethod
+    def from_csv(row: List[str]):
+        driver: Driver = Driver()
+        driver.name = str(row[0])
+        driver.abbr = str(row[1])
+        driver.team_name = str(row[2])
+        driver.country_code = str(row[3])
+        return driver
 
     name: Mapped[str] = mapped_column(String(32), primary_key=True)
     abbr: Mapped[str] = mapped_column(String(3))
@@ -85,9 +91,13 @@ class User(db.Model):
     __tablename__ = "user"
     __csv_header__ = ["name"]
 
-    def from_csv(self, row: List[str]):
-        self.name = str(row[0])
-        return self
+    def __init__(self, name: str):
+        self.name = name  # Primary key
+
+    @staticmethod
+    def from_csv(row: List[str]):
+        user: User = User(str(row[0]))
+        return user
 
     def to_csv(self) -> List[Any]:
         return [
@@ -110,12 +120,16 @@ class RaceResult(db.Model):
     __allow_unmapped__ = True  # TODO: Used for json conversion, move this to some other class instead
     __csv_header__ = ["race_name", "pxx_driver_names_json", "dnf_driver_names_json", "excluded_driver_names_json"]
 
-    def from_csv(self, row: List[str]):
-        self.race_name = str(row[0])
-        self.pxx_driver_names_json = str(row[1])
-        self.dnf_driver_names_json = str(row[2])
-        self.excluded_driver_names_json = str(row[3])
-        return self
+    def __init__(self, race_name: str):
+        self.race_name = race_name  # Primary key
+
+    @staticmethod
+    def from_csv(row: List[str]):
+        race_result: RaceResult = RaceResult(str(row[0]))
+        race_result.pxx_driver_names_json = str(row[1])
+        race_result.dnf_driver_names_json = str(row[2])
+        race_result.excluded_driver_names_json = str(row[3])
+        return race_result
 
     def to_csv(self) -> List[Any]:
         return [
@@ -126,9 +140,9 @@ class RaceResult(db.Model):
         ]
 
     race_name: Mapped[str] = mapped_column(ForeignKey("race.name"), primary_key=True)
-    pxx_driver_names_json: Mapped[str] = mapped_column(String(1024))
-    dnf_driver_names_json: Mapped[str] = mapped_column(String(1024))
-    excluded_driver_names_json: Mapped[str] = mapped_column(String(1024))
+    pxx_driver_names_json: Mapped[str] = mapped_column(String(1024), nullable=True)
+    dnf_driver_names_json: Mapped[str] = mapped_column(String(1024), nullable=True)
+    excluded_driver_names_json: Mapped[str] = mapped_column(String(1024), nullable=True)
 
     @property
     def pxx_driver_names(self) -> Dict[str, str]:
@@ -229,12 +243,16 @@ class RaceGuess(db.Model):
     __tablename__ = "raceguess"
     __csv_header__ = ["user_name", "race_name", "pxx_driver_name", "dnf_driver_name"]
 
-    def from_csv(self, row: List[str]):
-        self.user_name = str(row[0])
-        self.race_name = str(row[1])
-        self.pxx_driver_name = str(row[2])
-        self.dnf_driver_name = str(row[3])
-        return self
+    def __init__(self, user_name: str, race_name: str):
+        self.user_name = user_name  # Primary key
+        self.race_name = race_name  # Primery key
+
+    @staticmethod
+    def from_csv(row: List[str]):
+        race_guess: RaceGuess = RaceGuess(str(row[0]), str(row[1]))
+        race_guess.pxx_driver_name = str(row[2])
+        race_guess.dnf_driver_name = str(row[3])
+        return race_guess
 
     def to_csv(self) -> List[Any]:
         return [
@@ -246,8 +264,8 @@ class RaceGuess(db.Model):
 
     user_name: Mapped[str] = mapped_column(ForeignKey("user.name"), primary_key=True)
     race_name: Mapped[str] = mapped_column(ForeignKey("race.name"), primary_key=True)
-    pxx_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    dnf_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
+    pxx_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"), nullable=True)
+    dnf_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"), nullable=True)
 
     # Relationships
     user: Mapped["User"] = relationship("User", foreign_keys=[user_name])
@@ -264,10 +282,14 @@ class TeamWinners(db.Model):
     __allow_unmapped__ = True
     __csv_header__ = ["user_name", "teamwinner_driver_names_json"]
 
-    def from_csv(self, row: List[str]):
-        self.user_name = str(row[0])
-        self.teamwinner_driver_names_json = str(row[1])
-        return self
+    def __init__(self, user_name: str):
+        self.user_name = user_name  # Primary key
+
+    @staticmethod
+    def from_csv(row: List[str]):
+        team_winners: TeamWinners = TeamWinners(str(row[0]))
+        team_winners.teamwinner_driver_names_json = str(row[1])
+        return team_winners
 
     def to_csv(self) -> List[Any]:
         return [
@@ -276,7 +298,7 @@ class TeamWinners(db.Model):
         ]
 
     user_name: Mapped[str] = mapped_column(ForeignKey("user.name"), primary_key=True)
-    teamwinner_driver_names_json: Mapped[str] = mapped_column(String(1024))
+    teamwinner_driver_names_json: Mapped[str] = mapped_column(String(1024), nullable=True)
 
     @property
     def teamwinner_driver_names(self) -> List[str]:
@@ -312,10 +334,14 @@ class PodiumDrivers(db.Model):
     __allow_unmapped__ = True
     __csv_header__ = ["user_name", "podium_driver_names_json"]
 
-    def from_csv(self, row: List[str]):
-        self.user_name = str(row[0])
-        self.podium_driver_names_json = str(row[1])
-        return self
+    def __init__(self, user_name: str):
+        self.user_name = user_name
+
+    @staticmethod
+    def from_csv(row: List[str]):
+        podium_drivers: PodiumDrivers = PodiumDrivers(str(row[0]))
+        podium_drivers.podium_driver_names_json = str(row[1])
+        return podium_drivers
 
     def to_csv(self) -> List[Any]:
         return [
@@ -324,7 +350,7 @@ class PodiumDrivers(db.Model):
         ]
 
     user_name: Mapped[str] = mapped_column(ForeignKey("user.name"), primary_key=True)
-    podium_driver_names_json: Mapped[str] = mapped_column(String(1024))
+    podium_driver_names_json: Mapped[str] = mapped_column(String(1024), nullable=True)
 
     @property
     def podium_driver_names(self) -> List[str]:
@@ -361,17 +387,32 @@ class SeasonGuess(db.Model):
                       "overtake_driver_name", "dnf_driver_name", "gained_driver_name", "lost_driver_name",
                       "team_winners_id", "podium_drivers_id"]
 
-    def from_csv(self, row: List[str]):
-        self.user_name = str(row[0])  # Also used as foreign key for teamwinners + podiumdrivers
-        self.hot_take = str(row[1])
-        self.p2_team_name = str(row[2])
-        self.overtake_driver_name = str(row[3])
-        self.dnf_driver_name = str(row[4])
-        self.gained_driver_name = str(row[5])
-        self.lost_driver_name = str(row[6])
-        self.team_winners_id = str(row[7])
-        self.podium_drivers_id = str(row[8])
-        return self
+    def __init__(self, user_name: str, team_winners_user_name: str | None = None, podium_drivers_user_name: str | None = None):
+        self.user_name = user_name  # Primary key
+
+        # Although this is the same username, handle separately, in case they don't exist in the database yet
+        if team_winners_user_name is not None:
+            if user_name != team_winners_user_name:
+                raise Exception(f"SeasonGuess for {user_name} was supplied TeamWinners for {team_winners_user_name}")
+
+            self.team_winners_id = team_winners_user_name
+
+        if podium_drivers_user_name is not None:
+            if user_name != podium_drivers_user_name:
+                raise Exception(f"SeasonGuess for {user_name} was supplied PodiumDrivers for {podium_drivers_user_name}")
+
+            self.podium_drivers_id = podium_drivers_user_name
+
+    @staticmethod
+    def from_csv(row: List[str]):
+        season_guess: SeasonGuess = SeasonGuess(str(row[0]), team_winners_user_name=str(row[7]), podium_drivers_user_name=str(row[8]))
+        season_guess.hot_take = str(row[1])
+        season_guess.p2_team_name = str(row[2])
+        season_guess.overtake_driver_name = str(row[3])
+        season_guess.dnf_driver_name = str(row[4])
+        season_guess.gained_driver_name = str(row[5])
+        season_guess.lost_driver_name = str(row[6])
+        return season_guess
 
     def to_csv(self) -> List[Any]:
         return [
@@ -387,12 +428,12 @@ class SeasonGuess(db.Model):
         ]
 
     user_name: Mapped[str] = mapped_column(ForeignKey("user.name"), primary_key=True)
-    hot_take: Mapped[str] = mapped_column(String(512))
-    p2_team_name: Mapped[str] = mapped_column(ForeignKey("team.name"))
-    overtake_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    dnf_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    gained_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    lost_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
+    hot_take: Mapped[str] = mapped_column(String(512), nullable=True)
+    p2_team_name: Mapped[str] = mapped_column(ForeignKey("team.name"), nullable=True)
+    overtake_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"), nullable=True)
+    dnf_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"), nullable=True)
+    gained_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"), nullable=True)
+    lost_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"), nullable=True)
 
     team_winners_id: Mapped[str] = mapped_column(ForeignKey("teamwinners.user_name"))
     podium_drivers_id: Mapped[str] = mapped_column(ForeignKey("podiumdrivers.user_name"))

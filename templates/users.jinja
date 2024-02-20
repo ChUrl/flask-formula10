@@ -25,13 +25,13 @@
         </div>
     </div>
 
-    {% if users | length > 0 %}
+    {% if model.all_users() | length > 0 %}
         <div class="card mt-2 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title">Registered Users</h5>
 
                 <ul class="list-group list-group-flush">
-                    {% for user in users %}
+                    {% for user in model.all_users() %}
                         <li class="list-group-item">{{ user.name }}</li>
                     {% endfor %}
                 </ul>
@@ -47,7 +47,7 @@
                         <select class="form-control form-select" aria-label="select-delete-user"
                                 name="select-delete-user">
                             <option selected="selected" disabled="disabled" hidden="hidden">Select User</option>
-                            {% for user in users %}
+                            {% for user in model.all_users() %}
                                 <option value="{{ user.name }}">{{ user.name }}</option>
                             {% endfor %}
                         </select>
@@ -71,7 +71,7 @@
     <div class="card mt-2 border-danger shadow-sm">
         <div class="card-body">
             <h5 class="card-title">Functions that should not be public</h5>
-            <h6 class="card-subtitle mb-2">(Fuck you if you click this without knowing what it does)</h6>
+            <h6 class="card-subtitle mb-2">(F you if you click this without knowing what it does)</h6>
 
             <a class="btn btn-outline-danger" href="/save/all">Save all data</a>
             <a class="btn btn-outline-danger" href="/load/all">Load all data</a>

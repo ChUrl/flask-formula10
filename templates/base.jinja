@@ -141,6 +141,12 @@ P{{ result.race.pxx + 3 }}: {{ result.pxx(3).abbr }}
     <link href="../static/style/bootstrap.css" rel="stylesheet">
     <script src="../static/script/bootstrap.bundle.js"></script>
 
+    <script defer>
+        {# Initialize Bootstrap Tooltips #}
+        let tooltipTriggerList = document.querySelectorAll("[data-bs-toggle='tooltip']")
+        let tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
+
     {% block head_extra %}{% endblock head_extra %}
 </head>
 

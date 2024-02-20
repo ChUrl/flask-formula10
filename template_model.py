@@ -1,58 +1,10 @@
-from typing import List, Iterable, Callable, TypeVar, Dict, overload
+from typing import List, Callable, Dict, overload
 from sqlalchemy import desc
 from model import User, RaceResult, RaceGuess, Race, Driver, Team, SeasonGuess, db
-
-_T = TypeVar("_T")
-
-
-def find_first_or_none(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T | None:
-    """
-    Finds the first element in a sequence matching a predicate.
-    Returns None if no element is found.
-    """
-    return next(filter(predicate, iterable), None)
+from validation_utils import find_first_or_none, find_multiple, find_single, find_single_or_none
 
 
-def find_multiple(predicate: Callable[[_T], bool], iterable: Iterable[_T], count: int = 0) -> List[_T]:
-    """
-    Finds <count> elements in a sequence matching a predicate (finds all if <count> is 0).
-    Throws exception if more/fewer elements were found than specified.
-    """
-    filtered = list(filter(predicate, iterable))
-
-    if count != 0 and len(filtered) != count:
-        raise Exception(f"find_multiple found {len(filtered)} matching elements but expected {count}")
-
-    return filtered
-
-
-def find_single(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T:
-    """
-    Find a single element in a sequence matching a predicate.
-    Throws exception if more/less than a single element is found.
-    """
-    filtered = list(filter(predicate, iterable))
-
-    if len(filtered) != 1:
-        raise Exception(f"find_single found {len(filtered)} matching elements but expected 1")
-
-    return filtered[0]
-
-
-def find_single_or_none(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T | None:
-    """
-    Find a single element in a sequence matching a predicate if it exists.
-    Only throws exception if more than a single element is found.
-    """
-    filtered = list(filter(predicate, iterable))
-
-    if len(filtered) > 1:
-        raise Exception(f"find_single_or_none found {len(list(filtered))} matching elements but expected 0 or 1")
-
-    return filtered[0] if len(filtered) == 1 else None
-
-
-# This is inefficient (doesn't matter for small database), but very simple
+# This could also be moved to database_utils (at least partially), but I though the template should cache the database responses
 class TemplateModel:
     """
     This class bundles all data required from inside a template.

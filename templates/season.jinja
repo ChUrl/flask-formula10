@@ -90,7 +90,7 @@
                         </div>
 
                         {# Team-internal Winners #}
-                        <h6 class="card-subtitle mt-2">Teammate battle winners:</h6>
+                        <h6 class="card-subtitle mt-2" data-bs-toggle="tooltip" title="Which driver will finish the season higher than his teammate?">Teammate battle winners:</h6>
                         <div class="grid mt-2" style="width: 450px; row-gap: 0;">
                             {% for team in model.all_teams() %}
                                 {% set driver_a_name = model.drivers_by(team_name=team.name)[0].name %}
@@ -123,7 +123,7 @@
                         </div>
 
                         {# Drivers with Podiums #}
-                        <h6 class="card-subtitle mt-2">Drivers with podium(s):</h6>
+                        <h6 class="card-subtitle mt-2" data-bs-toggle="tooltip" title="Which driver will reach at least a single podium?">Drivers with podium(s):</h6>
                         <div class="grid mt-2" style="width: 450px; row-gap: 0;">
                             {% for team in model.all_teams() %}
                                 {% set driver_a_name = model.drivers_by(team_name=team.name)[0].name %}

@@ -4,14 +4,6 @@
 
 {% set active_page = "/race/" ~ (active_user.name_sanitized if active_user is not none else "Everyone") %}
 
-{% block head_extra %}
-    <script defer>
-        {# Initialize Bootstrap Tooltips #}
-        let tooltipTriggerList = document.querySelectorAll("[data-bs-toggle='tooltip']")
-        let tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-    </script>
-{% endblock head_extra %}
-
 {% block navbar_center %}
     {% if model.all_users() | length > 1 %}
         <div class="dropdown">
