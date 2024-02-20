@@ -16,8 +16,7 @@ db.init_app(app)
 # TODO
 # General
 
-# - Sanitize URLs
-# - A lot of validation (esp. in the model), each input should be checked...
+# - A lot of validation (esp. in the model), each input should be checked (e.g. DNF, excluded order)...
 
 # - Show cards of previous race results, like with season guesses?
 # - Make the season card grid left-aligned? So e.g. 2 cards are not spread over the whole screen with large gaps?

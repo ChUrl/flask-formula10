@@ -2,7 +2,7 @@
 
 {% block title %}Formula 10 - Season{% endblock title %}
 
-{% set active_page = "/season/" ~ (active_user.name if active_user is not none else "Everyone") %}
+{% set active_page = "/season/" ~ (active_user.name_sanitized if active_user is not none else "Everyone") %}
 
 {% block navbar_center %}
     {% if model.all_users() | length > 1 %}
