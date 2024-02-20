@@ -113,12 +113,6 @@ def find_or_create_season_guess(user_name: str) -> SeasonGuess:
 
 
 def update_season_guess(user_name: str, guesses: List[str | None] | List[str], team_winner_guesses: List[str | None] | List[str], podium_driver_guesses: List[str]) -> Response:
-    if any_is_none(*guesses) or any_is_none(*team_winner_guesses):
-        return redirect(f"/season/{quote(user_name)}")
-
-    guesses = cast(List[str], guesses)
-    team_winner_guesses = cast(List[str], team_winner_guesses)
-
     season_guess: SeasonGuess = find_or_create_season_guess(user_name)
     season_guess.hot_take = guesses[0]
     season_guess.p2_team_name = guesses[1]
@@ -126,8 +120,8 @@ def update_season_guess(user_name: str, guesses: List[str | None] | List[str], t
     season_guess.dnf_driver_name = guesses[3]
     season_guess.gained_driver_name = guesses[4]
     season_guess.lost_driver_name = guesses[5]
-    season_guess.team_winners.teamwinner_driver_names = team_winner_guesses  # TODO: Or commit seperately?
-    season_guess.podium_drivers.podium_driver_names = podium_driver_guesses  # TODO: Or commit separately?
+    season_guess.team_winners.teamwinner_driver_names = team_winner_guesses
+    season_guess.podium_drivers.podium_driver_names = podium_driver_guesses
 
     db.session.commit()
 
