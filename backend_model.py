@@ -48,6 +48,17 @@ def update_race_guess(race_name: str, user_name: str, pxx_select: str | None, dn
     return redirect("/race/Everyone")
 
 
+def delete_race_guess(race_name: str, user_name: str) -> Response:
+    # Don't change guesses that are already over
+    if race_has_result(race_name):
+        return redirect(f"/race/{quote(user_name)}")
+
+    db.session.query(RaceGuess).filter_by(race_name=race_name, user_name=user_name).delete()
+    db.session.commit()
+
+    return redirect("/race/Everyone")
+
+
 def find_or_create_team_winners(user_name: str) -> TeamWinners:
     # There can be a single TeamWinners at most, since user_name is the primary key
     team_winners: TeamWinners | None = db.session.query(TeamWinners).filter_by(user_name=user_name).first()
@@ -112,7 +123,9 @@ def find_or_create_season_guess(user_name: str) -> SeasonGuess:
     return season_guess
 
 
-def update_season_guess(user_name: str, guesses: List[str | None] | List[str], team_winner_guesses: List[str | None] | List[str], podium_driver_guesses: List[str]) -> Response:
+def update_season_guess(user_name: str, guesses: List[str | None], team_winner_guesses: List[str | None], podium_driver_guesses: List[str]) -> Response:
+    # Pylance marks type errors here, but those are intended. Columns are marked nullable.
+
     season_guess: SeasonGuess = find_or_create_season_guess(user_name)
     season_guess.hot_take = guesses[0]
     season_guess.p2_team_name = guesses[1]
@@ -125,7 +138,7 @@ def update_season_guess(user_name: str, guesses: List[str | None] | List[str], t
 
     db.session.commit()
 
-    return redirect(f"/season/{quote(user_name)}")
+    return redirect(f"/season/Everyone")
 
 
 def find_or_create_race_result(race_name: str) -> RaceResult:
@@ -146,53 +159,30 @@ def find_or_create_race_result(race_name: str) -> RaceResult:
     return race_result
 
 
-def update_race_result(race_name: str, pxx_driver_names_list: List[str], dnf_driver_names_list: List[str], excluded_driver_names_list: List[str]) -> Response:
+def update_race_result(race_name: str, pxx_driver_names_list: List[str], first_dnf_driver_names_list: List[str], dnf_driver_names_list: List[str], excluded_driver_names_list: List[str]) -> Response:
     # Use strings as keys, as these dicts will be serialized to json
-    # The pxx_driver_names_list contains all 20 drivers, so use that one to determine positions for dnf_driver_names and excluded_driver_names
     pxx_driver_names: Dict[str, str] = {
         str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list)
-        if driver not in dnf_driver_names_list and driver not in excluded_driver_names_list
     }
-    dnf_driver_names: Dict[str, str] = {
-        str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list)
-        if driver in dnf_driver_names_list and driver not in excluded_driver_names_list
-    }
+
+    # Not counted drivers have to be at the end
     excluded_driver_names: Dict[str, str] = {
         str(position + 1): driver for position, driver in enumerate(pxx_driver_names_list)
         if driver in excluded_driver_names_list
     }
-
-    # All dictionaries should be disjunct and result in a complete list from P1-P20 if merged
-    union: Dict[str, str] = pxx_driver_names | dnf_driver_names | excluded_driver_names
-    if len(union) != 20 or not positions_are_contiguous(list(union.keys())) or "1" not in union or "20" not in union:
+    if len(excluded_driver_names) > 0 and (not "20" in excluded_driver_names or not positions_are_contiguous(list(excluded_driver_names.keys()))):
         return redirect(f"/result/{quote(race_name)}")
 
-    # dnf_drivers have positions above excluded_drivers
-    if len(excluded_driver_names) > 0:
-        best_excluded_driver_position: int = min(map(int, excluded_driver_names.keys()))
-        for position in dnf_driver_names.keys():
-            if int(position) >= best_excluded_driver_position:
-                return redirect(f"/result/{quote(race_name)}")
-
-    # pxx_drivers have positions above dnf_drivers
-    if len(dnf_driver_names) > 0:
-        best_dnf_driver_position: int = min(map(int, dnf_driver_names.keys()))
-        for position in pxx_driver_names.keys():
-            if int(position) >= best_dnf_driver_position:
-                return redirect(f"/result/{quote(race_name)}")
-
-    # pxx_drivers have positions above excluded_drivers
-    if len(excluded_driver_names) > 0:
-        best_excluded_driver_position: int = min(map(int, excluded_driver_names.keys()))
-        for position in pxx_driver_names.keys():
-            if int(position) >= best_excluded_driver_position:
-                return redirect(f"/result/{quote(race_name)}")
-
+    # First DNF drivers have to be contained in DNF drivers
+    for driver_name in first_dnf_driver_names_list:
+        if driver_name not in dnf_driver_names_list:
+            dnf_driver_names_list.append(driver_name)
 
     race_result: RaceResult = find_or_create_race_result(race_name)
     race_result.pxx_driver_names = pxx_driver_names
-    race_result.dnf_driver_names = dnf_driver_names
-    race_result.excluded_driver_names = excluded_driver_names
+    race_result.first_dnf_driver_names = first_dnf_driver_names_list
+    race_result.dnf_driver_names = dnf_driver_names_list
+    race_result.excluded_driver_names = excluded_driver_names_list
 
     db.session.commit()
 

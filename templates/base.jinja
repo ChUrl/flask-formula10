@@ -41,7 +41,7 @@
                     <option value="{{ driver.name }}">{{ driver.abbr }}</option>
                 {% endif %}
 
-                {% if (include_none == true) and (driver.abbr == "NON") %}
+                {% if (include_none == true) and (driver.abbr == "None") %}
                     <option disabled>──────────</option>
                 {% endif %}
             {% endfor %}
@@ -102,34 +102,34 @@
 
 {#@formatter:off#}
 {% macro pxx_guess_colorization(driver_abbr='', result=none) -%}
-{% if (driver_abbr == result.pxx(-3).abbr) and (driver_abbr != "NON") %}fw-bold
-{% elif (driver_abbr == result.pxx(-2).abbr) and (driver_abbr != "NON") %}text-danger fw-bold
-{% elif (driver_abbr == result.pxx(-1).abbr) and (driver_abbr != "NON") %}text-warning fw-bold
-{% elif (driver_abbr == result.pxx(0).abbr) %}text-success fw-bold
-{% elif (driver_abbr == result.pxx(1).abbr) and (driver_abbr != "NON") %}text-warning fw-bold
-{% elif (driver_abbr == result.pxx(2).abbr) and (driver_abbr != "NON") %}text-danger fw-bold
-{% elif (driver_abbr == result.pxx(3).abbr) and (driver_abbr != "NON") %}fw-bold{% endif %}
+{% if (driver_abbr == result.pxx_driver(-3).abbr) and (driver_abbr != "None") %}fw-bold
+{% elif (driver_abbr == result.pxx_driver(-2).abbr) and (driver_abbr != "None") %}text-danger fw-bold
+{% elif (driver_abbr == result.pxx_driver(-1).abbr) and (driver_abbr != "None") %}text-warning fw-bold
+{% elif (driver_abbr == result.pxx_driver(0).abbr) %}text-success fw-bold
+{% elif (driver_abbr == result.pxx_driver(1).abbr) and (driver_abbr != "None") %}text-warning fw-bold
+{% elif (driver_abbr == result.pxx_driver(2).abbr) and (driver_abbr != "None") %}text-danger fw-bold
+{% elif (driver_abbr == result.pxx_driver(3).abbr) and (driver_abbr != "None") %}fw-bold{% endif %}
 {% endmacro %}
 
 {% macro pxx_points_tooltip_text(driver_abbr='', result=none) -%}
-{% if (driver_abbr == result.pxx(-3).abbr) and (driver_abbr != "NON") %}1 Point
-{% elif (driver_abbr == result.pxx(-2).abbr) and (driver_abbr != "NON") %}3 Points
-{% elif (driver_abbr == result.pxx(-1).abbr) and (driver_abbr != "NON") %}6 Points
-{% elif (driver_abbr == result.pxx(0).abbr) %}10 Points
-{% elif (driver_abbr == result.pxx(1).abbr) and (driver_abbr != "NON") %}6 Points
-{% elif (driver_abbr == result.pxx(2).abbr) and (driver_abbr != "NON") %}3 Points
-{% elif (driver_abbr == result.pxx(3).abbr) and (driver_abbr != "NON") %}1 Point
+{% if (driver_abbr == result.pxx_driver(-3).abbr) and (driver_abbr != "None") %}1 Point
+{% elif (driver_abbr == result.pxx_driver(-2).abbr) and (driver_abbr != "None") %}3 Points
+{% elif (driver_abbr == result.pxx_driver(-1).abbr) and (driver_abbr != "None") %}6 Points
+{% elif (driver_abbr == result.pxx_driver(0).abbr) %}10 Points
+{% elif (driver_abbr == result.pxx_driver(1).abbr) and (driver_abbr != "None") %}6 Points
+{% elif (driver_abbr == result.pxx_driver(2).abbr) and (driver_abbr != "None") %}3 Points
+{% elif (driver_abbr == result.pxx_driver(3).abbr) and (driver_abbr != "None") %}1 Point
 {% else %}0 Points{% endif %}
 {%- endmacro %}
 
 {% macro pxx_standing_tooltip_text(result=none) -%}
-P{{ result.race.pxx - 3 }}: {{ result.pxx(-3).abbr }}
-P{{ result.race.pxx - 2 }}: {{ result.pxx(-2).abbr }}
-P{{ result.race.pxx - 1 }}: {{ result.pxx(-1).abbr }}
-P{{ result.race.pxx }}: {{ result.pxx(0).abbr }}
-P{{ result.race.pxx + 1 }}: {{ result.pxx(1).abbr }}
-P{{ result.race.pxx + 2 }}: {{ result.pxx(2).abbr }}
-P{{ result.race.pxx + 3 }}: {{ result.pxx(3).abbr }}
+P{{ result.race.pxx - 3 }}: {{ result.pxx_driver(-3).abbr }}
+P{{ result.race.pxx - 2 }}: {{ result.pxx_driver(-2).abbr }}
+P{{ result.race.pxx - 1 }}: {{ result.pxx_driver(-1).abbr }}
+P{{ result.race.pxx }}: {{ result.pxx_driver(0).abbr }}
+P{{ result.race.pxx + 1 }}: {{ result.pxx_driver(1).abbr }}
+P{{ result.race.pxx + 2 }}: {{ result.pxx_driver(2).abbr }}
+P{{ result.race.pxx + 3 }}: {{ result.pxx_driver(3).abbr }}
 {% endmacro %}
 {#@formatter:on#}
 

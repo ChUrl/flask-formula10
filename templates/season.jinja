@@ -82,7 +82,7 @@
                         </div>
 
                         {# Most Gained + Lost #}
-                        <div class="input-group mt-2">
+                        <div class="input-group mt-2" data-bs-toggle="tooltip" title="Which driver will gain/lose the most places in comparison to last season's results?">
                             {{ driver_select_with_preselect(user_guess.gained_driver.abbr if user_guess is not none else "",
                                                             "gainedselect", "Most WDC places gained:", false) }}
                             {{ driver_select_with_preselect(user_guess.lost_driver.abbr if user_guess is not none else "",

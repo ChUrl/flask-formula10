@@ -215,7 +215,7 @@ class TemplateModel:
         """
         Returns a list of all drivers in the database, excluding the NONE driver.
         """
-        predicate: Callable[[Driver], bool] = lambda driver: driver.name != "NONE"
+        predicate: Callable[[Driver], bool] = lambda driver: driver.name != "None"
         return find_multiple(predicate, self.all_drivers())
 
     @overload

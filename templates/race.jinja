@@ -70,8 +70,7 @@
 
             <tr class="table-danger">
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ current_race.number }}:</span> <a href="/result"
-                                                                               class="link-dark">{{ current_race.name }}</a><br>
+                    <span class="fw-bold">{{ current_race.number }}:</span> {{ current_race.name }}<br>
                     <small><span class="fw-bold">Guess:</span> P{{ current_race.pxx }}</small>
                 </td>
 
@@ -82,10 +81,10 @@
                         {% if user_guess is not none %}
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item" style="background-color: inherit;">
-                                    P{{ current_race.pxx }}: {{ user_guess.pxx.abbr }}
+                                    {{ user_guess.pxx.abbr }}
                                 </li>
                                 <li class="list-group-item" style="background-color: inherit;">
-                                    DNF: {{ user_guess.dnf.abbr }}
+                                    {{ user_guess.dnf.abbr }}
                                 </li>
                             </ul>
                         {% else %}
@@ -120,6 +119,9 @@
 
                         <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
                     </form>
+                    <form action="/race-guess-delete/{{ current_race.name_sanitized }}/{{ active_user.name_sanitized }}" method="post">
+                        <input type="submit" class="btn btn-dark mt-2 w-100" value="Delete">
+                    </form>
                 </td>
 
                 <td>&nbsp;</td>
@@ -130,8 +132,7 @@
         {% for past_result in model.all_race_results() %}
             <tr>
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ past_result.race.number }}:</span> <a
-                        href="/result/{{ past_result.race.name_sanitized }}" class="link-dark">{{ past_result.race.name }}</a><br>
+                    <span class="fw-bold">{{ past_result.race.number }}:</span> {{ past_result.race.name }}<br>
                     <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.pxx }}</small>
                 </td>
 
@@ -149,12 +150,12 @@
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item {{ pxx_guess_colorization(user_guess.pxx.abbr, past_result) }}">
                                     <span data-bs-toggle="tooltip" title="{{ pxx_points_tooltip_text(user_guess.pxx.abbr, past_result) }}">
-                                        P{{ past_result.race.pxx }}: {{ user_guess.pxx.abbr }}
+                                        {{ user_guess.pxx.abbr }}{% if user_guess.pxx.abbr != "None" %} ({{ past_result.pxx_driver_position_string(user_guess.pxx.name) }}){% endif %}
                                     </span>
                                 </li>
-                                <li class="list-group-item {% if user_guess.dnf.abbr == past_result.dnf.abbr %}text-success fw-bold{% endif %}">
-                                    <span data-bs-toggle="tooltip" title="{% if user_guess.dnf.abbr == past_result.dnf.abbr %}10 Points{% else %}0 Points{% endif %}">
-                                        DNF: {{ user_guess.dnf.abbr }}
+                                <li class="list-group-item {% if user_guess.dnf.name in past_result.first_dnf_driver_names %}text-success fw-bold{% endif %}">
+                                    <span data-bs-toggle="tooltip" title="{% if user_guess.dnf.name in past_result.first_dnf_driver_names %}10 Points{% else %}0 Points{% endif %}">
+                                        {{ user_guess.dnf.abbr }}
                                     </span>
                                 </li>
                             </ul>
@@ -168,11 +169,11 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item">
                             <span data-bs-toggle="tooltip" title="{{ pxx_standing_tooltip_text(past_result) }}">
-                                P{{ past_result.race.pxx }}: {{ past_result.pxx().abbr }}
+                                P{{ past_result.race.pxx }}: {{ past_result.pxx_driver().abbr }}
                             </span>
                         </li>
-                        <li class="list-group-item {% if past_result.dnf.abbr == 'NON' %}text-muted{% endif %}">
-                            DNF: {{ past_result.dnf.abbr }}</li>
+                        <li class="list-group-item">
+                            DNF: {% for dnf_driver in past_result.first_dnf_drivers %}{{ dnf_driver.abbr }} {% endfor %}</li>
                     </ul>
                 </td>
             </tr>

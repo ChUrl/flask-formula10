@@ -5,7 +5,7 @@ from werkzeug import Response
 from model import Team, db
 from file_utils import reload_static_data, reload_dynamic_data, export_dynamic_data
 from template_model import TemplateModel
-from backend_model import update_race_guess, update_race_result, update_season_guess, update_user
+from backend_model import delete_race_guess, update_race_guess, update_race_result, update_season_guess, update_user
 
 app = Flask(__name__)
 
@@ -19,11 +19,12 @@ db.init_app(app)
 # TODO
 # General
 
-# - Show place when entering race result (would require updating the drag'n'drop code...)
+# - Choose "place to guess" late before the race? Make a page for this
+# - Make user order changeable using drag'n'drop?
 
+# - Show place when entering race result (would require updating the drag'n'drop code...)
 # - Show cards of previous race results, like with season guesses?
 # - Make the season card grid left-aligned? So e.g. 2 cards are not spread over the whole screen with large gaps?
-# - Choose "place to guess" late before the race?
 
 # Statistics
 # - Auto calculate points
@@ -89,6 +90,14 @@ def race_guess_post(race_name: str, user_name: str) -> Response:
     return update_race_guess(race_name, user_name, pxx, dnf)
 
 
+@app.route("/race-guess-delete/<race_name>/<user_name>", methods=["POST"])
+def race_guess_delete_post(race_name: str, user_name: str) -> Response:
+    race_name = unquote(race_name)
+    user_name = unquote(user_name)
+
+    return delete_race_guess(race_name, user_name)
+
+
 @app.route("/season")
 def season_root() -> Response:
     return redirect("/season/Everyone")
@@ -139,11 +148,12 @@ def result_active_race(race_name: str) -> str:
 @app.route("/result-enter/<race_name>", methods=["POST"])
 def result_enter_post(race_name: str) -> Response:
     race_name = unquote(race_name)
-    pxxs: List[str] = request.form.getlist("pxxdrivers")
+    pxxs: List[str] = request.form.getlist("pxx-drivers")
+    first_dnfs: List[str] = request.form.getlist("first-dnf-drivers")
     dnfs: List[str] = request.form.getlist("dnf-drivers")
-    excludes: List[str] = request.form.getlist("exclude-drivers")
+    excluded: List[str] = request.form.getlist("excluded-drivers")
 
-    return update_race_result(race_name, pxxs, dnfs, excludes)
+    return update_race_result(race_name, pxxs, first_dnfs, dnfs, excluded)
 
 
 @app.route("/user")
