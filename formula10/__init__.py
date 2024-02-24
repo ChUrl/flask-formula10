@@ -35,7 +35,3 @@ import formula10.controller.admin_controller  # type: ignore
 # - Order user table by points + display points somewhere
 # - Show current values for some season guesses (e.g. current most dnfs)
 # - Generate static diagram using chart.js + templating the js (funny yikes)
-
-
-# if __name__ == "__main__":
-    # app.run(debug=True, host="0.0.0.0")
