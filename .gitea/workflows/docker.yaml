@@ -19,10 +19,10 @@ jobs:
       - name: Login to container registry
         uses: docker/login-action@v3
         with:
-          registry: gitea.local.chriphost.de
+          registry: gitea.vps.chriphost.de
           username: ${{ secrets.CONTAINER_REGISTRY_USER }}
           password: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
       - name: Build Docker image
         run: docker build . --file Dockerfile --tag gitea.vps.chriphost.de/christoph/formula10:latest
       - name: Push Docker image
-        run: docker push gitea.local.chriphost.de/christoph/formula10:latest
+        run: docker push gitea.vps.chriphost.de/christoph/formula10:latest
