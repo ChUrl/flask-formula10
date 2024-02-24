@@ -49,11 +49,11 @@ def reload_static_data():
     db.session.query(Race).delete()
 
     # Reload static data
-    for row in load_csv("../../data/static_import/teams.csv"):
+    for row in load_csv("data/static_import/teams.csv"):
         db.session.add(Team.from_csv(row))
-    for row in load_csv("../../data/static_import/drivers.csv"):
+    for row in load_csv("data/static_import/drivers.csv"):
         db.session.add(Driver.from_csv(row))
-    for row in load_csv("../../data/static_import/races.csv"):
+    for row in load_csv("data/static_import/races.csv"):
         db.session.add(Race.from_csv(row))
 
     db.session.commit()
@@ -73,17 +73,17 @@ def reload_dynamic_data():
     db.session.query(SeasonGuess).delete()
 
     # Reload dynamic data
-    for row in load_csv("../../data/dynamic_export/users.csv"):
+    for row in load_csv("data/dynamic_export/users.csv"):
         db.session.add(User.from_csv(row))
-    for row in load_csv("../../data/dynamic_export/raceresults.csv"):
+    for row in load_csv("data/dynamic_export/raceresults.csv"):
         db.session.add(RaceResult.from_csv(row))
-    for row in load_csv("../../data/dynamic_export/raceguesses.csv"):
+    for row in load_csv("data/dynamic_export/raceguesses.csv"):
         db.session.add(RaceGuess.from_csv(row))
-    for row in load_csv("../../data/dynamic_export/teamwinners.csv"):
+    for row in load_csv("data/dynamic_export/teamwinners.csv"):
         db.session.add(TeamWinners.from_csv(row))
-    for row in load_csv("../../data/dynamic_export/podiumdrivers.csv"):
+    for row in load_csv("data/dynamic_export/podiumdrivers.csv"):
         db.session.add(PodiumDrivers.from_csv(row))
-    for row in load_csv("../../data/dynamic_export/seasonguesses.csv"):
+    for row in load_csv("data/dynamic_export/seasonguesses.csv"):
         db.session.add(SeasonGuess.from_csv(row))
 
     db.session.commit()
@@ -99,9 +99,9 @@ def export_dynamic_data():
     podiumdrivers: List[PodiumDrivers] = db.session.query(PodiumDrivers).all()
     seasonguesses: List[SeasonGuess] = db.session.query(SeasonGuess).all()
 
-    write_csv("../../data/dynamic_export/users.csv", users)
-    write_csv("../../data/dynamic_export/raceresults.csv", raceresults)
-    write_csv("../../data/dynamic_export/raceguesses.csv", raceguesses)
-    write_csv("../../data/dynamic_export/teamwinners.csv", teamwinners)
-    write_csv("../../data/dynamic_export/podiumdrivers.csv", podiumdrivers)
-    write_csv("../../data/dynamic_export/seasonguesses.csv", seasonguesses)
+    write_csv("data/dynamic_export/users.csv", users)
+    write_csv("data/dynamic_export/raceresults.csv", raceresults)
+    write_csv("data/dynamic_export/raceguesses.csv", raceguesses)
+    write_csv("data/dynamic_export/teamwinners.csv", teamwinners)
+    write_csv("data/dynamic_export/podiumdrivers.csv", podiumdrivers)
+    write_csv("data/dynamic_export/seasonguesses.csv", seasonguesses)
