@@ -4,10 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      - ".gitea/workflows/*"
+      - ".gitea/workflows/**"
       - "Dockerfile"
       - "requirements.txt"
-      - "formula10/*"
+      - "formula10/**"
 
 
 jobs:
