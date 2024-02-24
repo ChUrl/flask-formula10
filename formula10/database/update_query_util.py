@@ -2,9 +2,16 @@ from typing import Dict, List, cast
 from urllib.parse import quote
 from flask import redirect
 from werkzeug import Response
-from app.database.database_utils import race_has_result, user_exists
-from app.database.model import PodiumDrivers, RaceResult, SeasonGuess, TeamWinners, User, db, RaceGuess
-from app.database.validation_utils import any_is_none, positions_are_contiguous
+
+from formula10.database.common_query_util import race_has_result, user_exists
+from formula10.database.model.podium_drivers import PodiumDrivers
+from formula10.database.model.race_guess import RaceGuess
+from formula10.database.model.race_result import RaceResult
+from formula10.database.model.season_guess import SeasonGuess
+from formula10.database.model.team_winners import TeamWinners
+from formula10.database.model.user import User
+from formula10.database.validation_util import any_is_none, positions_are_contiguous
+from formula10 import db
 
 
 def find_or_create_race_guess(user_name: str, race_name: str) -> RaceGuess:

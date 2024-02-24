@@ -1,7 +1,15 @@
 from typing import List, Callable, Dict, overload
 from sqlalchemy import desc
-from app.database.model import User, RaceResult, RaceGuess, Race, Driver, Team, SeasonGuess, db
-from app.database.validation_utils import find_first_or_none, find_multiple, find_single, find_single_or_none
+
+from formula10.database.model.driver import Driver
+from formula10.database.model.race import Race
+from formula10.database.model.race_guess import RaceGuess
+from formula10.database.model.race_result import RaceResult
+from formula10.database.model.season_guess import SeasonGuess
+from formula10.database.model.team import Team
+from formula10.database.model.user import User
+from formula10.database.validation_util import find_first_or_none, find_multiple, find_single, find_single_or_none
+from formula10 import db
 
 
 # This could also be moved to database_utils (at least partially), but I though the template should cache the database responses
