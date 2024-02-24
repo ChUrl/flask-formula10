@@ -1,7 +1,7 @@
 import csv
 import os.path
 from typing import List, Any
-from model import Team, Driver, Race, User, RaceResult, RaceGuess, TeamWinners, PodiumDrivers, SeasonGuess, db
+from app.database.model import Team, Driver, Race, User, RaceResult, RaceGuess, TeamWinners, PodiumDrivers, SeasonGuess, db
 
 
 def load_csv(filename: str) -> List[List[str]]:

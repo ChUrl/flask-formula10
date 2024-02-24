@@ -2,9 +2,9 @@ from typing import Dict, List, cast
 from urllib.parse import quote
 from flask import redirect
 from werkzeug import Response
-from database_utils import race_has_result, user_exists
-from model import PodiumDrivers, RaceResult, SeasonGuess, TeamWinners, User, db, RaceGuess
-from validation_utils import any_is_none, positions_are_contiguous
+from app.database.database_utils import race_has_result, user_exists
+from app.database.model import PodiumDrivers, RaceResult, SeasonGuess, TeamWinners, User, db, RaceGuess
+from app.database.validation_utils import any_is_none, positions_are_contiguous
 
 
 def find_or_create_race_guess(user_name: str, race_name: str) -> RaceGuess:
@@ -127,13 +127,13 @@ def update_season_guess(user_name: str, guesses: List[str | None], team_winner_g
     # Pylance marks type errors here, but those are intended. Columns are marked nullable.
 
     season_guess: SeasonGuess = find_or_create_season_guess(user_name)
-    season_guess.hot_take = guesses[0]
-    season_guess.p2_team_name = guesses[1]
-    season_guess.overtake_driver_name = guesses[2]
-    season_guess.dnf_driver_name = guesses[3]
-    season_guess.gained_driver_name = guesses[4]
-    season_guess.lost_driver_name = guesses[5]
-    season_guess.team_winners.teamwinner_driver_names = team_winner_guesses
+    season_guess.hot_take = guesses[0]  # type: ignore
+    season_guess.p2_team_name = guesses[1]  # type: ignore
+    season_guess.overtake_driver_name = guesses[2]  # type: ignore
+    season_guess.dnf_driver_name = guesses[3]  # type: ignore
+    season_guess.gained_driver_name = guesses[4]  # type: ignore
+    season_guess.lost_driver_name = guesses[5]  # type: ignore
+    season_guess.team_winners.teamwinner_driver_names = team_winner_guesses  # type: ignore
     season_guess.podium_drivers.podium_driver_names = podium_driver_guesses
 
     db.session.commit()

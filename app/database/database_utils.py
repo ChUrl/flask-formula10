@@ -1,4 +1,4 @@
-from model import User, db, RaceResult
+from app.database.model import User, db, RaceResult
 
 
 def race_has_result(race_name: str) -> bool:
