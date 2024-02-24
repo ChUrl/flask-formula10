@@ -7,9 +7,7 @@ on:
       - ".gitea/workflows/*"
       - "Dockerfile"
       - "requirements.txt"
-      - "*.py"
-      - "templates/*"
-      - "static/*"
+      - "formula10/*"
 
 
 jobs:
