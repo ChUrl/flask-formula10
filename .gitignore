@@ -1,6 +1,7 @@
 .direnv
 .vscode
-__pycache__
-instance/formula10.db
 .idea
-dynamic_data
+__pycache__
+
+instance
+data
