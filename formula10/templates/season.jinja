@@ -2,52 +2,28 @@
 
 {% block title %}Formula 10 - Season{% endblock title %}
 
-{% set active_page = "/season/" ~ (active_user.name_sanitized if active_user is not none else "Everyone") %}
+{% set active_page = "/season/" ~ model.active_user_name_sanitized_or_everyone() %}
 
 {% block navbar_center %}
-    {% if model.all_users() | length > 1 %}
-        <div class="dropdown">
-            <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                {% if active_user is none %}
-                    Everyone
-                {% else %}
-                    {{ active_user.name }}
-                {% endif %}
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/season/Everyone">Everyone</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-
-                {% for user in model.all_users() %}
-                    <li><a class="dropdown-item" href="/season/{{ user.name }}">{{ user.name }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+    {{ active_user_dropdown(page='season') }}
 {% endblock navbar_center %}
 
 {% block body %}
 
     <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
 
-        {% if active_user is none %}
-            {% set users = model.all_users() %}
-        {% else %}
-            {% set users = [active_user] %}
-        {% endif %}
-        {% for user in users %}
+        {% for user in model.all_users_or_active_user() %}
 
             <div class="card mb-2 shadow-sm" style="width: 450px;">
                 <div class="card-body">
-                    {% if active_user is none %}
+
+                    {# Link should only be visible if all users are visible #}
+                    {% if model.active_user is not none %}
+                        <h5 class="card-title">{{ user.name }}</h5>
+                    {% else %}
                         <a href="/season/{{ user.name }}" class="link-dark">
                             <h5 class="card-title">{{ user.name }}</h5>
                         </a>
-                    {% else %}
-                        <h5 class="card-title">{{ user.name }}</h5>
                     {% endif %}
 
                     {% set user_guess = model.season_guesses_by(user_name=user.name) %}
@@ -58,7 +34,7 @@
                         <div class="form-floating">
                             {% if user_guess is not none %}
                                 <textarea class="form-control" id="hot-take-input-{{ user.name }}" name="hottakeselect"
-                                          style="height: 50px">{{ user_guess.hot_take }}</textarea>
+                                          style="height: 50px">{{ user_guess.hot_take_string() }}</textarea>
                             {% else %}
                                 <textarea class="form-control" id="hot-take-input-{{ user.name }}" name="hottakeselect"
                                           style="height: 50px"></textarea>
@@ -69,42 +45,40 @@
 
                         {# P2 Constructor #}
                         <div class="mt-2">
-                            {{ team_select_with_preselect(user_guess.p2_team.name if user_guess is not none else "",
-                                                          "p2select", "P2 in WCC:") }}
+                            {{ team_select_with_preselect(team_match=user_guess.p2_wcc, name="p2select", label="P2 in WCC:", include_none=false) }}
                         </div>
 
                         {# Most Overtakes + DNFs #}
                         <div class="input-group mt-2">
-                            {{ driver_select_with_preselect(user_guess.overtake_driver.abbr if user_guess is not none else "",
-                                                            "overtakeselect", "Most overtakes:", false) }}
-                            {{ driver_select_with_preselect(user_guess.dnf_driver.abbr if user_guess is not none else "",
-                                                            "dnfselect", "Most DNFs:", false) }}
+                            {{ driver_select_with_preselect(driver_match=user_guess.most_overtakes, name="overtakeselect", label="Most overtakes:", include_none=false) }}
+                            {{ driver_select_with_preselect(driver_match=user_guess.most_dnfs, name="dnfselect", label="Most DNFs:", include_none=false) }}
                         </div>
 
                         {# Most Gained + Lost #}
-                        <div class="input-group mt-2" data-bs-toggle="tooltip" title="Which driver will gain/lose the most places in comparison to last season's results?">
-                            {{ driver_select_with_preselect(user_guess.gained_driver.abbr if user_guess is not none else "",
-                                                            "gainedselect", "Most WDC places gained:", false) }}
-                            {{ driver_select_with_preselect(user_guess.lost_driver.abbr if user_guess is not none else "",
-                                                            "lostselect", "Most WDC places lost:", false) }}
+                        <div class="input-group mt-2" data-bs-toggle="tooltip"
+                             title="Which driver will gain/lose the most places in comparison to last season's results?">
+                            {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_gained, name="gainedselect", label="Most WDC places gained:", include_none=false, drivers=model.drivers_for_wdc_gained()) }}
+                            {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_lost, name="lostselect", label="Most WDC places lost:", include_none=false) }}
                         </div>
 
                         {# Team-internal Winners #}
-                        <h6 class="card-subtitle mt-2" data-bs-toggle="tooltip" title="Which driver will finish the season higher than his teammate?">Teammate battle winners:</h6>
+                        <h6 class="card-subtitle mt-2" data-bs-toggle="tooltip"
+                            title="Which driver will finish the season higher than his teammate?">Teammate battle
+                            winners:</h6>
                         <div class="grid mt-2" style="width: 450px; row-gap: 0;">
-                            {% for team in model.all_teams() %}
-                                {% set driver_a_name = model.drivers_by(team_name=team.name)[0].name %}
-                                {% set driver_b_name = model.drivers_by(team_name=team.name)[1].name %}
+                            {% for team in model.all_teams(include_none=false) %}
+                                {% set driver_a = model.drivers_by(team_name=team.name)[0] %}
+                                {% set driver_b = model.drivers_by(team_name=team.name)[1] %}
 
                                 <div class="g-col-6">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio"
                                                name="teamwinner-{{ team.name }}"
                                                id="teamwinner-{{ team.name }}-1-{{ user.name }}"
-                                               value="{{ driver_a_name }}"
-                                               {% if (user_guess is not none) and (driver_a_name in user_guess.team_winners.teamwinner_driver_names) %}checked="checked"{% endif %}>
+                                               value="{{ driver_a.name }}"
+                                               {% if (user_guess is not none) and (driver_a in user_guess.team_winners) %}checked="checked"{% endif %}>
                                         <label class="form-check-label"
-                                               for="teamwinner-{{ team.name }}-1-{{ user.name }}">{{ driver_a_name }}</label>
+                                               for="teamwinner-{{ team.name }}-1-{{ user.name }}">{{ driver_a.name }}</label>
                                     </div>
                                 </div>
 
@@ -113,31 +87,32 @@
                                         <input class="form-check-input" type="radio"
                                                name="teamwinner-{{ team.name }}"
                                                id="teamwinner-{{ team.name }}-2-{{ user.name }}"
-                                               value="{{ driver_b_name }}"
-                                               {% if (user_guess is not none) and (driver_b_name in user_guess.team_winners.teamwinner_driver_names) %}checked="checked"{% endif %}>
+                                               value="{{ driver_b.name }}"
+                                               {% if (user_guess is not none) and (driver_b in user_guess.team_winners) %}checked="checked"{% endif %}>
                                         <label class="form-check-label"
-                                               for="teamwinner-{{ team.name }}-2-{{ user.name }}">{{ driver_b_name }}</label>
+                                               for="teamwinner-{{ team.name }}-2-{{ user.name }}">{{ driver_b.name }}</label>
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
 
                         {# Drivers with Podiums #}
-                        <h6 class="card-subtitle mt-2" data-bs-toggle="tooltip" title="Which driver will reach at least a single podium?">Drivers with podium(s):</h6>
+                        <h6 class="card-subtitle mt-2" data-bs-toggle="tooltip"
+                            title="Which driver will reach at least a single podium?">Drivers with podium(s):</h6>
                         <div class="grid mt-2" style="width: 450px; row-gap: 0;">
-                            {% for team in model.all_teams() %}
-                                {% set driver_a_name = model.drivers_by(team_name=team.name)[0].name %}
-                                {% set driver_b_name = model.drivers_by(team_name=team.name)[1].name %}
+                            {% for team in model.all_teams(include_none=false) %}
+                                {% set driver_a = model.drivers_by(team_name=team.name)[0] %}
+                                {% set driver_b = model.drivers_by(team_name=team.name)[1] %}
 
                                 <div class="g-col-6">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="checkbox"
                                                name="podiumdrivers"
-                                               id="podium-{{ driver_a_name }}-{{ user.name }}"
-                                               value="{{ driver_a_name }}"
-                                               {% if (user_guess is not none) and (driver_a_name in user_guess.podium_drivers.podium_driver_names) %}checked="checked"{% endif %}>
+                                               id="podium-{{ driver_a.name }}-{{ user.name }}"
+                                               value="{{ driver_a.name }}"
+                                               {% if (user_guess is not none) and (driver_a in user_guess.podiums) %}checked="checked"{% endif %}>
                                         <label class="form-check-label"
-                                               for="podium-{{ driver_a_name }}-{{ user.name }}">{{ driver_a_name }}</label>
+                                               for="podium-{{ driver_a.name }}-{{ user.name }}">{{ driver_a.name }}</label>
                                     </div>
                                 </div>
 
@@ -145,11 +120,11 @@
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="checkbox"
                                                name="podiumdrivers"
-                                               id="podium-{{ driver_b_name }}-{{ user.name }}"
-                                               value="{{ driver_b_name }}"
-                                               {% if (user_guess is not none) and (driver_b_name in user_guess.podium_drivers.podium_driver_names) %}checked="checked"{% endif %}>
+                                               id="podium-{{ driver_b.name }}-{{ user.name }}"
+                                               value="{{ driver_b.name }}"
+                                               {% if (user_guess is not none) and (driver_b in user_guess.podiums) %}checked="checked"{% endif %}>
                                         <label class="form-check-label"
-                                               for="podium-{{ driver_b_name }}-{{ user.name }}">{{ driver_b_name }}</label>
+                                               for="podium-{{ driver_b.name }}-{{ user.name }}">{{ driver_b.name }}</label>
                                     </div>
                                 </div>
                             {% endfor %}

@@ -2,7 +2,7 @@ from urllib.parse import unquote
 from flask import redirect, render_template, request
 from werkzeug import Response
 
-from formula10.database.update_query_util import delete_race_guess, update_race_guess
+from formula10.database.update_queries import delete_race_guess, update_race_guess
 from formula10.frontend.template_model import TemplateModel
 from formula10 import app
 
@@ -20,10 +20,10 @@ def race_root() -> Response:
 @app.route("/race/<user_name>")
 def race_active_user(user_name: str) -> str:
     user_name = unquote(user_name)
-    model = TemplateModel()
-    return render_template("race.jinja",
-                           active_user=model.user_by(user_name=user_name, ignore=["Everyone"]),
-                           model=model)
+    model = TemplateModel(active_user_name=user_name,
+                          active_result_race_name=None)
+
+    return render_template("race.jinja", model=model)
 
 
 @app.route("/race-guess/<race_name>/<user_name>", methods=["POST"])

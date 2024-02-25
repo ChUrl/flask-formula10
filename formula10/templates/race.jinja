@@ -2,31 +2,10 @@
 
 {% block title %}Formula 10 - Race{% endblock title %}
 
-{% set active_page = "/race/" ~ (active_user.name_sanitized if active_user is not none else "Everyone") %}
+{% set active_page = "/race/" ~ model.active_user_name_sanitized_or_everyone() %}
 
 {% block navbar_center %}
-    {% if model.all_users() | length > 1 %}
-        <div class="dropdown">
-            <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                {% if active_user is none %}
-                    Everyone
-                {% else %}
-                    {{ active_user.name }}
-                {% endif %}
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/race/Everyone">Everyone</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-
-                {% for user in model.all_users() %}
-                    <li><a class="dropdown-item" href="/race/{{ user.name_sanitized }}">{{ user.name }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+    {{ active_user_dropdown(page='race') }}
 {% endblock navbar_center %}
 
 {% block body %}
@@ -36,7 +15,7 @@
         <tr>
             <th scope="col" rowspan="2" class="text-center" style="width: 200px;">Race</th>
 
-            <th scope="col" {% if active_user is none %}colspan="{{ model.all_users() | length }}"{% endif %}
+            <th scope="col" {% if model.active_user is none %}colspan="{{ model.all_users() | length }}"{% endif %}
                 class="text-center">Call
             </th>
 
@@ -50,41 +29,40 @@
         <tr>
             <td>&nbsp;</td>
 
-            {% if active_user is none %}
+            {# Link should only be visible if all users are visible #}
+            {% if model.active_user is not none %}
+                <td class="text-center text-nowrap" style="min-width: 100px;">{{ model.active_user.name }}</td>
+            {% else %}
                 {% for user in model.all_users() %}
                     <td class="text-center text-nowrap" style="min-width: 100px;">
                         <a href="/race/{{ user.name_sanitized }}" class="link-dark">{{ user.name }}</a>
                     </td>
                 {% endfor %}
-            {% else %}
-                <td class="text-center text-nowrap" style="min-width: 100px;">{{ active_user.name }}</td>
             {% endif %}
 
             <td>&nbsp;</td>
         </tr>
 
-        {% set current_race = model.first_race_without_result() %}
-
         {# Current Result, only displayed for all users overview and if guess is remaining #}
-        {% if (active_user is none) and (model.first_race_without_result() is not none) %}
+        {% if (model.active_user is none) and (model.current_race is not none) %}
 
             <tr class="table-danger">
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ current_race.number }}:</span> {{ current_race.name }}<br>
-                    <small><span class="fw-bold">Guess:</span> P{{ current_race.pxx }}</small>
+                    <span class="fw-bold">{{ model.current_race.number }}:</span> {{ model.current_race.name }}<br>
+                    <small><span class="fw-bold">Guess:</span> P{{ model.current_race.place_to_guess }}</small>
                 </td>
 
                 {% for user in model.all_users() %}
-                    {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=current_race.name) %}
+                    {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=model.current_race.name) %}
 
                     <td class="text-center text-nowrap">
                         {% if user_guess is not none %}
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item" style="background-color: inherit;">
-                                    {{ user_guess.pxx.abbr }}
+                                    {{ user_guess.pxx_guess.abbr }}
                                 </li>
                                 <li class="list-group-item" style="background-color: inherit;">
-                                    {{ user_guess.dnf.abbr }}
+                                    {{ user_guess.dnf_guess.abbr }}
                                 </li>
                             </ul>
                         {% else %}
@@ -98,28 +76,30 @@
         {% endif %}
 
         {# Enter Guess, only displayed for single user focused view and if guess is remaining #}
-        {% if (active_user is not none) and (model.first_race_without_result() is not none) %}
+        {% if (model.active_user is not none) and (model.current_race is not none) %}
             <tr class="table-danger">
                 <td class="text-nowrap">
-                    <span class="fw-bold">{{ current_race.number }}:</span> {{ current_race.name }}<br>
-                    <small><span class="fw-bold">Guess:</span> P{{ current_race.pxx }}</small>
+                    <span class="fw-bold">{{ model.current_race.number }}:</span> {{ model.current_race.name }}<br>
+                    <small><span class="fw-bold">Guess:</span> P{{ model.current_race.place_to_guess }}</small>
                 </td>
 
                 <td>
-                    <form action="/race-guess/{{ current_race.name_sanitized }}/{{ active_user.name_sanitized }}" method="post">
-                        {% set user_guess = model.race_guesses_by(user_name=active_user.name, race_name=current_race.name) %}
+                    <form action="/race-guess/{{ model.current_race.name_sanitized }}/{{ model.active_user.name_sanitized }}"
+                          method="post">
+                        {% set user_guess = model.race_guesses_by(user_name=model.active_user.name, race_name=model.current_race.name) %}
 
                         {# Driver PXX Select #}
-                        {{ driver_select_with_preselect(user_guess.pxx.abbr if user_guess is not none else "", "pxxselect", "P" ~ current_race.pxx ~ ":") }}
+                        {{ driver_select_with_preselect(driver_match=user_guess.pxx_guess, name="pxxselect", label="P" ~ model.current_race.place_to_guess ~ ":", include_none=true) }}
 
                         <div class="mt-2"></div>
 
                         {# Driver DNF Select #}
-                        {{ driver_select_with_preselect(user_guess.dnf.abbr if user_guess is not none else "", "dnfselect", "DNF:") }}
+                        {{ driver_select_with_preselect(driver_match=user_guess.dnf_guess, name="dnfselect", label="DNF:", include_none=true) }}
 
                         <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
                     </form>
-                    <form action="/race-guess-delete/{{ current_race.name_sanitized }}/{{ active_user.name_sanitized }}" method="post">
+                    <form action="/race-guess-delete/{{ model.current_race.name_sanitized }}/{{ model.active_user.name_sanitized }}"
+                          method="post">
                         <input type="submit" class="btn btn-dark mt-2 w-100" value="Delete">
                     </form>
                 </td>
@@ -133,29 +113,25 @@
             <tr>
                 <td class="text-nowrap">
                     <span class="fw-bold">{{ past_result.race.number }}:</span> {{ past_result.race.name }}<br>
-                    <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.pxx }}</small>
+                    <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.place_to_guess }}</small>
                 </td>
 
-                {% if active_user is none %}
-                    {% set users = model.all_users() %}
-                {% else %}
-                    {% set users = [active_user] %}
-                {% endif %}
-
-                {% for user in users %}
+                {% for user in model.all_users_or_active_user() %}
                     <td class="text-center text-nowrap">
                         {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=past_result.race.name) %}
 
                         {% if user_guess is not none %}
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item {{ pxx_guess_colorization(user_guess.pxx.abbr, past_result) }}">
-                                    <span data-bs-toggle="tooltip" title="{{ pxx_points_tooltip_text(user_guess.pxx.abbr, past_result) }}">
-                                        {{ user_guess.pxx.abbr }}{% if user_guess.pxx.abbr != "None" %} ({{ past_result.pxx_driver_position_string(user_guess.pxx.name) }}){% endif %}
+                                <li class="list-group-item {{ pxx_guess_colorization(guessed_driver=user_guess.pxx_guess, result=past_result) }}">
+                                    <span data-bs-toggle="tooltip"
+                                          title="{{ past_result.driver_standing_points_string(user_guess.pxx_guess) }}">
+                                        {{ user_guess.pxx_guess.abbr ~ past_result.driver_standing_position_string(user_guess.pxx_guess) }}
                                     </span>
                                 </li>
-                                <li class="list-group-item {% if user_guess.dnf.name in past_result.first_dnf_driver_names %}text-success fw-bold{% endif %}">
-                                    <span data-bs-toggle="tooltip" title="{% if user_guess.dnf.name in past_result.first_dnf_driver_names %}10 Points{% else %}0 Points{% endif %}">
-                                        {{ user_guess.dnf.abbr }}
+                                <li class="list-group-item {{ dnf_guess_colorization(guessed_driver=user_guess.dnf_guess, result=past_result) }}">
+                                    <span data-bs-toggle="tooltip"
+                                          title="{{ past_result.driver_dnf_points_string(user_guess.dnf_guess) }}">
+                                        {{ user_guess.dnf_guess.abbr }}
                                     </span>
                                 </li>
                             </ul>
@@ -165,15 +141,16 @@
                     </td>
                 {% endfor %}
 
+                {# Actual result #}
                 <td class="text-center text-nowrap">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item">
-                            <span data-bs-toggle="tooltip" title="{{ pxx_standing_tooltip_text(past_result) }}">
-                                P{{ past_result.race.pxx }}: {{ past_result.pxx_driver().abbr }}
+                            <span data-bs-toggle="tooltip" title="{{ pxx_standing_tooltip_text(result=past_result) }}">
+                                P{{ past_result.race.place_to_guess }}: {{ past_result.offset_from_place_to_guess(0).abbr }}
                             </span>
                         </li>
                         <li class="list-group-item">
-                            DNF: {% for dnf_driver in past_result.first_dnf_drivers %}{{ dnf_driver.abbr }} {% endfor %}</li>
+                            DNF: {{ past_result.initial_dnf_string() }}</li>
                     </ul>
                 </td>
             </tr>

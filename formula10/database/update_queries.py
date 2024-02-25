@@ -1,32 +1,31 @@
+import json
 from typing import Dict, List, cast
 from urllib.parse import quote
 from flask import redirect
 from werkzeug import Response
 
-from formula10.database.common_query_util import race_has_result, user_exists
-from formula10.database.model.podium_drivers import PodiumDrivers
-from formula10.database.model.race_guess import RaceGuess
-from formula10.database.model.race_result import RaceResult
-from formula10.database.model.season_guess import SeasonGuess
-from formula10.database.model.team_winners import TeamWinners
-from formula10.database.model.user import User
-from formula10.database.validation_util import any_is_none, positions_are_contiguous
+from formula10.database.common_queries import race_has_result, user_exists_and_disabled, user_exists_and_enabled
+from formula10.database.model.db_race_guess import DbRaceGuess
+from formula10.database.model.db_race_result import DbRaceResult
+from formula10.database.model.db_season_guess import DbSeasonGuess
+from formula10.database.model.db_user import DbUser
+from formula10.database.validation import any_is_none, positions_are_contiguous
 from formula10 import db
 
 
-def find_or_create_race_guess(user_name: str, race_name: str) -> RaceGuess:
+def find_or_create_race_guess(user_name: str, race_name: str) -> DbRaceGuess:
     # There can be a single RaceGuess at most, since (user_name, race_name) is the composite primary key
-    race_guess: RaceGuess | None = db.session.query(RaceGuess).filter_by(user_name=user_name, race_name=race_name).first()
+    race_guess: DbRaceGuess | None = db.session.query(DbRaceGuess).filter_by(user_name=user_name, race_name=race_name).first()
     if race_guess is not None:
         return race_guess
 
     # Insert a new RaceGuess
-    race_guess = RaceGuess(user_name=user_name, race_name=race_name)
+    race_guess = DbRaceGuess(user_name=user_name, race_name=race_name, pxx_driver_name="TEMP", dnf_driver_name="TEMP")
     db.session.add(race_guess)
     db.session.commit()
 
     # Double check if database insertion worked and obtain any values set by the database
-    race_guess = db.session.query(RaceGuess).filter_by(user_name=user_name, race_name=race_name).first()
+    race_guess = db.session.query(DbRaceGuess).filter_by(user_name=user_name, race_name=race_name).first()
     if race_guess is None:
         raise Exception("Failed adding RaceGuess to the database")
 
@@ -46,7 +45,7 @@ def update_race_guess(race_name: str, user_name: str, pxx_select: str | None, dn
     if race_has_result(race_name):
         return redirect(f"/race/{quote(user_name)}")
 
-    race_guess: RaceGuess = find_or_create_race_guess(user_name, race_name)
+    race_guess: DbRaceGuess = find_or_create_race_guess(user_name, race_name)
     race_guess.pxx_driver_name = pxx_driver_name
     race_guess.dnf_driver_name = dnf_driver_name
 
@@ -60,70 +59,25 @@ def delete_race_guess(race_name: str, user_name: str) -> Response:
     if race_has_result(race_name):
         return redirect(f"/race/{quote(user_name)}")
 
-    db.session.query(RaceGuess).filter_by(race_name=race_name, user_name=user_name).delete()
+    db.session.query(DbRaceGuess).filter_by(race_name=race_name, user_name=user_name).delete()
     db.session.commit()
 
     return redirect("/race/Everyone")
 
 
-def find_or_create_team_winners(user_name: str) -> TeamWinners:
-    # There can be a single TeamWinners at most, since user_name is the primary key
-    team_winners: TeamWinners | None = db.session.query(TeamWinners).filter_by(user_name=user_name).first()
-    if team_winners is not None:
-        return team_winners
-
-    team_winners = TeamWinners(user_name=user_name)
-    db.session.add(team_winners)
-    db.session.commit()
-
-    # Double check if database insertion worked and obtain any values set by the database
-    team_winners = db.session.query(TeamWinners).filter_by(user_name=user_name).first()
-    if team_winners is None:
-        raise Exception("Failed adding TeamWinners to the database")
-
-    return team_winners
-
-
-def find_or_create_podium_drivers(user_name: str) -> PodiumDrivers:
-    # There can be a single PodiumDrivers at most, since user_name is the primary key
-    podium_drivers: PodiumDrivers | None = db.session.query(PodiumDrivers).filter_by(user_name=user_name).first()
-    if podium_drivers is not None:
-        return podium_drivers
-
-    podium_drivers = PodiumDrivers(user_name=user_name)
-    db.session.add(podium_drivers)
-    db.session.commit()
-
-    # Double check if database insertion worked and obtain any values set by the database
-    podium_drivers = db.session.query(PodiumDrivers).filter_by(user_name=user_name).first()
-    if podium_drivers is None:
-        raise Exception("Failed adding PodiumDrivers to the database")
-
-    return podium_drivers
-
-
-def find_or_create_season_guess(user_name: str) -> SeasonGuess:
+def find_or_create_season_guess(user_name: str) -> DbSeasonGuess:
     # There can be a single SeasonGuess at most, since user_name is the primary key
-    season_guess: SeasonGuess | None = db.session.query(SeasonGuess).filter_by(user_name=user_name).first()
+    season_guess: DbSeasonGuess | None = db.session.query(DbSeasonGuess).filter_by(user_name=user_name).first()
     if season_guess is not None:
-        # There can't be more than a single one, since both also use user_name as primary key
-        if db.session.query(TeamWinners).filter_by(user_name=user_name).first() is None:
-            raise Exception(f"SeasonGuess for {user_name} is missing associated TeamWinners")
-        if db.session.query(PodiumDrivers).filter_by(user_name=user_name).first() is None:
-            raise Exception(f"SeasonGuess for {user_name} is missing associated PodiumDrivers")
-
         return season_guess
 
     # Insert a new SeasonGuess
-    team_winners: TeamWinners = find_or_create_team_winners(user_name)
-    podium_drivers: PodiumDrivers = find_or_create_podium_drivers(user_name)
-
-    season_guess = SeasonGuess(user_name=user_name, team_winners_user_name=team_winners.user_name, podium_drivers_user_name=podium_drivers.user_name)
+    season_guess = DbSeasonGuess(user_name=user_name, team_winners_driver_names_json=json.dumps(["TEMP"]), podium_drivers_driver_names_json=json.dumps(["TEMP"]))
     db.session.add(season_guess)
     db.session.commit()
 
     # Double check if database insertion worked and obtain any values set by the database
-    season_guess = db.session.query(SeasonGuess).filter_by(user_name=user_name).first()
+    season_guess = db.session.query(DbSeasonGuess).filter_by(user_name=user_name).first()
     if season_guess is None:
         raise Exception("Failed adding SeasonGuess to the database")
 
@@ -133,33 +87,37 @@ def find_or_create_season_guess(user_name: str) -> SeasonGuess:
 def update_season_guess(user_name: str, guesses: List[str | None], team_winner_guesses: List[str | None], podium_driver_guesses: List[str]) -> Response:
     # Pylance marks type errors here, but those are intended. Columns are marked nullable.
 
-    season_guess: SeasonGuess = find_or_create_season_guess(user_name)
+    season_guess: DbSeasonGuess = find_or_create_season_guess(user_name)
     season_guess.hot_take = guesses[0]  # type: ignore
     season_guess.p2_team_name = guesses[1]  # type: ignore
     season_guess.overtake_driver_name = guesses[2]  # type: ignore
     season_guess.dnf_driver_name = guesses[3]  # type: ignore
     season_guess.gained_driver_name = guesses[4]  # type: ignore
     season_guess.lost_driver_name = guesses[5]  # type: ignore
-    season_guess.team_winners.teamwinner_driver_names = team_winner_guesses  # type: ignore
-    season_guess.podium_drivers.podium_driver_names = podium_driver_guesses
+    season_guess.team_winners_driver_names_json = json.dumps(team_winner_guesses)
+    season_guess.podium_drivers_driver_names_json = json.dumps(podium_driver_guesses)
 
     db.session.commit()
 
     return redirect(f"/season/Everyone")
 
 
-def find_or_create_race_result(race_name: str) -> RaceResult:
+def find_or_create_race_result(race_name: str) -> DbRaceResult:
     # There can be a single RaceResult at most, since race_name is the primary key
-    race_result: RaceResult | None = db.session.query(RaceResult).filter_by(race_name=race_name).first()
+    race_result: DbRaceResult | None = db.session.query(DbRaceResult).filter_by(race_name=race_name).first()
     if race_result is not None:
         return race_result
 
-    race_result = RaceResult(race_name=race_name)
+    race_result = DbRaceResult(race_name=race_name,
+                               pxx_driver_names_json=json.dumps(["TEMP"]),
+                               first_dnf_driver_names_json=json.dumps(["TEMP"]),
+                               dnf_driver_names_json=json.dumps(["TEMP"]),
+                               excluded_driver_names_json=json.dumps(["TEMP"]))
     db.session.add(race_result)
     db.session.commit()
 
     # Double check if database insertion worked and obtain any values set by the database
-    race_result = db.session.query(RaceResult).filter_by(race_name=race_name).first()
+    race_result = db.session.query(DbRaceResult).filter_by(race_name=race_name).first()
     if race_result is None:
         raise Exception("Failed adding RaceResult to the database")
 
@@ -185,11 +143,15 @@ def update_race_result(race_name: str, pxx_driver_names_list: List[str], first_d
         if driver_name not in dnf_driver_names_list:
             dnf_driver_names_list.append(driver_name)
 
-    race_result: RaceResult = find_or_create_race_result(race_name)
-    race_result.pxx_driver_names = pxx_driver_names
-    race_result.first_dnf_driver_names = first_dnf_driver_names_list
-    race_result.dnf_driver_names = dnf_driver_names_list
-    race_result.excluded_driver_names = excluded_driver_names_list
+    # There can't be dnfs but no initial dnfs
+    if len(dnf_driver_names_list) > 0 and len(first_dnf_driver_names_list) == 0:
+        return redirect(f"/result/{quote(race_name)}")
+
+    race_result: DbRaceResult = find_or_create_race_result(race_name)
+    race_result.pxx_driver_names_json = json.dumps(pxx_driver_names)
+    race_result.first_dnf_driver_names_json = json.dumps(first_dnf_driver_names_list)
+    race_result.dnf_driver_names_json = json.dumps(dnf_driver_names_list)
+    race_result.excluded_driver_names_json = json.dumps(excluded_driver_names_list)
 
     db.session.commit()
 
@@ -207,21 +169,32 @@ def update_user(user_name: str | None, add: bool = False, delete: bool = False) 
         return redirect("/user")
 
     if add:
-        if user_exists(user_name):
+        if user_exists_and_enabled(user_name):
             return redirect("/user")
 
-        user: User = User(name=user_name)
-        db.session.add(user)
+        elif user_exists_and_disabled(user_name):
+            disabled_user: DbUser | None = db.session.query(DbUser).filter_by(name=user_name, enabled=False).first()
+            if disabled_user is None:
+                raise Exception("update_user couldn't reenable user")
+
+            disabled_user.enabled = True
+
+        else:
+            user: DbUser = DbUser(name=user_name, enabled=True)
+            db.session.add(user)
+
         db.session.commit()
 
         return redirect("/user")
 
     if delete:
-        if not user_exists(user_name):
-            return redirect("/user")
+        if user_exists_and_enabled(user_name):
+            enabled_user: DbUser | None = db.session.query(DbUser).filter_by(name=user_name, enabled=True).first()
+            if enabled_user is None:
+                raise Exception("update_user couldn't disable user")
 
-        db.session.query(User).filter_by(name=user_name).delete()
-        db.session.commit()
+            enabled_user.enabled = False
+            db.session.commit()
 
         return redirect("/user")
 

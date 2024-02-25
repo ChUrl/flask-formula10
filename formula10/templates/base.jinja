@@ -1,15 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 
-{# Simple driver dropdown. Requires list of drivers. #}
-{% macro driver_select(name='', label='', include_none=true) %}
+{# Active user navbar dropdown #}
+{% macro active_user_dropdown(page) %}
+    {% if model.all_users() | length > 1 %}
+        <div class="dropdown">
+            <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                {{ model.active_user_name_or_everyone() }}
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/{{ page }}/Everyone">Everyone</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+
+                {% for user in model.all_users() %}
+                    <li><a class="dropdown-item" href="/{{ page }}/{{ user.name_sanitized }}">{{ user.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{# Simple driver select for forms #}
+{% macro driver_select(name, label, include_none, drivers=none) %}
     <div class="form-floating">
         <select name="{{ name }}" id="{{ name }}" class="form-select" aria-label="{{ name }}">
             <option value="" selected disabled hidden></option>
-            {% if include_none == true %}
-                {% set drivers = model.all_drivers() %}
-            {% else %}
-                {% set drivers = model.all_drivers_except_none() %}
+
+            {% if drivers == none %}
+                {% set drivers = model.all_drivers(include_none=include_none) %}
             {% endif %}
 
             {% for driver in drivers %}
@@ -20,34 +41,32 @@
     </div>
 {% endmacro %}
 
-{# Driver dropdown where a value might be preselected. Requires list of drivers. #}
-{% macro driver_select_with_preselect(match='', name='', label='', include_none=true) %}
+{# Driver select for forms where a value might be preselected #}
+{% macro driver_select_with_preselect(driver_match, name, label, include_none, drivers=none) %}
     <div class="form-floating">
         <select name="{{ name }}" id="{{ name }}" class="form-select" aria-label="{{ name }}">
             {# Use namespace wrapper to persist scope between loop iterations #}
-            {% set user_has_chosen = namespace(driverpre="false") %}
+            {% set user_has_chosen = namespace(driverpre=false) %}
 
-            {% if include_none == true %}
-                {% set drivers = model.all_drivers() %}
-            {% else %}
-                {% set drivers = model.all_drivers_except_none() %}
+            {% if drivers == none %}
+                {% set drivers = model.all_drivers(include_none=include_none) %}
             {% endif %}
 
             {% for driver in drivers %}
-                {% if match == driver.abbr %}
-                    {% set user_has_chosen.driverpre = "true" %}
+                {% if driver_match == driver %}
+                    {% set user_has_chosen.driverpre = true %}
                     <option selected="selected" value="{{ driver.name }}">{{ driver.abbr }}</option>
                 {% else %}
                     <option value="{{ driver.name }}">{{ driver.abbr }}</option>
                 {% endif %}
 
-                {% if (include_none == true) and (driver.abbr == "None") %}
+                {% if (include_none == true) and (driver == model.none_driver()) %}
                     <option disabled>──────────</option>
                 {% endif %}
             {% endfor %}
 
             {# Add an empty default if nothing has been chosen #}
-            {% if user_has_chosen.driverpre == "false" %}
+            {% if user_has_chosen.driverpre == false %}
                 <option value="" selected="selected" disabled="disabled" hidden="hidden"></option>
             {% endif %}
         </select>
@@ -55,12 +74,17 @@
     </div>
 {% endmacro %}
 
-{# Simple team dropdown. Requires list of teams. #}
-{% macro team_select(name='', label='') %}
+{# Simple team select for forms #}
+{% macro team_select(name, label, include_none, teams=none) %}
     <div class="form-floating">
         <select name="{{ name }}" id="{{ name }}" class="form-select" aria-label="{{ name }}">
             <option value="" selected disabled hidden></option>
-            {% for team in model.all_teams() %}
+
+            {% if teams == none %}
+                {% set teams = model.all_teams(include_none=include_none) %}
+            {% endif %}
+
+            {% for team in teams %}
                 <option value="{{ team.name }}">{{ team.name }}</option>
             {% endfor %}
         </select>
@@ -68,24 +92,32 @@
     </div>
 {% endmacro %}
 
-{# Team dropdown where a value might be preselected. Requires list of teams. #}
-{% macro team_select_with_preselect(match='', name='', label='') %}
+{# Team select for forms where a value might be preselected #}
+{% macro team_select_with_preselect(team_match, name, label, include_none, teams=none) %}
     <div class="form-floating">
         <select name="{{ name }}" id="{{ name }}" class="form-select" aria-label="{{ name }}">
             {# Use namespace wrapper to persist scope between loop iterations #}
-            {% set user_has_chosen = namespace(teampre="false") %}
+            {% set user_has_chosen = namespace(teampre=false) %}
 
-            {% for team in model.all_teams() %}
-                {% if match == team.name %}
-                    {% set user_has_chosen.teampre = "true" %}
+            {% if teams == none %}
+                {% set teams = model.all_teams(include_none=include_none) %}
+            {% endif %}
+
+            {% for team in teams %}
+                {% if team_match == team %}
+                    {% set user_has_chosen.teampre = true %}
                     <option selected="selected" value="{{ team.name }}">{{ team.name }}</option>
                 {% else %}
                     <option value="{{ team.name }}">{{ team.name }}</option>
                 {% endif %}
+
+                {% if (include_none == true) and (team == model.none_team()) %}
+                    <option disabled>──────────</option>
+                {% endif %}
             {% endfor %}
 
             {# Add an empty default if nothing has been chosen #}
-            {% if user_has_chosen.teampre == "false" %}
+            {% if user_has_chosen.teampre == false %}
                 <option value="" selected="selected" disabled="disabled" hidden="hidden"></option>
             {% endif %}
         </select>
@@ -94,44 +126,43 @@
 {% endmacro %}
 
 {# Easy nav-bar entries. When a page sets the active_page variable, the current entry will be underlined #}
-{% macro nav_selector(page='', text='') %}
+{% macro nav_selector(page, text) %}
     <a class="nav-link text-nowrap" href="{{ page }}">{% if active_page == page %}<u>{% endif %} {{ text }}
-        {# NOTE: This should be set at the top of each template #}
+        {# NOTE: active_page should be set at the top of each template #}
         {% if active_page == page %}</u>{% endif %}</a>
 {% endmacro %}
 
-{#@formatter:off#}
-{% macro pxx_guess_colorization(driver_abbr='', result=none) -%}
-{% if (driver_abbr == result.pxx_driver(-3).abbr) and (driver_abbr != "None") %}fw-bold
-{% elif (driver_abbr == result.pxx_driver(-2).abbr) and (driver_abbr != "None") %}text-danger fw-bold
-{% elif (driver_abbr == result.pxx_driver(-1).abbr) and (driver_abbr != "None") %}text-warning fw-bold
-{% elif (driver_abbr == result.pxx_driver(0).abbr) %}text-success fw-bold
-{% elif (driver_abbr == result.pxx_driver(1).abbr) and (driver_abbr != "None") %}text-warning fw-bold
-{% elif (driver_abbr == result.pxx_driver(2).abbr) and (driver_abbr != "None") %}text-danger fw-bold
-{% elif (driver_abbr == result.pxx_driver(3).abbr) and (driver_abbr != "None") %}fw-bold{% endif %}
-{% endmacro %}
-
-{% macro pxx_points_tooltip_text(driver_abbr='', result=none) -%}
-{% if (driver_abbr == result.pxx_driver(-3).abbr) and (driver_abbr != "None") %}1 Point
-{% elif (driver_abbr == result.pxx_driver(-2).abbr) and (driver_abbr != "None") %}3 Points
-{% elif (driver_abbr == result.pxx_driver(-1).abbr) and (driver_abbr != "None") %}6 Points
-{% elif (driver_abbr == result.pxx_driver(0).abbr) %}10 Points
-{% elif (driver_abbr == result.pxx_driver(1).abbr) and (driver_abbr != "None") %}6 Points
-{% elif (driver_abbr == result.pxx_driver(2).abbr) and (driver_abbr != "None") %}3 Points
-{% elif (driver_abbr == result.pxx_driver(3).abbr) and (driver_abbr != "None") %}1 Point
-{% else %}0 Points{% endif %}
+{% macro pxx_guess_colorization(guessed_driver, result) -%}
+    {% if   (guessed_driver == result.offset_from_place_to_guess(-3)) and (guessed_driver != model.none_driver()) %}
+        fw-bold
+    {% elif (guessed_driver == result.offset_from_place_to_guess(-2)) and (guessed_driver != model.none_driver()) %}
+        text-danger fw-bold
+    {% elif (guessed_driver == result.offset_from_place_to_guess(-1)) and (guessed_driver != model.none_driver()) %}
+        text-warning fw-bold
+    {% elif (guessed_driver == result.offset_from_place_to_guess( 0)) %}text-success fw-bold
+    {% elif (guessed_driver == result.offset_from_place_to_guess( 1)) and (guessed_driver != model.none_driver()) %}
+        text-warning fw-bold
+    {% elif (guessed_driver == result.offset_from_place_to_guess( 2)) and (guessed_driver != model.none_driver()) %}
+        text-danger fw-bold
+    {% elif (guessed_driver == result.offset_from_place_to_guess( 3)) and (guessed_driver != model.none_driver()) %}
+        fw-bold
+    {% endif %}
 {%- endmacro %}
 
-{% macro pxx_standing_tooltip_text(result=none) -%}
-P{{ result.race.pxx - 3 }}: {{ result.pxx_driver(-3).abbr }}
-P{{ result.race.pxx - 2 }}: {{ result.pxx_driver(-2).abbr }}
-P{{ result.race.pxx - 1 }}: {{ result.pxx_driver(-1).abbr }}
-P{{ result.race.pxx }}: {{ result.pxx_driver(0).abbr }}
-P{{ result.race.pxx + 1 }}: {{ result.pxx_driver(1).abbr }}
-P{{ result.race.pxx + 2 }}: {{ result.pxx_driver(2).abbr }}
-P{{ result.race.pxx + 3 }}: {{ result.pxx_driver(3).abbr }}
-{% endmacro %}
-{#@formatter:on#}
+{% macro dnf_guess_colorization(guessed_driver, result) -%}
+    {% if guessed_driver in result.initial_dnf %}text-success fw-bold
+    {% elif (guessed_driver == model.none_driver()) and (result.initial_dnf | length == 0) %}text-success fw-bold
+    {% endif %}
+{%- endmacro %}
+
+{# @formatter:off #}
+{% macro pxx_standing_tooltip_text(result) %}
+{%- for position in range(-3, 4) %}
+{%- set driver = result.offset_from_place_to_guess(position, respect_nc=false) %}
+{{- driver.abbr ~ result.driver_standing_position_string(driver) }}
+{% endfor %}
+{%- endmacro %}
+{# @formatter:on #}
 
 <head>
     <meta charset="UTF-8">
@@ -170,18 +201,18 @@ P{{ result.race.pxx + 3 }}: {{ result.pxx_driver(3).abbr }}
 
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav me-2">
-                {{ nav_selector("/race/" ~ (active_user.name_sanitized if active_user is not none else "Everyone"), "Race Picks") }}
-                {{ nav_selector("/season/" ~ (active_user.name_sanitized if active_user is not none else "Everyone"), "Season Picks") }}
-                {{ nav_selector("/graphs", "Statistics") }}
-                {{ nav_selector("/rules", "Rules") }}
+                {{ nav_selector(page="/race/" ~ model.active_user_name_sanitized_or_everyone(), text="Race Picks") }}
+                {{ nav_selector(page="/season/" ~ model.active_user_name_sanitized_or_everyone(), text="Season Picks") }}
+                {{ nav_selector(page="/graphs", text="Statistics") }}
+                {{ nav_selector(page="/rules", text="Rules") }}
             </div>
 
             {% block navbar_center %}{% endblock navbar_center %}
             <div class="flex-grow-1"></div>
 
             <div class="navbar-nav">
-                {{ nav_selector("/result", "Enter Race Result") }}
-                {{ nav_selector("/user", "Manage Users") }}
+                {{ nav_selector(page="/result", text="Enter Race Result") }}
+                {{ nav_selector(page="/user", text="Manage Users") }}
             </div>
         </div>
     </div>

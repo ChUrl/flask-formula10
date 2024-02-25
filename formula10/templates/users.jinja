@@ -3,7 +3,6 @@
 {% block title %}Formula 10 - Users{% endblock title %}
 
 {% set active_page = "/users" %}
-{% set active_user = none %}
 
 {% block body %}
 
@@ -58,8 +57,7 @@
 
                     <div class="form-text">
                         "Deleting" a user just hides it from the user interface without deleting any inputs, your
-                        "pERsoNaL
-                        DaTa" belongs to ME now.<br>
+                        "pERsoNaL DaTa" is not yours anyway.<br>
                         Re-adding a user with the same name will "restore" it. That doesn't mean you're allowed to
                         remove everyone though.
                     </div>
@@ -68,16 +66,16 @@
         </div>
     {% endif %}
 
-    <div class="card mt-2 border-danger shadow-sm">
-        <div class="card-body">
-            <h5 class="card-title">Functions that should not be public</h5>
-            <h6 class="card-subtitle mb-2">(F you if you click this without knowing what it does)</h6>
+{#    <div class="card mt-2 border-danger shadow-sm">#}
+{#        <div class="card-body">#}
+{#            <h5 class="card-title">Functions that should not be public</h5>#}
+{#            <h6 class="card-subtitle mb-2">(F you if you click this without knowing what it does)</h6>#}
 
-            <a class="btn btn-outline-danger" href="/save/all">Save all data</a>
-            <a class="btn btn-outline-danger" href="/load/all">Load all data</a>
-            <a class="btn btn-outline-danger" href="/load/static">Load static data</a>
-            <a class="btn btn-outline-danger" href="/load/dynamic">Load dynamic data</a>
-        </div>
-    </div>
+{#            <a class="btn btn-outline-danger" href="/save/all">Save all data</a>#}
+{#            <a class="btn btn-outline-danger" href="/load/all">Load all data</a>#}
+{#            <a class="btn btn-outline-danger" href="/load/static">Load static data</a>#}
+{#            <a class="btn btn-outline-danger" href="/load/dynamic">Load dynamic data</a>#}
+{#        </div>#}
+{#    </div>#}
 
 {% endblock body %}

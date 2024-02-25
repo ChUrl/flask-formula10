@@ -1,31 +1,32 @@
 from datetime import datetime
 from typing import List
-from urllib.parse import quote
 from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from formula10 import db
 
 
-class Race(db.Model):
+class DbRace(db.Model):
     """
     A single race at a certain date and GrandPrix in the calendar.
     It stores the place to guess for this race.
     """
     __tablename__ = "race"
 
-    @staticmethod
-    def from_csv(row: List[str]):
-        race: Race = Race()
-        race.name = str(row[0])
-        race.number = int(row[1])
-        race.date = datetime.strptime(row[2], "%Y-%m-%d")
-        race.pxx = int(row[3])
-        return race
+    def __init__(self, *, name: str, number: int, date: datetime, pxx: int):
+        self.name = name  # Primary key
 
-    @property
-    def name_sanitized(self) -> str:
-        return quote(self.name)
+        self.number = number
+        self.date = date
+        self.pxx = pxx
+
+    @classmethod
+    def from_csv(cls, row: List[str]):
+        db_race: DbRace = cls(name=str(row[0]),
+                              number=int(row[1]),
+                              date=datetime.strptime(row[2], "%Y-%m-%d"),
+                              pxx=int(row[3]))
+        return db_race
 
     name: Mapped[str] = mapped_column(String(64), primary_key=True)
     number: Mapped[int] = mapped_column(Integer)

@@ -1,18 +1,24 @@
 from typing import List, Callable, Dict, overload
 from sqlalchemy import desc
 
-from formula10.database.model.driver import Driver
-from formula10.database.model.race import Race
-from formula10.database.model.race_guess import RaceGuess
-from formula10.database.model.race_result import RaceResult
-from formula10.database.model.season_guess import SeasonGuess
-from formula10.database.model.team import Team
-from formula10.database.model.user import User
-from formula10.database.validation_util import find_first_or_none, find_multiple, find_single, find_single_or_none
+from formula10.database.model.db_driver import DbDriver
+from formula10.database.model.db_race import DbRace
+from formula10.database.model.db_race_guess import DbRaceGuess
+from formula10.database.model.db_race_result import DbRaceResult
+from formula10.database.model.db_season_guess import DbSeasonGuess
+from formula10.database.model.db_team import DbTeam
+from formula10.database.model.db_user import DbUser
+from formula10.frontend.model.driver import NONE_DRIVER, Driver
+from formula10.frontend.model.race import Race
+from formula10.frontend.model.race_guess import RaceGuess
+from formula10.frontend.model.race_result import RaceResult
+from formula10.frontend.model.season_guess import SeasonGuess
+from formula10.frontend.model.team import NONE_TEAM, Team
+from formula10.frontend.model.user import User
+from formula10.database.validation import find_first_else_none, find_multiple_strict, find_single_strict, find_single_or_none_strict
 from formula10 import db
 
 
-# This could also be moved to database_utils (at least partially), but I though the template should cache the database responses
 class TemplateModel:
     """
     This class bundles all data required from inside a template.
@@ -26,14 +32,41 @@ class TemplateModel:
     _all_drivers: List[Driver] | None = None
     _all_teams: List[Team] | None = None
 
+    active_user: User | None = None
+    active_result: RaceResult | None = None
+
+    _wdc_gained_excluded_abbrs: List[str] = ["RIC"]
+
+    def __init__(self, *, active_user_name: str | None, active_result_race_name: str | None):
+        if active_user_name is not None:
+            self.active_user = self.user_by(user_name=active_user_name, ignore=["Everyone"])
+
+        if active_result_race_name is not None:
+            self.active_result = self.race_result_by(race_name=active_result_race_name)
+
+    def active_user_name_or_everyone(self) -> str:
+        return self.active_user.name if self.active_user is not None else "Everyone"
+
+    def active_user_name_sanitized_or_everyone(self) -> str:
+        return self.active_user.name_sanitized if self.active_user is not None else "Everyone"
+
     def all_users(self) -> List[User]:
         """
         Returns a list of all users in the database.
         """
         if self._all_users is None:
-            self._all_users = db.session.query(User).all()
+            self._all_users = [
+                User.from_db_user(db_user)
+                for db_user in db.session.query(DbUser).filter_by(enabled=True).all()
+            ]
 
         return self._all_users
+
+    def all_users_or_active_user(self) -> List[User]:
+        if self.active_user is not None:
+            return [self.active_user]
+
+        return self.all_users()
 
     @overload
     def user_by(self, *, user_name: str) -> User:
@@ -57,14 +90,17 @@ class TemplateModel:
             return None
 
         predicate: Callable[[User], bool] = lambda user: user.name == user_name
-        return find_single(predicate, self.all_users())
+        return find_single_strict(predicate, self.all_users())
 
     def all_race_results(self) -> List[RaceResult]:
         """
         Returns a list of all race results in the database, in descending order (most recent first).
         """
         if self._all_race_results is None:
-            self._all_race_results = db.session.query(RaceResult).join(RaceResult.race).order_by(desc(Race.number)).all()
+            self._all_race_results = [
+                RaceResult.from_db_race_result(db_race_result)
+                for db_race_result in db.session.query(DbRaceResult).join(DbRaceResult.race).order_by(desc(DbRace.number)).all()
+            ]
 
         return self._all_race_results
 
@@ -73,14 +109,17 @@ class TemplateModel:
         Tries to obtain the race result corresponding to a race name.
         """
         predicate: Callable[[RaceResult], bool] = lambda result: result.race.name == race_name
-        return find_single_or_none(predicate, self.all_race_results())
+        return find_single_or_none_strict(predicate, self.all_race_results())
 
     def all_race_guesses(self) -> List[RaceGuess]:
         """
         Returns a list of all race guesses in the database.
         """
         if self._all_race_guesses is None:
-            self._all_race_guesses = db.session.query(RaceGuess).all()
+            self._all_race_guesses = [
+                RaceGuess.from_db_race_guess(db_race_guess)
+                for db_race_guess in db.session.query(DbRaceGuess).join(DbRaceGuess.user).filter_by(enabled=True).all()  # Ignore disabled users
+            ]
 
         return self._all_race_guesses
 
@@ -115,18 +154,18 @@ class TemplateModel:
     def race_guesses_by(self, *, user_name: str | None = None, race_name: str | None = None) -> RaceGuess | List[RaceGuess] | Dict[str, Dict[str, RaceGuess]] | None:
         # List of all guesses by a single user
         if user_name is not None and race_name is None:
-            predicate: Callable[[RaceGuess], bool] = lambda guess: guess.user_name == user_name
-            return find_multiple(predicate, self.all_race_guesses())
+            predicate: Callable[[RaceGuess], bool] = lambda guess: guess.user.name == user_name
+            return find_multiple_strict(predicate, self.all_race_guesses())
 
         # List of all guesses for a single race
         if user_name is None and race_name is not None:
-            predicate: Callable[[RaceGuess], bool] = lambda guess: guess.race_name == race_name
-            return find_multiple(predicate, self.all_race_guesses())
+            predicate: Callable[[RaceGuess], bool] = lambda guess: guess.race.name == race_name
+            return find_multiple_strict(predicate, self.all_race_guesses())
 
         # Guess for a single race by a single user
         if user_name is not None and race_name is not None:
-            predicate: Callable[[RaceGuess], bool] = lambda guess: guess.user_name == user_name and guess.race_name == race_name
-            return find_single_or_none(predicate, self.all_race_guesses())
+            predicate: Callable[[RaceGuess], bool] = lambda guess: guess.user.name == user_name and guess.race.name == race_name
+            return find_single_or_none_strict(predicate, self.all_race_guesses())
 
         # Dict with all guesses
         if user_name is None and race_name is None:
@@ -134,10 +173,10 @@ class TemplateModel:
             guess: RaceGuess
 
             for guess in self.all_race_guesses():
-                if guess.race_name not in guesses_by:
-                    guesses_by[guess.race_name] = dict()
+                if guess.race.name not in guesses_by:
+                    guesses_by[guess.race.name] = dict()
 
-                guesses_by[guess.race_name][guess.user_name] = guess
+                guesses_by[guess.race.name][guess.user.name] = guess
 
             return guesses_by
 
@@ -145,7 +184,10 @@ class TemplateModel:
 
     def all_season_guesses(self) -> List[SeasonGuess]:
         if self._all_season_guesses is None:
-            self._all_season_guesses = db.session.query(SeasonGuess).all()
+            self._all_season_guesses = [
+                SeasonGuess.from_db_season_guess(db_season_guess)
+                for db_season_guess in db.session.query(DbSeasonGuess).join(DbSeasonGuess.user).filter_by(enabled=True).all()  # Ignore disabled users
+            ]
 
         return self._all_season_guesses
 
@@ -165,15 +207,15 @@ class TemplateModel:
 
     def season_guesses_by(self, *, user_name: str | None = None) -> SeasonGuess | Dict[str, SeasonGuess] | None:
         if user_name is not None:
-            predicate: Callable[[SeasonGuess], bool] = lambda guess: guess.user_name == user_name
-            return find_single_or_none(predicate, self.all_season_guesses())
+            predicate: Callable[[SeasonGuess], bool] = lambda guess: guess.user.name == user_name
+            return find_single_or_none_strict(predicate, self.all_season_guesses())
 
         if user_name is None:
             guesses_by: Dict[str, SeasonGuess] = dict()
             guess: SeasonGuess
 
             for guess in self.all_season_guesses():
-                guesses_by[guess.user_name] = guess
+                guesses_by[guess.user.name] = guess
 
             return guesses_by
 
@@ -184,7 +226,10 @@ class TemplateModel:
         Returns a list of all races in the database.
         """
         if self._all_races is None:
-            self._all_races = db.session.query(Race).order_by(desc(Race.number)).all()
+            self._all_races = [
+                Race.from_db_race(db_race)
+                for db_race in db.session.query(DbRace).order_by(desc(DbRace.number)).all()
+            ]
 
         return self._all_races
 
@@ -199,32 +244,72 @@ class TemplateModel:
         most_recent_result: RaceResult = results[0]
         predicate: Callable[[Race], bool] = lambda race: race.number == most_recent_result.race.number + 1
 
-        return find_first_or_none(predicate, self.all_races())
+        return find_first_else_none(predicate, self.all_races())
 
-    def all_teams(self) -> List[Team]:
+    @property
+    def current_race(self) -> Race | None:
+        return self.first_race_without_result()
+
+    def active_result_race_name_or_current_race_name(self) -> str:
+        if self.active_result is not None:
+            return self.active_result.race.name
+        elif self.current_race is not None:
+            return self.current_race.name
+        else:
+            return self.all_race_results()[0].race.name
+
+    def active_result_race_name_or_current_race_name_sanitized(self) -> str:
+        if self.active_result is not None:
+            return self.active_result.race.name_sanitized
+        elif self.current_race is not None:
+            return self.current_race.name_sanitized
+        else:
+            return self.all_race_results()[0].race.name_sanitized
+
+    def all_teams(self, *, include_none: bool) -> List[Team]:
         """
         Returns a list of all teams in the database.
         """
         if self._all_teams is None:
-            self._all_teams = db.session.query(Team).all()
+            self._all_teams = [
+                Team.from_db_team(db_team)
+                for db_team in db.session.query(DbTeam).all()
+            ]
 
-        return self._all_teams
+        if include_none:
+            return self._all_teams
+        else:
+            predicate: Callable[[Team], bool] = lambda team: team != NONE_TEAM
+            return find_multiple_strict(predicate, self._all_teams)
 
-    def all_drivers(self) -> List[Driver]:
+    def none_team(self) -> Team:
+        return NONE_TEAM
+
+    def all_drivers(self, *, include_none: bool) -> List[Driver]:
         """
-        Returns a list of all drivers in the database, including the NONE driver.
+        Returns a list of all drivers in the database.
         """
         if self._all_drivers is None:
-            self._all_drivers = db.session.query(Driver).all()
+            self._all_drivers = [
+                Driver.from_db_driver(db_driver)
+                for db_driver in db.session.query(DbDriver).all()
+            ]
 
-        return self._all_drivers
+        if include_none:
+            return self._all_drivers
+        else:
+            predicate: Callable[[Driver], bool] = lambda driver: driver != NONE_DRIVER
+            return find_multiple_strict(predicate, self._all_drivers)
 
-    def all_drivers_except_none(self) -> List[Driver]:
-        """
-        Returns a list of all drivers in the database, excluding the NONE driver.
-        """
-        predicate: Callable[[Driver], bool] = lambda driver: driver.name != "None"
-        return find_multiple(predicate, self.all_drivers())
+    def all_drivers_or_active_result_standing_drivers(self) -> List[Driver]:
+        return self.active_result.ordered_standing_list() if self.active_result is not None else self.all_drivers(include_none=False)
+
+    def drivers_for_wdc_gained(self) -> List[Driver]:
+        predicate: Callable[[Driver], bool] = lambda driver: driver.abbr not in self._wdc_gained_excluded_abbrs
+        return find_multiple_strict(predicate, self.all_drivers(include_none=False))
+
+    def none_driver(self) -> Driver:
+        return NONE_DRIVER
 
     @overload
     def drivers_by(self, *, team_name: str) -> List[Driver]:
@@ -243,16 +328,16 @@ class TemplateModel:
     def drivers_by(self, *, team_name: str | None = None) -> List[Driver] | Dict[str, List[Driver]]:
         if team_name is not None:
             predicate: Callable[[Driver], bool] = lambda driver: driver.team.name == team_name
-            return find_multiple(predicate, self.all_drivers_except_none(), 2)
+            return find_multiple_strict(predicate, self.all_drivers(include_none=False), 2)
 
         if team_name is None:
             drivers_by: Dict[str, List[Driver]] = dict()
             driver: Driver
             team: Team
 
-            for team in self.all_teams():
+            for team in self.all_teams(include_none=False):
                 drivers_by[team.name] = []
-            for driver in self.all_drivers_except_none():
+            for driver in self.all_drivers(include_none=False):
                 drivers_by[driver.team.name] += [driver]
 
             return drivers_by

@@ -22,7 +22,7 @@ def positions_are_contiguous(positions: List[str]) -> bool:
     return positions_sorted[0] + len(positions_sorted) - 1 == positions_sorted[-1]
 
 
-def find_first_or_none(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T | None:
+def find_first_else_none(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T | None:
     """
     Finds the first element in a sequence matching a predicate.
     Returns None if no element is found.
@@ -30,7 +30,13 @@ def find_first_or_none(predicate: Callable[[_T], bool], iterable: Iterable[_T]) 
     return next(filter(predicate, iterable), None)
 
 
-def find_multiple(predicate: Callable[[_T], bool], iterable: Iterable[_T], count: int = 0) -> List[_T]:
+def find_multiple(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> List[_T]:
+    filtered = list(filter(predicate, iterable))
+
+    return filtered
+
+
+def find_multiple_strict(predicate: Callable[[_T], bool], iterable: Iterable[_T], count: int = 0) -> List[_T]:
     """
     Finds <count> elements in a sequence matching a predicate (finds all if <count> is 0).
     Throws exception if more/fewer elements were found than specified.
@@ -43,7 +49,7 @@ def find_multiple(predicate: Callable[[_T], bool], iterable: Iterable[_T], count
     return filtered
 
 
-def find_single(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T:
+def find_single_strict(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T:
     """
     Find a single element in a sequence matching a predicate.
     Throws exception if more/less than a single element is found.
@@ -56,7 +62,7 @@ def find_single(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T:
     return filtered[0]
 
 
-def find_single_or_none(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T | None:
+def find_single_or_none_strict(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T | None:
     """
     Find a single element in a sequence matching a predicate if it exists.
     Only throws exception if more than a single element is found.

@@ -3,14 +3,11 @@
 {% block title %}Formula 10 - Race Result{% endblock title %}
 
 {% set active_page = "/result" %}
-{% set active_user = none %}
 
 {% block head_extra %}
-    <link href="../style/draggable.css" rel="stylesheet">
-    <script src="../script/draggable.js" defer></script>
+    <link href="../static/style/draggable.css" rel="stylesheet">
+    <script src="../static/script/draggable.js" defer></script>
 {% endblock head_extra %}
-
-{% set current_race = model.first_race_without_result() %}
 
 {% block navbar_center %}
 
@@ -18,18 +15,13 @@
         <div class="dropdown">
             <button class="btn btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
-                {% if active_result is not none %}
-                    {{ active_result.race.name }}
-                {% elif current_race is not none %}
-                    {{ current_race.name }}
-                {% else %}
-                    {{ model.all_race_results()[0].race.name }}
-                {% endif %}
+                {{ model.active_result_race_name_or_current_race_name() }}
             </button>
             <ul class="dropdown-menu">
-                {% if model.first_race_without_result() is not none %}
+                {% if model.current_race is not none %}
                     <li>
-                        <a class="dropdown-item" href="/result/{{ current_race.name }}">{{ current_race.name }}</a>
+                        <a class="dropdown-item"
+                           href="/result/{{ model.current_race.name_sanitized }}">{{ model.current_race.name }}</a>
                     </li>
                     <li>
                         <hr class="dropdown-divider">
@@ -39,7 +31,7 @@
                 {% for result in model.all_race_results() %}
                     <li>
                         <a class="dropdown-item"
-                           href="/result/{{ result.race.name }}">{{ result.race.name }}</a>
+                           href="/result/{{ result.race.name_sanitized }}">{{ result.race.name }}</a>
                     </li>
                 {% endfor %}
             </ul>
@@ -56,28 +48,14 @@
             <div class="card-body">
 
                 <h5 class="card-title">
-                    {% if active_result is not none %}
-                        {{ active_result.race.name }}
-                    {% elif current_race is not none %}
-                        {{ current_race.name }}
-                    {% else %}
-                        {{ model.all_race_results()[0].race.name }}
-                    {% endif %}
+                    {{ model.active_result_race_name_or_current_race_name() }}
                 </h5>
 
-                {# @formatter:off #}
-                <form action="/result-enter/{%- if active_result is not none %}{{ active_result.race.name }}{% else %}{{ current_race.name }}{% endif %}"
+                <form action="/result-enter/{{ model.active_result_race_name_or_current_race_name_sanitized() }}"
                       method="post">
-                {# @formatter:on #}
                     <ul id="columns" class="list-group list-group-flush">
 
-                        {% if active_result is not none %}
-                            {% set drivers = active_result.all_positions %}
-                        {% else %}
-                            {% set drivers = model.all_drivers_except_none() %}
-                        {% endif %}
-
-                        {% for driver in drivers %}
+                        {% for driver in model.all_drivers_or_active_result_standing_drivers() %}
                             <li class="list-group-item column p-1" draggable="true">
                                 {{ driver.name }}
 
@@ -86,7 +64,7 @@
                                     <div class="form-check form-check-reverse d-inline-block">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="first-dnf-{{ driver.name }}" name="first-dnf-drivers"
-                                               {% if (active_result is not none) and (driver in active_result.first_dnf_drivers) %}checked{% endif %}>
+                                               {% if (model.active_result is not none) and (driver in model.active_result.initial_dnf) %}checked{% endif %}>
                                         <label for="first-dnf-{{ driver.name }}"
                                                class="form-check-label text-muted">1. DNF</label>
                                     </div>
@@ -95,7 +73,7 @@
                                     <div class="form-check form-check-reverse d-inline-block mx-2">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="dnf-{{ driver.name }}" name="dnf-drivers"
-                                               {% if (active_result is not none) and (driver in active_result.dnf_drivers) %}checked{% endif %}>
+                                               {% if (model.active_result is not none) and (driver in model.active_result.all_dnfs) %}checked{% endif %}>
                                         <label for="dnf-{{ driver.name }}"
                                                class="form-check-label text-muted">DNF</label>
                                     </div>
@@ -104,7 +82,7 @@
                                     <div class="form-check form-check-reverse d-inline-block">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="exclude-{{ driver.name }}" name="excluded-drivers"
-                                               {% if (active_result is not none) and (driver in active_result.excluded_drivers) %}checked{% endif %}>
+                                               {% if (model.active_result is not none) and (driver in model.active_result.standing_exclusions) %}checked{% endif %}>
                                         <label for="exclude-{{ driver.name }}"
                                                class="form-check-label text-muted" data-bs-toggle="tooltip"
                                                title="Driver is not counted for standing">NC</label>

@@ -3,8 +3,8 @@ from urllib.parse import unquote
 from flask import redirect, render_template, request
 from werkzeug import Response
 
-from formula10.database.update_query_util import update_race_result, update_user
-from formula10.database.import_export_util import export_dynamic_data, reload_dynamic_data, reload_static_data
+from formula10.database.update_queries import update_race_result, update_user
+from formula10.database.import_export import export_dynamic_data, reload_dynamic_data, reload_static_data
 from formula10.frontend.template_model import TemplateModel
 from formula10 import app
 
@@ -42,10 +42,10 @@ def result_root() -> Response:
 @app.route("/result/<race_name>")
 def result_active_race(race_name: str) -> str:
     race_name = unquote(race_name)
-    model = TemplateModel()
-    return render_template("enter.jinja",
-                           active_result=model.race_result_by(race_name=race_name),
-                           model=model)
+    model = TemplateModel(active_user_name=None,
+                          active_result_race_name=race_name)
+
+    return render_template("enter.jinja", model=model)
 
 
 @app.route("/result-enter/<race_name>", methods=["POST"])
@@ -61,9 +61,10 @@ def result_enter_post(race_name: str) -> Response:
 
 @app.route("/user")
 def user_root() -> str:
-    model = TemplateModel()
-    return render_template("users.jinja",
-                           model=model)
+    model = TemplateModel(active_user_name=None,
+                          active_result_race_name=None)
+
+    return render_template("users.jinja", model=model)
 
 
 @app.route("/user-add", methods=["POST"])
