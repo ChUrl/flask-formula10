@@ -5,6 +5,7 @@ from werkzeug import Response
 
 from formula10.database.model.db_team import DbTeam
 from formula10.database.update_queries import update_season_guess
+from formula10.frontend.model.team import NONE_TEAM
 from formula10.frontend.template_model import TemplateModel
 from formula10 import app, db
 
@@ -36,7 +37,7 @@ def season_guess_post(user_name: str) -> Response:
     ]
     # TODO: This is pretty ugly, to do queries in the controller
     team_winner_guesses: List[str | None] = [
-        request.form.get(f"teamwinner-{team.name}") for team in db.session.query(DbTeam).all()
+        request.form.get(f"teamwinner-{team.name}") for team in db.session.query(DbTeam).all() if team.name != NONE_TEAM.name
     ]
     podium_driver_guesses: List[str] = request.form.getlist("podiumdrivers")
 
