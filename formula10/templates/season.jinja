@@ -29,7 +29,7 @@
                     {% set user_guess = model.season_guesses_by(user_name=user.name) %}
 
                     {% if model.season_guess_open() == true %}
-                        {% set action_save_href = "/season-guess" ~ user.name %}
+                        {% set action_save_href = "/season-guess/" ~ user.name %}
                     {% else %}
                         {% set action_save_href = "" %}
                     {% endif %}

@@ -63,6 +63,7 @@ def delete_race_guess(race_name: str, user_name: str) -> Response:
     if race_has_result(race_name):
         return error_redirect(f"No picks for race \"{race_name}\" can be deleted, as this race has already finished.")
 
+    # Does not throw if row doesn't exist
     db.session.query(DbRaceGuess).filter_by(race_name=race_name, user_name=user_name).delete()
     db.session.commit()
 
