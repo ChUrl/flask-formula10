@@ -4,6 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 app: Flask = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///formula10.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_TYPE'] = 'memcached'
+app.config['SECRET_KEY'] = 'ich stinke nach maggi'
 app.url_map.strict_slashes = False
 
 db: SQLAlchemy = SQLAlchemy()
@@ -12,8 +14,9 @@ db.init_app(app)
 # NOTE: These imports are required to register the routes. They need to be imported after "app" is declared
 import formula10.controller.race_controller  # type: ignore
 import formula10.controller.season_controller
-import formula10.controller.admin_controller
 import formula10.controller.rules_controller
+import formula10.controller.admin_controller
+import formula10.controller.error_controller
 
 
 # TODO
@@ -21,10 +24,10 @@ import formula10.controller.rules_controller
 
 # Date stuff:
 # - Date lock race guess entering + race result entering + season guess entering (frontend + backend)
+# - Some info popup that can be populated
 # - Show timer until next race?
 
 # - Choose "place to guess" late before the race? Make a page for this?
-# - Rules page
 # - Store currently active user inside cookie
 
 # - Make user order changeable using drag'n'drop?

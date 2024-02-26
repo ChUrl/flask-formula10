@@ -1,0 +1,14 @@
+{% extends 'base.jinja' %}
+
+{% block title %}Formula 10 - Error{% endblock title %}
+
+{% set active_page = "/error" %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title text-danger fw-bold">Error</h5>
+            <h6 class="card-subtitle">{{ error_message }}</h6>
+        </div>
+    </div>
+{% endblock body %}
