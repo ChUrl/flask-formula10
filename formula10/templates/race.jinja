@@ -4,6 +4,10 @@
 
 {% set active_page = "/race/" ~ model.active_user_name_sanitized_or_everyone() %}
 
+{% block head_extra %}
+    <script src="../static/script/countdown.js" defer></script>
+{% endblock head_extra %}
+
 {% block navbar_center %}
     {{ active_user_dropdown(page='race') }}
 {% endblock navbar_center %}
@@ -77,7 +81,12 @@
                     <td>&nbsp;</td>
                 {% endif %}
 
-                <td>&nbsp;</td>
+                {# Race countdown #}
+                <span id="race_date" hidden="hidden">{{ model.current_race.date.strftime("%Y-%m-%dT%H:%M") }}</span>
+                <td class="text-center text-nowrap align-middle">
+                    <span class="fw-bold">Race starts in:</span><br>
+                    <span id="race_date_countdown"></span>
+                </td>
             </tr>
         {% endif %}
 
@@ -87,7 +96,8 @@
                 <td class="text-nowrap">
                     <span class="fw-bold">{{ model.current_race.number }}:</span> {{ model.current_race.name }}<br>
                     <small><span class="fw-bold">Guess:</span> P{{ model.current_race.place_to_guess }}</small><br>
-                    <small><span class="fw-bold">Date:</span> {{ model.current_race.date.strftime("%d.%m.%Y %H:%M") }}</small>
+                    <small><span class="fw-bold">Date:</span> {{ model.current_race.date.strftime("%d.%m.%Y %H:%M") }}
+                    </small>
                 </td>
 
                 <td>
@@ -111,12 +121,14 @@
                         {# Driver DNF Select #}
                         {{ driver_select_with_preselect(driver_match=user_guess.dnf_guess, name="dnfselect", label="DNF:", include_none=true) }}
 
-                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save" {% if model.race_guess_open(model.current_race) == false %}disabled="disabled"{% endif %}>
+                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save"
+                               {% if model.race_guess_open(model.current_race) == false %}disabled="disabled"{% endif %}>
                     </form>
 
                     {# Delete guess #}
                     <form action="{{ action_delete_href }}" method="post">
-                        <input type="submit" class="btn btn-dark mt-2 w-100" value="Delete" {% if model.race_guess_open(model.current_race) == false %}disabled{% endif %}>
+                        <input type="submit" class="btn btn-dark mt-2 w-100" value="Delete"
+                               {% if model.race_guess_open(model.current_race) == false %}disabled{% endif %}>
                     </form>
                 </td>
 
