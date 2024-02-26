@@ -34,10 +34,10 @@
                         <div class="form-floating">
                             {% if user_guess is not none %}
                                 <textarea class="form-control" id="hot-take-input-{{ user.name }}" name="hottakeselect"
-                                          style="height: 50px">{{ user_guess.hot_take_string() }}</textarea>
+                                          style="height: 150px">{{ user_guess.hot_take_string() }}</textarea>
                             {% else %}
                                 <textarea class="form-control" id="hot-take-input-{{ user.name }}" name="hottakeselect"
-                                          style="height: 50px"></textarea>
+                                          style="height: 150px"></textarea>
                             {% endif %}
 
                             <label for="hot-take-input-{{ user.name }}" class="text-primary">Hot Take:</label>
