@@ -1,8 +1,6 @@
 // Set the date we're counting down to
 var raceTime = document.getElementById("race_date").innerHTML
-console.log(raceTime)
 var countDownDate = new Date(raceTime).getTime();
-console.log(countDownDate)
 
 // Update the countdown every 1 second
 var x = setInterval(function() {
