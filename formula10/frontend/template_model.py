@@ -43,10 +43,7 @@ class TemplateModel:
             self.active_user = self.user_by(user_name=active_user_name, ignore=["Everyone"])
 
         if active_result_race_name is not None:
-            if active_result_race_name == "Current":
-                self.active_result = self.all_race_results()[0]
-            else:
-                self.active_result = self.race_result_by(race_name=active_result_race_name)
+            self.active_result = self.race_result_by(race_name=active_result_race_name)
 
     def race_guess_open(self, race: Race) -> bool:
         return not race_has_started(race=race)
@@ -265,16 +262,16 @@ class TemplateModel:
             return self.active_result.race.name
         elif self.current_race is not None:
             return self.current_race.name
-
-        raise Exception("active_result_name_or_current_race_name called without active_result or current_race")
+        else:
+            return self.all_races()[0].name
 
     def active_result_race_name_or_current_race_name_sanitized(self) -> str:
         if self.active_result is not None:
             return self.active_result.race.name_sanitized
         elif self.current_race is not None:
             return self.current_race.name_sanitized
-
-        raise Exception("active_result_race_name_or_current_race_name_sanitized called without active_result or current_race")
+        else:
+            return self.all_races()[0].name_sanitized
 
     def all_teams(self, *, include_none: bool) -> List[Team]:
         """
