@@ -25,8 +25,6 @@ import formula10.controller.error_controller
 # TODO
 # General
 
-# - Show timer until next race?
-
 # - Show place when entering race result (would require updating the drag'n'drop code...)
 # - Don't write full 2024 date, just 24 or leave out completely, to make column smaller
 
