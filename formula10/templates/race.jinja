@@ -49,7 +49,8 @@
             <tr class="table-danger">
                 <td class="text-nowrap">
                     <span class="fw-bold">{{ model.current_race.number }}:</span> {{ model.current_race.name }}<br>
-                    <small><span class="fw-bold">Guess:</span> P{{ model.current_race.place_to_guess }}</small>
+                    <small><span class="fw-bold">Guess:</span> P{{ model.current_race.place_to_guess }}</small><br>
+                    <small><span class="fw-bold">Date:</span> {{ model.current_race.date.strftime("%d.%m.%Y %H:%M") }}</small>
                 </td>
 
                 {% if model.all_users() | length > 0 %}
@@ -117,7 +118,8 @@
             <tr>
                 <td class="text-nowrap">
                     <span class="fw-bold">{{ past_result.race.number }}:</span> {{ past_result.race.name }}<br>
-                    <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.place_to_guess }}</small>
+                    <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.place_to_guess }}</small><br>
+                    <small><span class="fw-bold">Date:</span> {{ past_result.race.date.strftime("%d.%m.%Y %H:%M") }}</small>
                 </td>
 
                 {% if model.all_users_or_active_user() | length > 0 %}

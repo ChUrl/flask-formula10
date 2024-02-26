@@ -24,7 +24,7 @@ class DbRace(db.Model):
     def from_csv(cls, row: List[str]):
         db_race: DbRace = cls(name=str(row[0]),
                               number=int(row[1]),
-                              date=datetime.strptime(row[2], "%Y-%m-%d"),
+                              date=datetime.strptime(str(row[2]), "%Y-%m-%d-%H-%M"),
                               pxx=int(row[3]))
         return db_race
 

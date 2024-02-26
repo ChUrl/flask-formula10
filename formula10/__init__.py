@@ -18,7 +18,8 @@ import formula10.controller.admin_controller  # type: ignore
 # TODO
 # General
 
-# - Choose "place to guess" late before the race? Make a page for this
+# - Show date for race name, also store time in database
+# - Choose "place to guess" late before the race? Make a page for this?
 # - Rules page
 
 # - Make user order changeable using drag'n'drop?
@@ -26,7 +27,8 @@ import formula10.controller.admin_controller  # type: ignore
 # - Show cards of previous race results, like with season guesses?
 
 # Statistics
+# - Rename "Statistics" to "Leaderboard"
 # - Auto calculate points
 # - Order user table by points + display points somewhere
-# - Show current values for some season guesses (e.g. current most dnfs)
+# - Highlight currently correct values for some season guesses (e.g. current most dnfs)
 # - Generate static diagram using chart.js + templating the js (funny yikes)
