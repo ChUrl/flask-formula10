@@ -19,7 +19,7 @@ class DbUser(db.Model):
 
     @classmethod
     def from_csv(cls, row: List[str]):
-        db_user: DbUser = cls(name=str(row[0]), enabled=bool(row[1]))
+        db_user: DbUser = cls(name=str(row[0]), enabled=True if str(row[1])=="True" else False)
         return db_user
 
     def to_csv(self) -> List[Any]:
