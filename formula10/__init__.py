@@ -25,13 +25,11 @@ import formula10.controller.error_controller
 # TODO
 # General
 
-# - Show place when entering race result (would require updating the drag'n'drop code...)
 # - Don't write full 2024 date, just 24 or leave out completely, to make column smaller
 
 # Statistics
-# - Rename "Statistics" to "Leaderboard"
 # - Auto calculate points
-# - Order user table by points + display points somewhere
+# - Display points somewhere in race table?
 # - Highlight currently correct values for some season guesses (e.g. current most dnfs)
 # - Generate static diagram using chart.js + templating the js (funny yikes)
 

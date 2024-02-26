@@ -52,13 +52,19 @@
                 </h5>
 
                 <form action="/result-enter/{{ model.active_result_race_name_or_current_race_name_sanitized() }}" method="post">
-                    <ul id="columns" class="list-group list-group-flush">
+                    <ul class="list-group list-group-flush d-inline-block">
+                        {% for driver in model.all_drivers_or_active_result_standing_drivers() %}
+                            <li class="list-group-item p-1"><span id="place_number" class="fw-bold">P{{ "%02d" % loop.index }}</span>: </li>
+                        {% endfor %}
+                    </ul>
+
+                    <ul id="columns" class="list-group list-group-flush d-inline-block float-end">
 
                         {% for driver in model.all_drivers_or_active_result_standing_drivers() %}
                             <li class="list-group-item column p-1" draggable="true">
                                 {{ driver.name }}
 
-                                <div class="d-inline-block float-end">
+                                <div class="d-inline-block float-end" style="margin-left: 30px;">
                                     {# Driver DNFed at first #}
                                     <div class="form-check form-check-reverse d-inline-block">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
