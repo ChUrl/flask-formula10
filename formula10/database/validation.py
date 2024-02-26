@@ -1,4 +1,9 @@
-from typing import Any, Callable, Iterable, List, TypeVar
+from datetime import datetime
+from typing import Any, Callable, Iterable, List, TypeVar, overload
+
+from formula10.database.model.db_race import DbRace
+from formula10 import db
+from formula10.frontend.model.race import Race
 
 _T = TypeVar("_T")
 
@@ -20,6 +25,28 @@ def positions_are_contiguous(positions: List[str]) -> bool:
 
     # [2, 3, 4, 5]: 2 + 3 == 5
     return positions_sorted[0] + len(positions_sorted) - 1 == positions_sorted[-1]
+
+@overload
+def race_has_started(*, race: Race) -> bool:
+    return race_has_started(race=race)
+
+@overload
+def race_has_started(*, race_name: str) -> bool:
+    return race_has_started(race_name=race_name)
+
+def race_has_started(*, race: Race | None = None, race_name: str | None = None) -> bool:
+    if race is None and race_name is not None:
+        _race: DbRace | None = db.session.query(DbRace).filter_by(name=race_name).first()
+
+        if _race is None:
+            raise Exception(f"Couldn't obtain race {race_name} to check date")
+
+        return datetime.now() > _race.date
+
+    if race is not None and race_name is None:
+        return datetime.now() > race.date
+
+    raise Exception("race_has_started received illegal arguments")
 
 
 def find_first_else_none(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T | None:

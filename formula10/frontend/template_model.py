@@ -15,7 +15,7 @@ from formula10.frontend.model.race_result import RaceResult
 from formula10.frontend.model.season_guess import SeasonGuess
 from formula10.frontend.model.team import NONE_TEAM, Team
 from formula10.frontend.model.user import User
-from formula10.database.validation import find_first_else_none, find_multiple_strict, find_single_strict, find_single_or_none_strict
+from formula10.database.validation import find_first_else_none, find_multiple_strict, find_single_strict, find_single_or_none_strict, race_has_started
 from formula10 import db
 
 
@@ -35,6 +35,7 @@ class TemplateModel:
     active_user: User | None = None
     active_result: RaceResult | None = None
 
+    # RIC is excluded, since he didn't drive as many races 2023 as the others
     _wdc_gained_excluded_abbrs: List[str] = ["RIC"]
 
     def __init__(self, *, active_user_name: str | None, active_result_race_name: str | None):
@@ -42,7 +43,16 @@ class TemplateModel:
             self.active_user = self.user_by(user_name=active_user_name, ignore=["Everyone"])
 
         if active_result_race_name is not None:
-            self.active_result = self.race_result_by(race_name=active_result_race_name)
+            if active_result_race_name == "Current":
+                self.active_result = self.all_race_results()[0]
+            else:
+                self.active_result = self.race_result_by(race_name=active_result_race_name)
+
+    def race_guess_open(self, race: Race) -> bool:
+        return not race_has_started(race=race)
+
+    def season_guess_open(self) -> bool:
+        return not race_has_started(race_name="Bahrain")
 
     def active_user_name_or_everyone(self) -> str:
         return self.active_user.name if self.active_user is not None else "Everyone"
@@ -255,16 +265,16 @@ class TemplateModel:
             return self.active_result.race.name
         elif self.current_race is not None:
             return self.current_race.name
-        else:
-            return self.all_race_results()[0].race.name
+
+        raise Exception("active_result_name_or_current_race_name called without active_result or current_race")
 
     def active_result_race_name_or_current_race_name_sanitized(self) -> str:
         if self.active_result is not None:
             return self.active_result.race.name_sanitized
         elif self.current_race is not None:
             return self.current_race.name_sanitized
-        else:
-            return self.all_race_results()[0].race.name_sanitized
+
+        raise Exception("active_result_race_name_or_current_race_name_sanitized called without active_result or current_race")
 
     def all_teams(self, *, include_none: bool) -> List[Team]:
         """

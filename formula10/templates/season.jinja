@@ -28,7 +28,12 @@
 
                     {% set user_guess = model.season_guesses_by(user_name=user.name) %}
 
-                    <form action="/season-guess/{{ user.name }}" method="post">
+                    {% if model.season_guess_open() == true %}
+                        {% set action_save_href = "/season-guess" ~ user.name %}
+                    {% else %}
+                        {% set action_save_href = "" %}
+                    {% endif %}
+                    <form action="{{ action_save_href }}" method="post">
 
                         {# Hot Take #}
                         <div class="form-floating">
@@ -130,7 +135,7 @@
                             {% endfor %}
                         </div>
 
-                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
+                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save" {% if model.season_guess_open() == false %}disabled{% endif %}>
 
                     </form>
                 </div>
