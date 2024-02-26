@@ -9,7 +9,7 @@ app.url_map.strict_slashes = False
 db: SQLAlchemy = SQLAlchemy()
 db.init_app(app)
 
-# NOTE: These imports are required to register the routes. They need to be after "app" is declared
+# NOTE: These imports are required to register the routes. They need to be imported after "app" is declared
 import formula10.controller.race_controller  # type: ignore
 import formula10.controller.season_controller  # type: ignore
 import formula10.controller.admin_controller  # type: ignore

@@ -52,24 +52,28 @@
                     <small><span class="fw-bold">Guess:</span> P{{ model.current_race.place_to_guess }}</small>
                 </td>
 
-                {% for user in model.all_users() %}
-                    {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=model.current_race.name) %}
+                {% if model.all_users() | length > 0 %}
+                    {% for user in model.all_users() %}
+                        {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=model.current_race.name) %}
 
-                    <td class="text-center text-nowrap">
-                        {% if user_guess is not none %}
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item" style="background-color: inherit;">
-                                    {{ user_guess.pxx_guess.abbr }}
-                                </li>
-                                <li class="list-group-item" style="background-color: inherit;">
-                                    {{ user_guess.dnf_guess.abbr }}
-                                </li>
-                            </ul>
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    </td>
-                {% endfor %}
+                        <td class="text-center text-nowrap">
+                            {% if user_guess is not none %}
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item" style="background-color: inherit;">
+                                        {{ user_guess.pxx_guess.abbr }}
+                                    </li>
+                                    <li class="list-group-item" style="background-color: inherit;">
+                                        {{ user_guess.dnf_guess.abbr }}
+                                    </li>
+                                </ul>
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                {% else %}
+                    <td>&nbsp;</td>
+                {% endif %}
 
                 <td>&nbsp;</td>
             </tr>
@@ -116,30 +120,34 @@
                     <small><span class="fw-bold">Guessed:</span> P{{ past_result.race.place_to_guess }}</small>
                 </td>
 
-                {% for user in model.all_users_or_active_user() %}
-                    <td class="text-center text-nowrap">
-                        {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=past_result.race.name) %}
+                {% if model.all_users_or_active_user() | length > 0 %}
+                    {% for user in model.all_users_or_active_user() %}
+                        <td class="text-center text-nowrap">
+                            {% set user_guess = model.race_guesses_by(user_name=user.name, race_name=past_result.race.name) %}
 
-                        {% if user_guess is not none %}
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item {{ pxx_guess_colorization(guessed_driver=user_guess.pxx_guess, result=past_result) }}">
+                            {% if user_guess is not none %}
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item {{ pxx_guess_colorization(guessed_driver=user_guess.pxx_guess, result=past_result) }}">
                                     <span data-bs-toggle="tooltip"
                                           title="{{ past_result.driver_standing_points_string(user_guess.pxx_guess) }}">
                                         {{ user_guess.pxx_guess.abbr ~ past_result.driver_standing_position_string(user_guess.pxx_guess) }}
                                     </span>
-                                </li>
-                                <li class="list-group-item {{ dnf_guess_colorization(guessed_driver=user_guess.dnf_guess, result=past_result) }}">
+                                    </li>
+                                    <li class="list-group-item {{ dnf_guess_colorization(guessed_driver=user_guess.dnf_guess, result=past_result) }}">
                                     <span data-bs-toggle="tooltip"
                                           title="{{ past_result.driver_dnf_points_string(user_guess.dnf_guess) }}">
                                         {{ user_guess.dnf_guess.abbr }}
                                     </span>
-                                </li>
-                            </ul>
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    </td>
-                {% endfor %}
+                                    </li>
+                                </ul>
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                {% else %}
+                    <td>&nbsp;</td>
+                {% endif %}
 
                 {# Actual result #}
                 <td class="text-center text-nowrap">
