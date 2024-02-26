@@ -25,8 +25,6 @@ import formula10.controller.error_controller
 # TODO
 # General
 
-# - Don't write full 2024 date, just 24 or leave out completely, to make column smaller
-
 # Statistics
 # - Auto calculate points
 # - Display points somewhere in race table?

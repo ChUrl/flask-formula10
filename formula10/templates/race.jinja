@@ -17,13 +17,13 @@
     <table class="table table-bordered table-sm table-responsive shadow-sm">
         <thead>
         <tr>
-            <th scope="col" rowspan="2" class="text-center" style="width: 200px;">Race</th>
+            <th scope="col" rowspan="2" class="text-center" style="width: 125px;">Race</th>
 
             <th scope="col" {% if model.active_user is none %}colspan="{{ model.all_users() | length }}"{% endif %}
                 class="text-center">Call
             </th>
 
-            <th scope="col" rowspan="2" class="text-center" style="width: 200px;">Result</th>
+            <th scope="col" rowspan="2" class="text-center" style="width: 125px;">Result</th>
         </tr>
         </thead>
 
