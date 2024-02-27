@@ -8,6 +8,7 @@ from formula10.database.model.db_race import DbRace
 from formula10.database.model.db_race_guess import DbRaceGuess
 from formula10.database.model.db_race_result import DbRaceResult
 from formula10.database.model.db_season_guess import DbSeasonGuess
+from formula10.database.model.db_season_guess_result import DbSeasonGuessResult
 from formula10.database.model.db_team import DbTeam
 from formula10.database.model.db_user import DbUser
 
@@ -37,8 +38,8 @@ def write_csv(filename: str, objects: List[Any]):
 
 # Reload static database data, this has to be called from the app context
 def reload_static_data():
-    print("Initializing Database with Static Values...")
-    # Create it (if it doesn't exist!)
+    print("Initializing database with static values...")
+    # Create it/update tables (if it/they doesn't exist!)
     db.create_all()
 
     # Clear static data
@@ -58,8 +59,8 @@ def reload_static_data():
 
 
 def reload_dynamic_data():
-    print("Initializing Database with Dynamic Values...")
-    # Create it (if it doesn't exist!)
+    print("Initializing database with dynamic values...")
+    # Create it/update tables (if it/they doesn't exist!)
     db.create_all()
 
     # Clear dynamic data
@@ -77,6 +78,21 @@ def reload_dynamic_data():
         db.session.add(DbRaceGuess.from_csv(row))
     for row in load_csv("data/dynamic_export/seasonguesses.csv"):
         db.session.add(DbSeasonGuess.from_csv(row))
+
+    db.session.commit()
+
+
+def reload_season_guess_result_data():
+    print("Loading season guess results...")
+    # Create it/update tables (if it/they doesn't exist!)
+    db.create_all()
+
+    # Clear result data
+    db.session.query(DbSeasonGuessResult).delete()
+
+    # Reload result data
+    for row in load_csv("data/static_import/season_guess_results.csv"):
+        db.session.add(DbSeasonGuessResult.from_csv(row))
 
     db.session.commit()
 
