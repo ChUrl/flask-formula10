@@ -24,6 +24,7 @@
           flask-sqlalchemy
           sqlalchemy
 
+          pytest
         ]);
       in {
         devShell = pkgs.devshell.mkShell {
