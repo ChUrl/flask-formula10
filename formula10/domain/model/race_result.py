@@ -70,8 +70,8 @@ class RaceResult:
         return NotImplemented
 
     race: Race
-    standing: Dict[str, Driver]
-    initial_dnf: List[Driver]
+    standing: Dict[str, Driver]  # Always contains all 20 drivers, even if DNF'ed or excluded
+    initial_dnf: List[Driver]  # initial_dnf is empty if no-one DNF'ed
     all_dnfs: List[Driver]
     standing_exclusions: List[Driver]
 
@@ -85,6 +85,16 @@ class RaceResult:
             return NONE_DRIVER
 
         return self.standing[position]
+
+    def driver_standing_position(self, driver: Driver) -> int | None:
+        if driver == NONE_DRIVER:
+            return None
+
+        for position, _driver in self.standing.items():
+            if driver == _driver and driver not in self.standing_exclusions:
+                return int(position)
+
+        return None
 
     def driver_standing_position_string(self, driver: Driver) -> str:
         if driver == NONE_DRIVER:
