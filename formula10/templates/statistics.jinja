@@ -1,0 +1,33 @@
+{% extends 'base.jinja' %}
+
+{% block title %}Formula 10 - Leaderboard{% endblock title %}
+
+{% set active_page = "/graphs" %}
+
+{% block body %}
+
+    <div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Leaderboard</h5>
+
+        {# Table that lists each users + Total Points (?), Race guesses points, Season guesses points (missing overtakes + hottake), number of guesses that yielded points, average points per guess #}
+    </div>
+    </div>
+
+    <div class="card mt-2">
+        <div class="card-body">
+            <h5 class="card-title">History</h5>
+
+            {# Line chart of point history with a line per user #}
+        </div>
+    </div>
+
+    <div class="card mt-2">
+        <div class="card-body">
+            <h5 class="card-title">Statistics</h5>
+
+            {# Various statistics: Driver voted most for DNF #}
+        </div>
+    </div>
+
+{% endblock body %}

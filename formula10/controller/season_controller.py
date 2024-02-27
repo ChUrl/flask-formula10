@@ -5,8 +5,8 @@ from werkzeug import Response
 
 from formula10.database.model.db_team import DbTeam
 from formula10.database.update_queries import update_season_guess
-from formula10.frontend.model.team import NONE_TEAM
-from formula10.frontend.template_model import TemplateModel
+from formula10.domain.model.team import NONE_TEAM
+from formula10.domain.template_model import TemplateModel
 from formula10 import app, db
 
 

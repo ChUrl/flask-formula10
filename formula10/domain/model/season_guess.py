@@ -2,9 +2,9 @@ import json
 from typing import List
 from formula10.database.common_queries import find_single_driver_strict
 from formula10.database.model.db_season_guess import DbSeasonGuess
-from formula10.frontend.model.driver import Driver
-from formula10.frontend.model.team import Team
-from formula10.frontend.model.user import User
+from formula10.domain.model.driver import Driver
+from formula10.domain.model.team import Team
+from formula10.domain.model.user import User
 
 
 class SeasonGuess():

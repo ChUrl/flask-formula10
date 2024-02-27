@@ -3,7 +3,7 @@ from typing import Any, Callable, Iterable, List, TypeVar, overload
 
 from formula10.database.model.db_race import DbRace
 from formula10 import db
-from formula10.frontend.model.race import Race
+from formula10.domain.model.race import Race
 
 _T = TypeVar("_T")
 

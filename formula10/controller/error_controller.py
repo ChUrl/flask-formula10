@@ -2,7 +2,7 @@ from typing import cast
 from flask import redirect, render_template, session
 from werkzeug import Response
 
-from formula10.frontend.template_model import TemplateModel
+from formula10.domain.template_model import TemplateModel
 from formula10 import app
 
 def error_redirect(error_message: str) -> Response:

@@ -17,6 +17,7 @@ db.init_app(app)
 # NOTE: These imports are required to register the routes. They need to be imported after "app" is declared
 import formula10.controller.race_controller  # type: ignore
 import formula10.controller.season_controller
+import formula10.controller.statistics_controller
 import formula10.controller.rules_controller
 import formula10.controller.admin_controller
 import formula10.controller.error_controller
@@ -25,11 +26,14 @@ import formula10.controller.error_controller
 # TODO
 # General
 
+# Create a model baseclass that contains the cached teams/drivers/races etc., so the points + template model can be derived from it
+
 # Statistics
 # - Auto calculate points
-# - Display points somewhere in race table?
-# - Highlight currently correct values for some season guesses (e.g. current most dnfs)
+# - Display points somewhere in race table? Below the name in the table header.
+# - Highlight currently correct values for some season guesses (e.g. current most dnfs, team winners, podiums)
 # - Generate static diagram using chart.js + templating the js (funny yikes)
+# - Which driver was voted most for dnf?
 
 # Possible but probably not
 # - Show cards of previous race results, like with season guesses?

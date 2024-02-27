@@ -3,7 +3,7 @@ from flask import redirect, render_template, request
 from werkzeug import Response
 
 from formula10.database.update_queries import delete_race_guess, update_race_guess
-from formula10.frontend.template_model import TemplateModel
+from formula10.domain.template_model import TemplateModel
 from formula10 import app
 
 

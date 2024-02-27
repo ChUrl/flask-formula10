@@ -1,7 +1,7 @@
 from urllib.parse import quote
 
 from formula10.database.model.db_driver import DbDriver
-from formula10.frontend.model.team import NONE_TEAM, Team
+from formula10.domain.model.team import NONE_TEAM, Team
 
 
 class Driver():

@@ -1,7 +1,7 @@
 from formula10.database.model.db_race_guess import DbRaceGuess
-from formula10.frontend.model.driver import Driver
-from formula10.frontend.model.race import Race
-from formula10.frontend.model.user import User
+from formula10.domain.model.driver import Driver
+from formula10.domain.model.race import Race
+from formula10.domain.model.user import User
 
 
 class RaceGuess():

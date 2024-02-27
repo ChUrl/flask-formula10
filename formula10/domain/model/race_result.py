@@ -3,8 +3,8 @@ from typing import Dict, List
 
 from formula10.database.common_queries import find_single_driver_strict
 from formula10.database.model.db_race_result import DbRaceResult
-from formula10.frontend.model.driver import NONE_DRIVER, Driver
-from formula10.frontend.model.race import Race
+from formula10.domain.model.driver import NONE_DRIVER, Driver
+from formula10.domain.model.race import Race
 
 
 class RaceResult:
