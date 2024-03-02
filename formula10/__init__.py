@@ -4,9 +4,12 @@ from flask_sqlalchemy import SQLAlchemy
 
 # Load local ENV variables (can be set when calling the executable)
 ENABLE_TIMING: bool = False if os.getenv("DISABLE_TIMING") == "True" else True
+ENABLE_DEBUG_ENDPOINTS: bool = True if os.getenv("ENABLE_DEBUG_ENDPOINTS") == "True" else False
 print("Running Formula10 with:")
 if not ENABLE_TIMING:
     print("- Disabled timing constraints")
+if ENABLE_DEBUG_ENDPOINTS:
+    print("- Enabled debug endpoints")
 
 app: Flask = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///formula10.db"
