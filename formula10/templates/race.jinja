@@ -101,7 +101,8 @@
                 </td>
 
                 <td>
-                    {% if model.race_guess_open(model.current_race) == true %}
+                    {% set race_guess_open = model.race_guess_open(model.current_race) %}
+                    {% if race_guess_open == true %}
                         {% set action_save_href = "/race-guess/" ~ model.current_race.name_sanitized ~ "/" ~ model.active_user.name_sanitized %}
                         {% set action_delete_href = "/race-guess-delete/" ~ model.current_race.name_sanitized ~ "/" ~ model.active_user.name_sanitized %}
                     {% else %}
@@ -114,21 +115,21 @@
                         {% set user_guess = model.race_guesses_by(user_name=model.active_user.name, race_name=model.current_race.name) %}
 
                         {# Driver PXX Select #}
-                        {{ driver_select_with_preselect(driver_match=user_guess.pxx_guess, name="pxxselect", label="P" ~ model.current_race.place_to_guess ~ ":", include_none=true) }}
+                        {{ driver_select_with_preselect(driver_match=user_guess.pxx_guess, name="pxxselect", label="P" ~ model.current_race.place_to_guess ~ ":", include_none=true, disabled=not race_guess_open) }}
 
                         <div class="mt-2"></div>
 
                         {# Driver DNF Select #}
-                        {{ driver_select_with_preselect(driver_match=user_guess.dnf_guess, name="dnfselect", label="DNF:", include_none=true) }}
+                        {{ driver_select_with_preselect(driver_match=user_guess.dnf_guess, name="dnfselect", label="DNF:", include_none=true, disabled=not race_guess_open) }}
 
                         <input type="submit" class="btn btn-danger mt-2 w-100" value="Save"
-                               {% if model.race_guess_open(model.current_race) == false %}disabled="disabled"{% endif %}>
+                               {% if race_guess_open == false %}disabled="disabled"{% endif %}>
                     </form>
 
                     {# Delete guess #}
                     <form action="{{ action_delete_href }}" method="post">
                         <input type="submit" class="btn btn-dark mt-2 w-100" value="Delete"
-                               {% if model.race_guess_open(model.current_race) == false %}disabled{% endif %}>
+                               {% if race_guess_open == false %}disabled{% endif %}>
                     </form>
                 </td>
 

@@ -28,7 +28,8 @@
 
                     {% set user_guess = model.season_guesses_by(user_name=user.name) %}
 
-                    {% if model.season_guess_open() == true %}
+                    {% set season_guess_open = model.season_guess_open() %}
+                    {% if season_guess_open == true %}
                         {% set action_save_href = "/season-guess/" ~ user.name %}
                     {% else %}
                         {% set action_save_href = "" %}
@@ -37,33 +38,31 @@
 
                         {# Hot Take #}
                         <div class="form-floating">
-                            {% if user_guess is not none %}
-                                <textarea class="form-control" id="hot-take-input-{{ user.name }}" name="hottakeselect"
-                                          style="height: 150px">{{ user_guess.hot_take_string() }}</textarea>
-                            {% else %}
-                                <textarea class="form-control" id="hot-take-input-{{ user.name }}" name="hottakeselect"
-                                          style="height: 150px"></textarea>
-                            {% endif %}
+                            <textarea class="form-control" id="hot-take-input-{{ user.name }}" name="hottakeselect"
+                                      style="height: 150px"
+                                      {% if season_guess_open == false %}disabled="disabled"{% endif %}>
+                                {%- if user_guess is not none -%}{{ user_guess.hot_take_string() }}{%- endif -%}
+                            </textarea>
 
                             <label for="hot-take-input-{{ user.name }}" class="text-primary">Hot Take:</label>
                         </div>
 
                         {# P2 Constructor #}
                         <div class="mt-2">
-                            {{ team_select_with_preselect(team_match=user_guess.p2_wcc, name="p2select", label="P2 in WCC:", include_none=false) }}
+                            {{ team_select_with_preselect(team_match=user_guess.p2_wcc, name="p2select", label="P2 in WCC:", include_none=false, disabled=not season_guess_open) }}
                         </div>
 
                         {# Most Overtakes + DNFs #}
                         <div class="input-group mt-2">
-                            {{ driver_select_with_preselect(driver_match=user_guess.most_overtakes, name="overtakeselect", label="Most overtakes:", include_none=false) }}
-                            {{ driver_select_with_preselect(driver_match=user_guess.most_dnfs, name="dnfselect", label="Most DNFs:", include_none=false) }}
+                            {{ driver_select_with_preselect(driver_match=user_guess.most_overtakes, name="overtakeselect", label="Most overtakes:", include_none=false, disabled=not season_guess_open) }}
+                            {{ driver_select_with_preselect(driver_match=user_guess.most_dnfs, name="dnfselect", label="Most DNFs:", include_none=false, disabled=not season_guess_open) }}
                         </div>
 
                         {# Most Gained + Lost #}
                         <div class="input-group mt-2" data-bs-toggle="tooltip"
                              title="Which driver will gain/lose the most places in comparison to last season's results?">
-                            {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_gained, name="gainedselect", label="Most WDC places gained:", include_none=false, drivers=model.drivers_for_wdc_gained()) }}
-                            {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_lost, name="lostselect", label="Most WDC places lost:", include_none=false) }}
+                            {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_gained, name="gainedselect", label="Most WDC places gained:", include_none=false, drivers=model.drivers_for_wdc_gained(), disabled=not season_guess_open) }}
+                            {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_lost, name="lostselect", label="Most WDC places lost:", include_none=false, disabled=not season_guess_open) }}
                         </div>
 
                         {# Team-internal Winners #}
@@ -81,7 +80,8 @@
                                                name="teamwinner-{{ team.name }}"
                                                id="teamwinner-{{ team.name }}-1-{{ user.name }}"
                                                value="{{ driver_a.name }}"
-                                               {% if (user_guess is not none) and (driver_a in user_guess.team_winners) %}checked="checked"{% endif %}>
+                                               {% if (user_guess is not none) and (driver_a in user_guess.team_winners) %}checked="checked"{% endif %}
+                                               {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label"
                                                for="teamwinner-{{ team.name }}-1-{{ user.name }}">{{ driver_a.name }}</label>
                                     </div>
@@ -93,7 +93,8 @@
                                                name="teamwinner-{{ team.name }}"
                                                id="teamwinner-{{ team.name }}-2-{{ user.name }}"
                                                value="{{ driver_b.name }}"
-                                               {% if (user_guess is not none) and (driver_b in user_guess.team_winners) %}checked="checked"{% endif %}>
+                                               {% if (user_guess is not none) and (driver_b in user_guess.team_winners) %}checked="checked"{% endif %}
+                                               {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label"
                                                for="teamwinner-{{ team.name }}-2-{{ user.name }}">{{ driver_b.name }}</label>
                                     </div>
@@ -115,7 +116,8 @@
                                                name="podiumdrivers"
                                                id="podium-{{ driver_a.name }}-{{ user.name }}"
                                                value="{{ driver_a.name }}"
-                                               {% if (user_guess is not none) and (driver_a in user_guess.podiums) %}checked="checked"{% endif %}>
+                                               {% if (user_guess is not none) and (driver_a in user_guess.podiums) %}checked="checked"{% endif %}
+                                               {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label"
                                                for="podium-{{ driver_a.name }}-{{ user.name }}">{{ driver_a.name }}</label>
                                     </div>
@@ -127,7 +129,8 @@
                                                name="podiumdrivers"
                                                id="podium-{{ driver_b.name }}-{{ user.name }}"
                                                value="{{ driver_b.name }}"
-                                               {% if (user_guess is not none) and (driver_b in user_guess.podiums) %}checked="checked"{% endif %}>
+                                               {% if (user_guess is not none) and (driver_b in user_guess.podiums) %}checked="checked"{% endif %}
+                                               {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label"
                                                for="podium-{{ driver_b.name }}-{{ user.name }}">{{ driver_b.name }}</label>
                                     </div>
@@ -135,7 +138,8 @@
                             {% endfor %}
                         </div>
 
-                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save" {% if model.season_guess_open() == false %}disabled{% endif %}>
+                        <input type="submit" class="btn btn-danger mt-2 w-100" value="Save"
+                               {% if season_guess_open == false %}disabled{% endif %}>
 
                     </form>
                 </div>

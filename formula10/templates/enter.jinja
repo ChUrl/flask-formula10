@@ -51,17 +51,26 @@
                     {{ model.active_result_race_name_or_current_race_name() }}
                 </h5>
 
-                <form action="/result-enter/{{ model.active_result_race_name_or_current_race_name_sanitized() }}" method="post">
+                {% set race_result_open=model.race_result_open(model.active_result_race_name_or_current_race_name()) %}
+                {% if race_result_open == true %}
+                    {% set action_save_href = "/result-enter/" ~ model.active_result_race_name_or_current_race_name_sanitized() %}
+                {% else %}
+                    {% set action_save_href = "" %}
+                {% endif %}
+
+                <form action="{{ action_save_href }}" method="post">
                     <ul class="list-group list-group-flush d-inline-block">
                         {% for driver in model.all_drivers_or_active_result_standing_drivers() %}
-                            <li class="list-group-item p-1"><span id="place_number" class="fw-bold">P{{ "%02d" % loop.index }}</span>: </li>
+                            <li class="list-group-item p-1"><span id="place_number"
+                                                                  class="fw-bold">P{{ "%02d" % loop.index }}</span>:
+                            </li>
                         {% endfor %}
                     </ul>
 
                     <ul id="columns" class="list-group list-group-flush d-inline-block float-end">
 
                         {% for driver in model.all_drivers_or_active_result_standing_drivers() %}
-                            <li class="list-group-item column p-1" draggable="true">
+                            <li class="list-group-item {% if race_result_open == true %}column{% endif %} p-1" {% if race_result_open == true %}draggable="true"{% endif %}>
                                 {{ driver.name }}
 
                                 <div class="d-inline-block float-end" style="margin-left: 30px;">
@@ -69,7 +78,8 @@
                                     <div class="form-check form-check-reverse d-inline-block">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="first-dnf-{{ driver.name }}" name="first-dnf-drivers"
-                                               {% if (model.active_result is not none) and (driver in model.active_result.initial_dnf) %}checked{% endif %}>
+                                               {% if (model.active_result is not none) and (driver in model.active_result.initial_dnf) %}checked{% endif %}
+                                               {% if race_result_open == false %}disabled="disabled"{% endif %}>
                                         <label for="first-dnf-{{ driver.name }}"
                                                class="form-check-label text-muted">1. DNF</label>
                                     </div>
@@ -78,7 +88,8 @@
                                     <div class="form-check form-check-reverse d-inline-block mx-2">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="dnf-{{ driver.name }}" name="dnf-drivers"
-                                               {% if (model.active_result is not none) and (driver in model.active_result.all_dnfs) %}checked{% endif %}>
+                                               {% if (model.active_result is not none) and (driver in model.active_result.all_dnfs) %}checked{% endif %}
+                                               {% if race_result_open == false %}disabled="disabled"{% endif %}>
                                         <label for="dnf-{{ driver.name }}"
                                                class="form-check-label text-muted">DNF</label>
                                     </div>
@@ -87,7 +98,8 @@
                                     <div class="form-check form-check-reverse d-inline-block">
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="exclude-{{ driver.name }}" name="excluded-drivers"
-                                               {% if (model.active_result is not none) and (driver in model.active_result.standing_exclusions) %}checked{% endif %}>
+                                               {% if (model.active_result is not none) and (driver in model.active_result.standing_exclusions) %}checked{% endif %}
+                                               {% if race_result_open == false %}disabled="disabled"{% endif %}>
                                         <label for="exclude-{{ driver.name }}"
                                                class="form-check-label text-muted" data-bs-toggle="tooltip"
                                                title="Driver is not counted for standing">NC</label>
@@ -100,7 +112,8 @@
                         {% endfor %}
                     </ul>
 
-                    <input type="submit" class="btn btn-danger mt-2 w-100" value="Save">
+                    <input type="submit" class="btn btn-danger mt-2 w-100" value="Save"
+                           {% if race_result_open == false %}disabled="disabled"{% endif %}>
                 </form>
 
             </div>
