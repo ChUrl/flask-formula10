@@ -17,13 +17,13 @@
     <table class="table table-bordered table-sm table-responsive shadow-sm">
         <thead>
         <tr>
-            <th scope="col" rowspan="2" class="text-center" style="width: 125px;">Race</th>
+            <th scope="col" rowspan="2" class="text-center" style="width: 125px !important;">Race</th>
 
             <th scope="col" {% if model.active_user is none %}colspan="{{ model.all_users() | length }}"{% endif %}
                 class="text-center">Call
             </th>
 
-            <th scope="col" rowspan="2" class="text-center" style="width: 125px;">Result</th>
+            <th scope="col" rowspan="2" class="text-center" style="width: 125px !important;">Result</th>
         </tr>
         </thead>
 
@@ -35,7 +35,7 @@
 
             {# Link should only be visible if all users are visible #}
             {% if model.active_user is not none %}
-                <td class="text-center text-nowrap" style="min-width: 100px;">{{ model.active_user.name }}</td>
+                <td class="text-center text-nowrap" style="width: 1%;">{{ model.active_user.name }}</td>
             {% else %}
                 {% for user in model.all_users() %}
                     <td class="text-center text-nowrap" style="min-width: 100px;">
