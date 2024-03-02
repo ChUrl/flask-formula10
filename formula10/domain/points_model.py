@@ -168,53 +168,129 @@ class PointsModel(Model):
 
         return diff
 
-    def wdc_standing_by_position(self) -> Dict[int, str]:
-        standing: Dict[int, str] = dict()
+    def wdc_standing_by_position(self) -> Dict[int, List[str]]:
+        standing: Dict[int, List[str]] = dict()
+
+        for position in range(1, 21):
+            standing[position] = list()
+
+        position: int = 1
+        last_points: int = 0
 
         comparator: Callable[[Tuple[str, int]], int] = lambda item: item[1]
-        for position, (driver_name, _) in enumerate(sorted(self.wdc_points().items(), key=comparator)):
-            standing[position] = driver_name
+        for driver_name, points in sorted(self.wdc_points().items(), key=comparator, reverse=True):
+            if points < last_points:
+                position += 1
+
+            standing[position].append(driver_name)
+
+            last_points = points
 
         return standing
 
-    # @note Doesn't handle shared places (also applies to the following 3 method)
     def wdc_standing_by_driver(self) -> Dict[str, int]:
         standing: Dict[str, int] = dict()
 
+        position: int = 1
+        last_points: int = 0
+
         comparator: Callable[[Tuple[str, int]], int] = lambda item: item[1]
-        for position, (driver_name, _) in enumerate(sorted(self.wdc_points().items(), key=comparator)):
+        for driver_name, points in sorted(self.wdc_points().items(), key=comparator, reverse=True):
+            if points < last_points:
+                position += 1
+
             standing[driver_name] = position
+
+            last_points = points
 
         return standing
 
-    def wcc_standing_by_position(self) -> Dict[int, str]:
-        standing: Dict[int, str] = dict()
+    def wcc_standing_by_position(self) -> Dict[int, List[str]]:
+        standing: Dict[int, List[str]] = dict()
+
+        for position in range (1, 11):
+            standing[position] = list()
+
+        position: int = 1
+        last_points: int = 0
 
         comparator: Callable[[Tuple[str, int]], int] = lambda item: item[1]
-        for position, (team_name, _) in enumerate(sorted(self.wcc_points().items(), key=comparator)):
-            standing[position] = team_name
+        for team_name, points in sorted(self.wcc_points().items(), key=comparator, reverse=True):
+            if points < last_points:
+                position += 1
+
+            standing[position].append(team_name)
+
+            last_points = points
 
         return standing
 
     def wcc_standing_by_team(self) -> Dict[str, int]:
         standing: Dict[str, int] = dict()
 
+        position: int = 1
+        last_points: int = 0
+
         comparator: Callable[[Tuple[str, int]], int] = lambda item: item[1]
-        for position, (team_name, _) in enumerate(sorted(self.wcc_points().items(), key=comparator)):
+        for team_name, points in sorted(self.wcc_points().items(), key=comparator, reverse=True):
+            if points < last_points:
+                position += 1
+
             standing[team_name] = position
+
+            last_points = points
 
         return standing
 
-    def most_dnfs_name(self) -> str:
-        most_dnfs: Tuple[str, int] | None = None
+    def most_dnf_names(self) -> List[str]:
+        dnf_names: List[str] = list()
+        most_dnfs: int = 0
+
+        for dnfs in self.dnfs().values():
+            if dnfs > most_dnfs:
+                most_dnfs = dnfs
+
         for driver_name, dnfs in self.dnfs().items():
-            if most_dnfs is None or dnfs > most_dnfs[1]:
-                most_dnfs = (driver_name, dnfs)
+            if dnfs == most_dnfs:
+                dnf_names.append(driver_name)
 
-        if most_dnfs is None:
-            raise Exception("Failed to find driver with most dnfs")
+        return dnf_names
 
-        return most_dnfs[0]
+    def most_gained_names(self) -> List[str]:
+        most_gained_names: List[str] = list()
+        most_gained: int = 0
+
+        for driver in self.all_drivers(include_none=False):
+            gained: int = self.wdc_diff_2023()[driver.name]
+
+            if gained > most_gained:
+                most_gained = gained
+
+        for driver in self.all_drivers(include_none=False):
+            gained: int = self.wdc_diff_2023()[driver.name]
+
+            if gained == most_gained:
+                most_gained_names.append(driver.name)
+
+        return most_gained_names
+
+    def most_lost_names(self) -> List[str]:
+        most_lost_names: List[str] = list()
+        most_lost: int = 100
+
+        for driver in self.all_drivers(include_none=False):
+            lost: int = self.wdc_diff_2023()[driver.name]
+
+            if lost < most_lost:
+                most_lost = lost
+
+        for driver in self.all_drivers(include_none=False):
+            lost: int = self.wdc_diff_2023()[driver.name]
+
+            if lost == most_lost:
+                most_lost_names.append(driver.name)
+
+        return most_lost_names
 
     def points_per_step_cumulative(self) -> Dict[str, List[int]]:
         """
@@ -335,10 +411,7 @@ class PointsModel(Model):
         if season_guess is None or season_guess.p2_wcc is None:
             return False
 
-        if 2 in self.wcc_standing_by_position():
-            return self.wcc_standing_by_position()[2] == season_guess.p2_wcc.name
-
-        return False
+        return season_guess.p2_wcc.name in self.wcc_standing_by_position()[2]
 
     def overtakes_correct(self, user_name: str) -> bool:
         season_guess_result: SeasonGuessResult | None = self.season_guess_result_by(user_name=user_name)
@@ -351,7 +424,7 @@ class PointsModel(Model):
         if season_guess is None or season_guess.most_dnfs is None:
             return False
 
-        return season_guess.most_dnfs.name == self.most_dnfs_name()
+        return season_guess.most_dnfs.name in self.most_dnf_names()
 
     def most_gained_correct(self, user_name: str) -> bool:
         season_guess: SeasonGuess | None = self.season_guesses_by(user_name=user_name)
@@ -359,8 +432,7 @@ class PointsModel(Model):
         if season_guess is None or season_guess.most_wdc_gained is None:
             return False
 
-        comparator: Callable[[Tuple[str, int]], int] = lambda item: item[1]
-        return season_guess.most_wdc_gained.name == max(self.wdc_diff_2023().items(), key=comparator)[0]
+        return season_guess.most_wdc_gained.name in self.most_gained_names()
 
     def most_lost_correct(self, user_name: str) -> bool:
         season_guess: SeasonGuess | None = self.season_guesses_by(user_name=user_name)
@@ -368,14 +440,15 @@ class PointsModel(Model):
         if season_guess is None or season_guess.most_wdc_lost is None:
             return False
 
-        comparator: Callable[[Tuple[str, int]], int] = lambda item: item[1]
-        return season_guess.most_wdc_lost.name == min(self.wdc_diff_2023().items(), key=comparator)[0]
+        return season_guess.most_wdc_lost.name in self.most_lost_names()
 
     def is_team_winner(self, driver: Driver) -> bool:
         teammates: List[Driver] = self.drivers_by(team_name=driver.team.name)
         teammate: Driver = teammates[0] if teammates[1] == driver else teammates[1]
 
-        return self.wdc_standing_by_driver()[driver.name] >= self.wdc_standing_by_driver()[teammate.name]
+        print(f"{driver.name} standing: {self.wdc_standing_by_driver()[driver.name]}, {teammate.name} standing: {self.wdc_standing_by_driver()[teammate.name]}")
+
+        return self.wdc_standing_by_driver()[driver.name] <= self.wdc_standing_by_driver()[teammate.name]
 
     def has_podium(self, driver: Driver) -> bool:
         for race_result in self.all_race_results():
