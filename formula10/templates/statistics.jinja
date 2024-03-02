@@ -25,8 +25,9 @@
 
                 <tbody>
                 {% for user in points.users_sorted_by_points() %}
-                    <tr>
-                        <td class="text-center text-nowrap">{{ points.user_standing()[user.name] }}</td>
+                    {% set user_standing = points.user_standing()[user.name] %}
+                    <tr class="{% if user_standing == 1 %}table-danger{% endif %}">
+                        <td class="text-center text-nowrap">{{ user_standing }}</td>
                         <td class="text-center text-nowrap">{{ user.name }}</td>
                         <td class="text-center text-nowrap">{{ points.total_points_by(user.name) }}</td>
                         <td class="text-center text-nowrap">{{ points.picks_count(user.name) }}</td>
