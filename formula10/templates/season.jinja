@@ -10,11 +10,20 @@
 
 {% block body %}
 
+    <div class="card mb-2">
+        <div class="card-body">
+            <h5 class="card-title">Note</h5>
+            Picks that match the current standings are marked in green,
+            except for the hot-take and overtake picks, as those are not evaluated automatically.
+            Points from sprints and fastest laps are not tracked currently.
+        </div>
+    </div>
+
     <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
 
         {% for user in model.all_users_or_active_user() %}
 
-            <div class="card mb-2 shadow-sm" style="width: 450px;">
+            <div class="card mb-2 shadow-sm">
                 <div class="card-body">
 
                     {# Link should only be visible if all users are visible #}
