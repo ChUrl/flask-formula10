@@ -1,10 +1,11 @@
-from typing import Dict, List, overload
+from typing import Callable, Dict, List, overload
 import numpy as np
 
 from formula10.domain.domain_model import Model
 from formula10.domain.model.driver import NONE_DRIVER
 from formula10.domain.model.race_guess import RaceGuess
 from formula10.domain.model.race_result import RaceResult
+from formula10.domain.model.user import User
 
 RACE_GUESS_OFFSET_POINTS: Dict[int, int] = {
     3: 1,
@@ -155,6 +156,10 @@ class PointsModel(Model):
         Returns the total number of points for a specific user.
         """
         return sum(self.points_by(user_name=user_name))
+
+    def users_sorted_by_points(self) -> List[User]:
+        comparator: Callable[[User], int] = lambda user: self.total_points_by(user.name)
+        return sorted(self.all_users(), key=comparator, reverse=True)
 
     def picks_count(self, user_name: str) -> int:
         # Treat standing + dnf picks separately

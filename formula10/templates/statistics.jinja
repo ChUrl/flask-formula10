@@ -23,7 +23,7 @@
                 </thead>
 
                 <tbody>
-                {% for user in model.all_users() %}
+                {% for user in points.users_sorted_by_points() %}
                     <tr>
                         <td class="text-center text-nowrap">{{ user.name }}</td>
                         <td class="text-center text-nowrap">{{ points.total_points_by(user.name) }}</td>
