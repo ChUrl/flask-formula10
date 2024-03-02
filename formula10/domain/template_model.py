@@ -1,4 +1,5 @@
 from typing import List, Callable
+from formula10 import ENABLE_TIMING
 
 from formula10.domain.domain_model import Model
 from formula10.domain.model.driver import Driver
@@ -29,10 +30,13 @@ class TemplateModel(Model):
             self.active_result = self.race_result_by(race_name=active_result_race_name)
 
     def race_guess_open(self, race: Race) -> bool:
-        return not race_has_started(race=race)
+        return not race_has_started(race=race) if ENABLE_TIMING else True
 
     def season_guess_open(self) -> bool:
-        return not race_has_started(race_name="Bahrain")
+        return not race_has_started(race_name="Bahrain") if ENABLE_TIMING else True
+
+    def race_result_open(self, race_name: str) -> bool:
+        return race_has_started(race_name=race_name) if ENABLE_TIMING else True
 
     def active_user_name_or_everyone(self) -> str:
         return self.active_user.name if self.active_user is not None else "Everyone"

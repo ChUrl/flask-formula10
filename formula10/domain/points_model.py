@@ -97,8 +97,6 @@ class PointsModel(Model):
 
                 self._points_per_step[user_name][race_number] = standing_points(race_guess, race_result) + dnf_points(race_guess, race_result)
 
-            return dict()
-
         return self._points_per_step
 
     def points_per_step_cumulative(self) -> Dict[str, List[int]]:
@@ -157,3 +155,28 @@ class PointsModel(Model):
         Returns the total number of points for a specific user.
         """
         return sum(self.points_by(user_name=user_name))
+
+    def picks_count(self, user_name: str) -> int:
+        # Treat standing + dnf picks separately
+        return len(self.race_guesses_by(user_name=user_name)) * 2
+
+    def picks_with_points_count(self, user_name: str) -> int:
+        count: int = 0
+
+        for race_guess in self.race_guesses_by(user_name=user_name):
+            race_result: RaceResult | None = self.race_result_by(race_name=race_guess.race.name)
+            if race_result is None:
+                continue
+
+            if standing_points(race_guess, race_result) > 0:
+                count = count + 1
+            if dnf_points(race_guess, race_result) > 0:
+                count = count + 1
+
+        return count
+
+    def points_per_pick(self, user_name: str) -> float:
+        if self.picks_count(user_name) == 0:
+            return 0.0
+
+        return self.total_points_by(user_name) / self.picks_count(user_name)
