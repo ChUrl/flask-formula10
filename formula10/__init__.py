@@ -1,5 +1,12 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+
+# Load local ENV variables (can be set when calling the executable)
+ENABLE_TIMING: bool = False if os.getenv("DISABLE_TIMING") == "True" else True
+print("Running Formula10 with:")
+if not ENABLE_TIMING:
+    print("- Disabled timing constraints")
 
 app: Flask = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///formula10.db"
@@ -24,16 +31,16 @@ import formula10.controller.error_controller
 
 
 # TODO
-# General
-
-# Create a model baseclass that contains the cached teams/drivers/races etc., so the points + template model can be derived from it
-
 # Statistics
 # - Auto calculate points
 # - Display points somewhere in race table? Below the name in the table header.
 # - Highlight currently correct values for some season guesses (e.g. current most dnfs, team winners, podiums)
 # - Generate static diagram using chart.js + templating the js (funny yikes)
 # - Which driver was voted most for dnf?
+
+# General
+# - Decouple names from IDs + Fix Valtteri/Russel spelling errors
+# - Unit testing (as much as possible, but especially points calculation)
 
 # Possible but probably not
 # - Show cards of previous race results, like with season guesses?

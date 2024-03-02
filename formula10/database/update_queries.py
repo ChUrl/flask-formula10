@@ -11,7 +11,7 @@ from formula10.database.model.db_race_result import DbRaceResult
 from formula10.database.model.db_season_guess import DbSeasonGuess
 from formula10.database.model.db_user import DbUser
 from formula10.database.validation import any_is_none, positions_are_contiguous, race_has_started
-from formula10 import db
+from formula10 import ENABLE_TIMING, db
 
 
 def find_or_create_race_guess(user_name: str, race_name: str) -> DbRaceGuess:
@@ -37,7 +37,7 @@ def update_race_guess(race_name: str, user_name: str, pxx_select: str | None, dn
     if any_is_none(pxx_select, dnf_select):
         return error_redirect(f"Picks for race \"{race_name}\" were not saved, because you did not fill all the fields.")
 
-    if race_has_started(race_name=race_name):
+    if ENABLE_TIMING and race_has_started(race_name=race_name):
         return error_redirect(f"No picks for race \"{race_name}\" can be entered, as this race has already started.")
 
     if race_has_result(race_name):
@@ -57,7 +57,7 @@ def update_race_guess(race_name: str, user_name: str, pxx_select: str | None, dn
 
 def delete_race_guess(race_name: str, user_name: str) -> Response:
     # Don't change guesses that are already over
-    if race_has_started(race_name=race_name):
+    if ENABLE_TIMING and race_has_started(race_name=race_name):
         return error_redirect(f"No picks for race \"{race_name}\" can be deleted, as this race has already started.")
 
     if race_has_result(race_name):
@@ -92,7 +92,7 @@ def find_or_create_season_guess(user_name: str) -> DbSeasonGuess:
 def update_season_guess(user_name: str, guesses: List[str | None], team_winner_guesses: List[str | None], podium_driver_guesses: List[str]) -> Response:
     # Pylance marks type errors here, but those are intended. Columns are marked nullable.
 
-    if race_has_started(race_name="Bahrain"):
+    if ENABLE_TIMING and race_has_started(race_name="Bahrain"):
         return error_redirect("No season picks can be entered, as the season has already begun!")
 
     season_guess: DbSeasonGuess = find_or_create_season_guess(user_name)
@@ -133,7 +133,7 @@ def find_or_create_race_result(race_name: str) -> DbRaceResult:
 
 
 def update_race_result(race_name: str, pxx_driver_names_list: List[str], first_dnf_driver_names_list: List[str], dnf_driver_names_list: List[str], excluded_driver_names_list: List[str]) -> Response:
-    if not race_has_started(race_name=race_name):
+    if ENABLE_TIMING and not race_has_started(race_name=race_name):
         return error_redirect("No race result can be entered, as the race has not begun!")
 
     # Use strings as keys, as these dicts will be serialized to json
