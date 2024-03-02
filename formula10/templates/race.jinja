@@ -129,7 +129,7 @@
                     {# Delete guess #}
                     <form action="{{ action_delete_href }}" method="post">
                         <input type="submit" class="btn btn-dark mt-2 w-100" value="Delete"
-                               {% if race_guess_open == false %}disabled{% endif %}>
+                               {% if race_guess_open == false %}disabled="disabled"{% endif %}>
                     </form>
                 </td>
 

@@ -79,7 +79,7 @@
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="first-dnf-{{ driver.name }}" name="first-dnf-drivers"
                                                {% if (model.active_result is not none) and (driver in model.active_result.initial_dnf) %}checked{% endif %}
-                                               {% if race_result_open == false %}disabled="disabled"{% endif %}>
+                                               {% if race_result_open == false %}readonly="readonly"{% endif %}>
                                         <label for="first-dnf-{{ driver.name }}"
                                                class="form-check-label text-muted">1. DNF</label>
                                     </div>
@@ -89,7 +89,7 @@
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="dnf-{{ driver.name }}" name="dnf-drivers"
                                                {% if (model.active_result is not none) and (driver in model.active_result.all_dnfs) %}checked{% endif %}
-                                               {% if race_result_open == false %}disabled="disabled"{% endif %}>
+                                               {% if race_result_open == false %}readonly="readonly"{% endif %}>
                                         <label for="dnf-{{ driver.name }}"
                                                class="form-check-label text-muted">DNF</label>
                                     </div>
@@ -99,7 +99,7 @@
                                         <input type="checkbox" class="form-check-input" value="{{ driver.name }}"
                                                id="exclude-{{ driver.name }}" name="excluded-drivers"
                                                {% if (model.active_result is not none) and (driver in model.active_result.standing_exclusions) %}checked{% endif %}
-                                               {% if race_result_open == false %}disabled="disabled"{% endif %}>
+                                               {% if race_result_open == false %}readonly="readonly"{% endif %}>
                                         <label for="exclude-{{ driver.name }}"
                                                class="form-check-label text-muted" data-bs-toggle="tooltip"
                                                title="Driver is not counted for standing">NC</label>

@@ -6,6 +6,7 @@ from werkzeug import Response
 from formula10.database.model.db_team import DbTeam
 from formula10.database.update_queries import update_season_guess
 from formula10.domain.model.team import NONE_TEAM
+from formula10.domain.points_model import PointsModel
 from formula10.domain.template_model import TemplateModel
 from formula10 import app, db
 
@@ -20,8 +21,9 @@ def season_active_user(user_name: str) -> str:
     user_name = unquote(user_name)
     model = TemplateModel(active_user_name=user_name,
                           active_result_race_name=None)
+    points = PointsModel()
 
-    return render_template("season.jinja", model=model)
+    return render_template("season.jinja", model=model, points=points)
 
 
 @app.route("/season-guess/<user_name>", methods=["POST"])
