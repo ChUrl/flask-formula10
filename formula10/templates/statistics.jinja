@@ -14,17 +14,19 @@
             <table class="table table-bordered table-sm table-responsive mt-3">
                 <thead>
                 <tr>
-                    <th scope="col" class="text-center" style="width: 1%;">User</th>
-                    <th scope="col" class="text-center" style="width: 1%;">Points</th>
-                    <th scope="col" class="text-center" style="width: 1%;">Total picks</th>
-                    <th scope="col" class="text-center" style="width: 1%;">Correct picks</th>
-                    <th scope="col" class="text-center" style="width: 1%;">Points per pick</th>
+                    <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
+                    <th scope="col" class="text-center" style="min-width: 50px;">User</th>
+                    <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
+                    <th scope="col" class="text-center" style="min-width: 100px;">Total picks</th>
+                    <th scope="col" class="text-center" style="min-width: 100px;">Correct picks</th>
+                    <th scope="col" class="text-center" style="min-width: 100px;">Points per pick</th>
                 </tr>
                 </thead>
 
                 <tbody>
                 {% for user in points.users_sorted_by_points() %}
                     <tr>
+                        <td class="text-center text-nowrap">{{ loop.index }}</td>
                         <td class="text-center text-nowrap">{{ user.name }}</td>
                         <td class="text-center text-nowrap">{{ points.total_points_by(user.name) }}</td>
                         <td class="text-center text-nowrap">{{ points.picks_count(user.name) }}</td>

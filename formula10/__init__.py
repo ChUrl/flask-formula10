@@ -32,11 +32,12 @@ import formula10.controller.error_controller
 
 # TODO
 # Statistics
-# - Auto calculate points
-# - Display points somewhere in race table? Below the name in the table header.
+# - Display total points somewhere in race table? Below the name in the table header.
+# - Auto calculate season points
 # - Highlight currently correct values for some season guesses (e.g. current most dnfs, team winners, podiums)
 # - Generate static diagram using chart.js + templating the js (funny yikes)
-# - Which driver was voted most for dnf?
+# - Interesting stats:
+#   - Which driver was voted most for dnf (top 5)?
 
 # General
 # - Decouple names from IDs + Fix Valtteri/Russel spelling errors
