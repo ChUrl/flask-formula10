@@ -39,15 +39,10 @@ import formula10.controller.error_controller
 
 # - For season guess calc there is missing: Fastest laps + sprint points + sprint DNFs (in race result)
 
-# - Display total points somewhere in race table? Below the name in the table header.
-# - Auto calculate season points
-# - Highlight currently correct values for some season guesses (e.g. current most dnfs, team winners, podiums)
+# - Auto calculate season points (display season points?)
 # - Generate static diagram using chart.js + templating the js (funny yikes)
 # - Interesting stats:
 #   - Which driver was voted most for dnf (top 5)?
-
-# Statistics
-# - Display stats: Driver standing, Team standing, DNFs, Fastest laps
 
 # General
 # - Decouple names from IDs + Fix Valtteri/Russel spelling errors
@@ -56,4 +51,3 @@ import formula10.controller.error_controller
 
 # Possible but probably not
 # - Show cards of previous race results, like with season guesses?
-# - Make user order changeable using drag'n'drop?
