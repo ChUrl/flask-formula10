@@ -158,8 +158,26 @@ class PointsModel(Model):
         return sum(self.points_by(user_name=user_name))
 
     def users_sorted_by_points(self) -> List[User]:
+        """
+        Returns the list of users, sorted by their points from race guesses (in descending order).
+        """
         comparator: Callable[[User], int] = lambda user: self.total_points_by(user.name)
         return sorted(self.all_users(), key=comparator, reverse=True)
+
+    def user_standing(self) -> Dict[str, int]:
+        standing: Dict[str, int] = dict()
+
+        position: int = 1
+        last_points: int = 0
+        for user in self.users_sorted_by_points():
+            if self.total_points_by(user.name) < last_points:
+                position = position + 1
+
+            standing[user.name] = position
+
+            last_points = self.total_points_by(user.name)
+
+        return standing
 
     def picks_count(self, user_name: str) -> int:
         # Treat standing + dnf picks separately
