@@ -6,6 +6,7 @@ from formula10.database.model.db_race import DbRace
 from formula10.database.model.db_race_guess import DbRaceGuess
 from formula10.database.model.db_race_result import DbRaceResult
 from formula10.database.model.db_season_guess import DbSeasonGuess
+from formula10.database.model.db_season_guess_result import DbSeasonGuessResult
 from formula10.database.model.db_team import DbTeam
 from formula10.database.model.db_user import DbUser
 from formula10.database.validation import find_multiple_strict, find_single_or_none_strict, find_single_strict
@@ -14,6 +15,7 @@ from formula10.domain.model.race import Race
 from formula10.domain.model.race_guess import RaceGuess
 from formula10.domain.model.race_result import RaceResult
 from formula10.domain.model.season_guess import SeasonGuess
+from formula10.domain.model.season_guess_result import SeasonGuessResult
 from formula10.domain.model.team import NONE_TEAM, Team
 from formula10.domain.model.user import User
 from formula10 import db
@@ -24,6 +26,7 @@ class Model():
     _all_race_results: List[RaceResult] | None = None
     _all_race_guesses: List[RaceGuess] | None = None
     _all_season_guesses: List[SeasonGuess] | None = None
+    _all_season_guess_results: List[SeasonGuessResult] | None = None
     _all_races: List[Race] | None = None
     _all_drivers: List[Driver] | None = None
     _all_teams: List[Team] | None = None
@@ -75,6 +78,15 @@ class Model():
             ]
 
         return self._all_season_guesses
+
+    def all_season_guess_results(self) -> List[SeasonGuessResult]:
+        if self._all_season_guess_results is None:
+            self._all_season_guess_results = [
+                SeasonGuessResult.from_db_season_guess_result(db_season_guess_result)
+                for db_season_guess_result in db.session.query(DbSeasonGuessResult).join(DbSeasonGuessResult.user).filter_by(enabled=True).all()  # Ignore disabled users
+            ]
+
+        return self._all_season_guess_results
 
     def all_races(self) -> List[Race]:
         """
@@ -227,7 +239,7 @@ class Model():
     #
 
     @overload
-    def season_guesses_by(self, *, user_name: str) -> SeasonGuess:
+    def season_guesses_by(self, *, user_name: str) -> SeasonGuess | None:
         """
         Returns the season guess made by a specific user.
         """
@@ -255,6 +267,14 @@ class Model():
             return guesses_by
 
         raise Exception("season_guesses_by encountered illegal combination of arguments")
+
+    #
+    # Season guess result queries
+    #
+
+    def season_guess_result_by(self, *, user_name: str) -> SeasonGuessResult | None:
+        predicate: Callable[[SeasonGuessResult], bool] = lambda guess: guess.user.name == user_name
+        return find_single_or_none_strict(predicate, self.all_season_guess_results())
 
     #
     # Team queries
