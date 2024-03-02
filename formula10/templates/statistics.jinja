@@ -1,59 +1,69 @@
 {% extends 'base.jinja' %}
 
-{% block title %}Formula 10 - Leaderboard{% endblock title %}
+{% block title %}Formula 10 - Statistics{% endblock title %}
 
-{% set active_page = "/graphs" %}
+{% set active_page = "/stats" %}
 
 {% block body %}
 
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Leaderboard</h5>
-            <h6 class="card-subtitle">Points only include race picks</h6>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
 
-            <table class="table table-bordered table-sm table-responsive mt-3">
-                <thead>
-                <tr>
-                    <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
-                    <th scope="col" class="text-center" style="min-width: 50px;">User</th>
-                    <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
-                    <th scope="col" class="text-center" style="min-width: 100px;">Total picks</th>
-                    <th scope="col" class="text-center" style="min-width: 100px;" data-bs-toggle="tooltip" title="Any points count as correct">Correct picks</th>
-                    <th scope="col" class="text-center" style="min-width: 100px;">Points per pick</th>
-                </tr>
-                </thead>
+        <div class="card mb-2">
+            <div class="card-body">
+                <h5 class="card-title">Drivers</h5>
 
-                <tbody>
-                {% for user in points.users_sorted_by_points() %}
-                    {% set user_standing = points.user_standing()[user.name] %}
-                    <tr class="{% if user_standing == 1 %}table-danger{% endif %}">
-                        <td class="text-center text-nowrap">{{ user_standing }}</td>
-                        <td class="text-center text-nowrap">{{ user.name }}</td>
-                        <td class="text-center text-nowrap">{{ points.total_points_by(user.name) }}</td>
-                        <td class="text-center text-nowrap">{{ points.picks_count(user.name) }}</td>
-                        <td class="text-center text-nowrap">{{ points.picks_with_points_count(user.name) }}</td>
-                        <td class="text-center text-nowrap">{{ "%0.2f" % points.points_per_pick(user.name) }}</td>
+                <table class="table table-bordered table-sm table-responsive">
+                    <thead>
+                    <tr>
+                        <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
+                        <th scope="col" class="text-center" style="min-width: 50px;">Driver</th>
+                        <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
+                        <th scope="col" class="text-center" style="min-width: 100px;">DNFs</th>
                     </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+
+                    <tbody>
+                    {% for driver in points.drivers_sorted_by_points() %}
+                        {% set driver_standing = points.wdc_standing_by_driver()[driver.name] %}
+                        <tr class="{% if driver_standing == 1 %}table-danger{% endif %}">
+                            <td class="text-center text-nowrap">{{ driver_standing }}</td>
+                            <td class="text-center text-nowrap">{{ driver.name }}</td>
+                            <td class="text-center text-nowrap">{{ points.wdc_points()[driver.name] }}</td>
+                            <td class="text-center text-nowrap">{{ points.dnfs()[driver.name] }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Constructors</h5>
+
+                <table class="table table-bordered table-sm table-responsive">
+                    <thead>
+                    <tr>
+                        <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
+                        <th scope="col" class="text-center" style="min-width: 50px;">Team</th>
+                        <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for team in points.teams_sorted_by_points() %}
+                        {% set team_standing = points.wcc_standing_by_team()[team.name] %}
+                        <tr class="{% if team_standing == 1 %}table-danger{% endif %}">
+                            <td class="text-center text-nowrap">{{ team_standing }}</td>
+                            <td class="text-center text-nowrap">{{ team.name }}</td>
+                            <td class="text-center text-nowrap">{{ points.wcc_points()[team.name] }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
-
-    {#    <div class="card mt-2">#}
-    {#        <div class="card-body">#}
-    {#            <h5 class="card-title">History</h5>#}
-
-    {# Line chart of point history with a line per user #}
-    {#        </div>#}
-    {#    </div>#}
-
-    {#    <div class="card mt-2">#}
-    {#        <div class="card-body">#}
-    {#            <h5 class="card-title">Statistics</h5>#}
-
-    {# Various statistics: Driver voted most for DNF #}
-    {#        </div>#}
-    {#    </div>#}
 
 {% endblock body %}

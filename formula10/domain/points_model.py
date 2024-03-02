@@ -7,6 +7,7 @@ from formula10.domain.model.race_guess import RaceGuess
 from formula10.domain.model.race_result import RaceResult
 from formula10.domain.model.season_guess import SeasonGuess
 from formula10.domain.model.season_guess_result import SeasonGuessResult
+from formula10.domain.model.team import Team
 from formula10.domain.model.user import User
 
 RACE_GUESS_OFFSET_POINTS: Dict[int, int] = {
@@ -291,6 +292,14 @@ class PointsModel(Model):
                 most_lost_names.append(driver.name)
 
         return most_lost_names
+
+    def drivers_sorted_by_points(self) -> List[Driver]:
+        comparator: Callable[[Driver], int] = lambda driver: self.wdc_standing_by_driver()[driver.name]
+        return sorted(self.all_drivers(include_none=False), key=comparator)
+
+    def teams_sorted_by_points(self) -> List[Team]:
+        comparator: Callable[[Team], int] = lambda team: self.wcc_standing_by_team()[team.name]
+        return sorted(self.all_teams(include_none=False), key=comparator)
 
     def points_per_step_cumulative(self) -> Dict[str, List[int]]:
         """

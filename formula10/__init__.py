@@ -27,6 +27,7 @@ db.init_app(app)
 # NOTE: These imports are required to register the routes. They need to be imported after "app" is declared
 import formula10.controller.race_controller  # type: ignore
 import formula10.controller.season_controller
+import formula10.controller.leaderboard_controller
 import formula10.controller.statistics_controller
 import formula10.controller.rules_controller
 import formula10.controller.admin_controller

@@ -58,7 +58,7 @@ def result_active_race(race_name: str) -> str:
     model = TemplateModel(active_user_name=None,
                           active_result_race_name=race_name)
 
-    return render_template("enter.jinja", model=model)
+    return render_template("result.jinja", model=model)
 
 
 @app.route("/result-enter/<race_name>", methods=["POST"])
