@@ -35,11 +35,11 @@
 
             {# Link should only be visible if all users are visible #}
             {% if model.active_user is not none %}
-                <td class="text-center text-nowrap" style="min-width: 100px;">{{ model.active_user.name }}</td>
+                <td class="text-center text-nowrap" style="min-width: 100px;">{{ model.active_user.name }} ({{ points.total_points_by(model.active_user.name) }})</td>
             {% else %}
                 {% for user in model.all_users() %}
                     <td class="text-center text-nowrap" style="min-width: 100px;">
-                        <a href="/race/{{ user.name_sanitized }}" class="link-dark">{{ user.name }}</a>
+                        <a href="/race/{{ user.name_sanitized }}" class="link-dark">{{ user.name }} ({{ points.total_points_by(user.name) }})</a>
                     </td>
                 {% endfor %}
             {% endif %}

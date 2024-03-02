@@ -3,6 +3,7 @@ from flask import redirect, render_template, request
 from werkzeug import Response
 
 from formula10.database.update_queries import delete_race_guess, update_race_guess
+from formula10.domain.points_model import PointsModel
 from formula10.domain.template_model import TemplateModel
 from formula10 import app
 
@@ -22,8 +23,9 @@ def race_active_user(user_name: str) -> str:
     user_name = unquote(user_name)
     model = TemplateModel(active_user_name=user_name,
                           active_result_race_name=None)
+    points = PointsModel()
 
-    return render_template("race.jinja", model=model)
+    return render_template("race.jinja", model=model, points=points)
 
 
 @app.route("/race-guess/<race_name>/<user_name>", methods=["POST"])
