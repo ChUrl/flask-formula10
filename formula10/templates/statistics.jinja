@@ -7,67 +7,78 @@
 {% block body %}
 
     <div class="card mb-2">
+        <div class="card-header">
+            Note
+        </div>
+
         <div class="card-body">
-            <h5 class="card-title">Note</h5>
             Points from sprints and fastest laps are not tracked currently.
         </div>
     </div>
 
-    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(325px, 1fr)); grid-row-gap: 0; grid-column-gap: 8px;">
 
         <div class="card mb-2">
+            <div class="card-header">
+                Drivers
+            </div>
+
             <div class="card-body">
-                <h5 class="card-title">Drivers</h5>
-
-                <table class="table table-bordered table-sm table-responsive">
-                    <thead>
-                    <tr>
-                        <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
-                        <th scope="col" class="text-center" style="min-width: 50px;">Driver</th>
-                        <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
-                        <th scope="col" class="text-center" style="min-width: 100px;">DNFs</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {% for driver in points.drivers_sorted_by_points() %}
-                        {% set driver_standing = points.wdc_standing_by_driver()[driver.name] %}
-                        <tr class="{% if driver_standing == 1 %}table-danger{% endif %}">
-                            <td class="text-center text-nowrap">{{ driver_standing }}</td>
-                            <td class="text-center text-nowrap">{{ driver.name }}</td>
-                            <td class="text-center text-nowrap">{{ points.wdc_points()[driver.name] }}</td>
-                            <td class="text-center text-nowrap">{{ points.dnfs()[driver.name] }}</td>
+                <div class="d-inline-block overflow-x-scroll w-100">
+                    <table class="table table-bordered table-sm table-responsive">
+                        <thead>
+                        <tr>
+                            <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
+                            <th scope="col" class="text-center" style="min-width: 50px;">Driver</th>
+                            <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
+                            <th scope="col" class="text-center" style="min-width: 100px;">DNFs</th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody>
+                        {% for driver in points.drivers_sorted_by_points() %}
+                            {% set driver_standing = points.wdc_standing_by_driver()[driver.name] %}
+                            <tr class="{% if driver_standing == 1 %}table-danger{% endif %}">
+                                <td class="text-center text-nowrap">{{ driver_standing }}</td>
+                                <td class="text-center text-nowrap">{{ driver.name }}</td>
+                                <td class="text-center text-nowrap">{{ points.wdc_points()[driver.name] }}</td>
+                                <td class="text-center text-nowrap">{{ points.dnfs()[driver.name] }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <div class="card">
+        <div class="card mb-2">
+            <div class="card-header">
+                Constructors
+            </div>
+
             <div class="card-body">
-                <h5 class="card-title">Constructors</h5>
-
-                <table class="table table-bordered table-sm table-responsive">
-                    <thead>
-                    <tr>
-                        <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
-                        <th scope="col" class="text-center" style="min-width: 50px;">Team</th>
-                        <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {% for team in points.teams_sorted_by_points() %}
-                        {% set team_standing = points.wcc_standing_by_team()[team.name] %}
-                        <tr class="{% if team_standing == 1 %}table-danger{% endif %}">
-                            <td class="text-center text-nowrap">{{ team_standing }}</td>
-                            <td class="text-center text-nowrap">{{ team.name }}</td>
-                            <td class="text-center text-nowrap">{{ points.wcc_points()[team.name] }}</td>
+                <div class="d-inline-block overflow-x-scroll w-100">
+                    <table class="table table-bordered table-sm table-responsive">
+                        <thead>
+                        <tr>
+                            <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
+                            <th scope="col" class="text-center" style="min-width: 50px;">Team</th>
+                            <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody>
+                        {% for team in points.teams_sorted_by_points() %}
+                            {% set team_standing = points.wcc_standing_by_team()[team.name] %}
+                            <tr class="{% if team_standing == 1 %}table-danger{% endif %}">
+                                <td class="text-center text-nowrap">{{ team_standing }}</td>
+                                <td class="text-center text-nowrap">{{ team.name }}</td>
+                                <td class="text-center text-nowrap">{{ points.wcc_points()[team.name] }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

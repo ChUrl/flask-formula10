@@ -7,9 +7,11 @@
 {% block body %}
 
     <div class="card shadow-sm">
-        <div class="card-body">
-            <h5 class="card-title">Add User</h5>
+        <div class="card-header">
+            Add user
+        </div>
 
+        <div class="card-body">
             <form action="/user-add" method="post">
                 <div class="input-group">
                     <div class="form-floating">
@@ -26,9 +28,11 @@
 
     {% if model.all_users() | length > 0 %}
         <div class="card mt-2 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Registered Users</h5>
+            <div class="card-header">
+                Registered users
+            </div>
 
+            <div class="card-body">
                 <ul class="list-group list-group-flush">
                     {% for user in model.all_users() %}
                         <li class="list-group-item">{{ user.name }}</li>
@@ -38,9 +42,11 @@
         </div>
 
         <div class="card mt-2 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Delete user</h5>
+            <div class="card-header">
+                Delete user
+            </div>
 
+            <div class="card-body">
                 <form action="/user-delete" method="post">
                     <div class="input-group">
                         <select class="form-control form-select" aria-label="select-delete-user"

@@ -7,36 +7,51 @@
 {% block body %}
 
     <div class="card">
+        <div class="card-header">
+            Note
+        </div>
+
         <div class="card-body">
-            <h5 class="card-title">Leaderboard</h5>
-            <h6 class="card-subtitle">Points only include race picks</h6>
+            Points only include race picks.
+        </div>
+    </div>
 
-            <table class="table table-bordered table-sm table-responsive mt-3">
-                <thead>
-                <tr>
-                    <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
-                    <th scope="col" class="text-center" style="min-width: 50px;">User</th>
-                    <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
-                    <th scope="col" class="text-center" style="min-width: 100px;">Total picks</th>
-                    <th scope="col" class="text-center" style="min-width: 100px;" data-bs-toggle="tooltip" title="Any points count as correct">Correct picks</th>
-                    <th scope="col" class="text-center" style="min-width: 100px;">Points per pick</th>
-                </tr>
-                </thead>
+    <div class="card mt-2">
+        <div class="card-header">
+            Leaderboard
+        </div>
 
-                <tbody>
-                {% for user in points.users_sorted_by_points() %}
-                    {% set user_standing = points.user_standing()[user.name] %}
-                    <tr class="{% if user_standing == 1 %}table-danger{% endif %}">
-                        <td class="text-center text-nowrap">{{ user_standing }}</td>
-                        <td class="text-center text-nowrap">{{ user.name }}</td>
-                        <td class="text-center text-nowrap">{{ points.total_points_by(user.name) }}</td>
-                        <td class="text-center text-nowrap">{{ points.picks_count(user.name) }}</td>
-                        <td class="text-center text-nowrap">{{ points.picks_with_points_count(user.name) }}</td>
-                        <td class="text-center text-nowrap">{{ "%0.2f" % points.points_per_pick(user.name) }}</td>
+        <div class="card-body">
+            <div class="d-inline-block overflow-x-scroll w-100">
+                <table class="table table-bordered table-sm table-responsive">
+                    <thead>
+                    <tr>
+                        <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
+                        <th scope="col" class="text-center" style="min-width: 50px;">User</th>
+                        <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
+                        <th scope="col" class="text-center" style="min-width: 100px;">Total picks</th>
+                        <th scope="col" class="text-center" style="min-width: 100px;" data-bs-toggle="tooltip"
+                            title="Any points count as correct">Correct picks
+                        </th>
+                        <th scope="col" class="text-center" style="min-width: 100px;">Points per pick</th>
                     </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+
+                    <tbody>
+                    {% for user in points.users_sorted_by_points() %}
+                        {% set user_standing = points.user_standing()[user.name] %}
+                        <tr class="{% if user_standing == 1 %}table-danger{% endif %}">
+                            <td class="text-center text-nowrap">{{ user_standing }}</td>
+                            <td class="text-center text-nowrap">{{ user.name }}</td>
+                            <td class="text-center text-nowrap">{{ points.total_points_by(user.name) }}</td>
+                            <td class="text-center text-nowrap">{{ points.picks_count(user.name) }}</td>
+                            <td class="text-center text-nowrap">{{ points.picks_with_points_count(user.name) }}</td>
+                            <td class="text-center text-nowrap">{{ "%0.2f" % points.points_per_pick(user.name) }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

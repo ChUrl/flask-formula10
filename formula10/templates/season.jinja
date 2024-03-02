@@ -11,28 +11,32 @@
 {% block body %}
 
     <div class="card mb-2">
+        <div class="card-header">
+            Note
+        </div>
+
         <div class="card-body">
-            <h5 class="card-title">Note</h5>
-            Picks that match the current standings are marked in green, except for the hot-take and overtake picks, as those are not evaluated automatically.<br>
+            Picks that match the current standings are marked in green, except for the hot-take and overtake picks, as
+            those are not evaluated automatically.<br>
             Points from sprints and fastest laps are not tracked currently.
         </div>
     </div>
 
-    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(325px, 1fr)); grid-row-gap: 0; grid-column-gap: 8px;">
 
         {% for user in model.all_users_or_active_user() %}
 
             <div class="card mb-2 shadow-sm">
-                <div class="card-body">
-
+                <div class="card-header">
                     {# Link should only be visible if all users are visible #}
                     {% if model.active_user is not none %}
-                        <h5 class="card-title">{{ user.name }}</h5>
+                        {{ user.name }}
                     {% else %}
-                        <a href="/season/{{ user.name }}" class="link-dark">
-                            <h5 class="card-title">{{ user.name }}</h5>
-                        </a>
+                        <a href="/season/{{ user.name }}" class="link-dark">{{ user.name }}</a>
                     {% endif %}
+                </div>
+
+                <div class="card-body">
 
                     {% set user_guess = model.season_guesses_by(user_name=user.name) %}
 
@@ -78,11 +82,11 @@
                         <div class="input-group mt-2" data-bs-toggle="tooltip"
                              title="Which driver will gain/lose the most places in comparison to last season's results?">
                             {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_gained, name="gainedselect",
-                                   label="Most WDC places gained:", include_none=false, drivers=model.drivers_for_wdc_gained(),
+                                   label="Most WDC pl. gained:", include_none=false, drivers=model.drivers_for_wdc_gained(),
                                    disabled=not season_guess_open,
                                    border=("border-success" if points.most_gained_correct(user.name) else "")) }}
                             {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_lost, name="lostselect",
-                                   label="Most WDC places lost:", include_none=false, disabled=not season_guess_open,
+                                   label="Most WDC pl. lost:", include_none=false, disabled=not season_guess_open,
                                    border=("border-success" if points.most_lost_correct(user.name) else "")) }}
                         </div>
 
@@ -90,7 +94,7 @@
                         <h6 class="card-subtitle mt-2" data-bs-toggle="tooltip"
                             title="Which driver will finish the season higher than his teammate?">Teammate battle
                             winners:</h6>
-                        <div class="grid mt-2" style="width: 450px; row-gap: 0;">
+                        <div class="grid mt-2 container" style="row-gap: 0;">
                             {% for team in model.all_teams(include_none=false) %}
                                 {% set driver_a = model.drivers_by(team_name=team.name)[0] %}
                                 {% set driver_b = model.drivers_by(team_name=team.name)[1] %}
@@ -126,7 +130,7 @@
                         {# Drivers with Podiums #}
                         <h6 class="card-subtitle mt-2" data-bs-toggle="tooltip"
                             title="Which driver will reach at least a single podium?">Drivers with podium(s):</h6>
-                        <div class="grid mt-2" style="width: 450px; row-gap: 0;">
+                        <div class="grid mt-2 container" style="row-gap: 0;">
                             {% for team in model.all_teams(include_none=false) %}
                                 {% set driver_a = model.drivers_by(team_name=team.name)[0] %}
                                 {% set driver_b = model.drivers_by(team_name=team.name)[1] %}
