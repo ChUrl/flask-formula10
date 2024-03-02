@@ -41,7 +41,7 @@ import formula10.controller.error_controller
 # General
 # - Decouple names from IDs + Fix Valtteri/Russel spelling errors
 # - Unit testing (as much as possible, but especially points calculation)
-# - Add links to the official F1 stats page (for quali/result)
+# - Add links to the official F1 stats page (for quali/result), probably best to store entire link in DB (because they are not entirely regular)?
 
 # Possible but probably not
 # - Show cards of previous race results, like with season guesses?
