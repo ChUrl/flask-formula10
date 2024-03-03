@@ -1,6 +1,13 @@
 .chart-container {
     width: 100%;
-    height: 50vh;
+    height: 40vh;
+}
+
+@media only screen and (max-width: 900px) {
+    .chart-container {
+        width: 100%;
+        height: 50vh;
+    }
 }
 
 @media only screen and (orientation: landscape) and (max-width: 900px) {
