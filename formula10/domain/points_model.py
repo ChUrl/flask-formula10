@@ -597,7 +597,7 @@ class PointsModel(Model):
         data["datasets"] = [
             {
                 "data": self.driver_points_per_step_cumulative()[driver.name],
-                "label": driver.name,
+                "label": driver.abbr,
                 "fill": False
             }
             for driver in self.all_drivers(include_none=False)
