@@ -475,13 +475,13 @@ class PointsModel(Model):
     def cumulative_points_data(self) -> str:
         data: Dict[Any, Any] = dict()
 
-        data["labels"] = [0] + [
+        data["labels"] = [
             race.name for race in sorted(self.all_races(), key=lambda race: race.number)
         ]
 
         data["datasets"] = [
             {
-                "data": [0] + self.points_per_step_cumulative()[user.name],
+                "data": self.points_per_step_cumulative()[user.name],
                 "label": user.name,
                 "fill": False
             }
