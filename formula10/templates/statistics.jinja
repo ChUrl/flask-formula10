@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    <div class="grid card-grid">
+    <div class="grid card-grid-2">
 
         <div class="card shadow-sm mb-2">
             <div class="card-header">
@@ -42,9 +42,9 @@
                             <tr class="{% if driver_standing == 1 %}table-danger{% endif %}">
                                 <td class="text-center text-nowrap">{{ driver_standing }}</td>
                                 <td class="text-center text-nowrap">{{ driver.name }}</td>
-                                <td class="text-center text-nowrap">{{ points.wdc_points()[driver.name] }}</td>
+                                <td class="text-center text-nowrap">{{ points.total_driver_points_by(driver.name) }}</td>
                                 <td class="text-center text-nowrap">{{ points.dnfs()[driver.name] }}</td>
-                                <td class="text-center text-nowrap">{{ "%+d" % points.wdc_diff_2023()[driver.name] }}</td>
+                                <td class="text-center text-nowrap">{{ "%+d" % points.wdc_diff_2023_by(driver.name) }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -76,13 +76,89 @@
                             <tr class="{% if team_standing == 1 %}table-danger{% endif %}">
                                 <td class="text-center text-nowrap">{{ team_standing }}</td>
                                 <td class="text-center text-nowrap">{{ team.name }}</td>
-                                <td class="text-center text-nowrap">{{ points.wcc_points()[team.name] }}</td>
-                                <td class="text-center text-nowrap">{{ points.wcc_diff_2023()[team.name] }}</td>
+                                <td class="text-center text-nowrap">{{ points.total_team_points_by(team.name) }}</td>
+                                <td class="text-center text-nowrap">{{ points.wcc_diff_2023_by(team.name) }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-2">
+            <div class="card-header">
+                Driver history
+            </div>
+
+            <div class="card-body">
+                <div class="chart-container" style="width: 100%; height: 40vh;">
+                    <canvas id="driver-line-chart"></canvas>
+                </div>
+
+                <script>
+                    function cumulative_driver_points(data) {
+                        return new Chart(document.getElementById("driver-line-chart"), {
+                            type: 'line',
+                            data: data,
+                            options: {
+                                title: {
+                                    display: true,
+                                    text: 'History'
+                                },
+                                {#tension: 0,#}
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        min: 0,
+                                        {#max: 100#}
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    cumulative_driver_points({{ points.cumulative_driver_points_data() | safe }})
+                </script>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-2">
+            <div class="card-header">
+                Team history
+            </div>
+
+            <div class="card-body">
+                <div class="chart-container" style="width: 100%; height: 40vh;">
+                    <canvas id="team-line-chart"></canvas>
+                </div>
+
+                <script>
+                    function cumulative_team_points(data) {
+                        return new Chart(document.getElementById("team-line-chart"), {
+                            type: 'line',
+                            data: data,
+                            options: {
+                                title: {
+                                    display: true,
+                                    text: 'History'
+                                },
+                                {#tension: 0,#}
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        min: 0,
+                                        {#max: 100#}
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    cumulative_team_points({{ points.cumulative_team_points_data() | safe }})
+                </script>
             </div>
         </div>
 
