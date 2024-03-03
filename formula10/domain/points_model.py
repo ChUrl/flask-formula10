@@ -1,4 +1,5 @@
-from typing import Callable, Dict, List, Tuple, overload
+import json
+from typing import Any, Callable, Dict, List, Tuple, overload
 import numpy as np
 
 from formula10.domain.domain_model import Model
@@ -466,3 +467,25 @@ class PointsModel(Model):
                 return True
 
         return False
+
+    #
+    # Diagram queries
+    #
+
+    def cumulative_points_data(self) -> str:
+        data: Dict[Any, Any] = dict()
+
+        data["labels"] = [0] + [
+            race.name for race in sorted(self.all_races(), key=lambda race: race.number)
+        ]
+
+        data["datasets"] = [
+            {
+                "data": [0] + self.points_per_step_cumulative()[user.name],
+                "label": user.name,
+                "fill": False
+            }
+            for user in self.all_users()
+        ]
+
+        return json.dumps(data)
