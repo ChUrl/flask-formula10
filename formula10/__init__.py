@@ -35,15 +35,18 @@ import formula10.controller.error_controller
 
 
 # TODO
-# Leaderboard
-
+# Large DB Update
 # - For season guess calc there is missing: Fastest laps + sprint points + sprint DNFs (in race result)
+# - Decouple names from IDs in each object + Fix Valtteri/Russel spelling errors
+# - Mask to allow changing usernames (easy if name is not used as ID)
+# - Maybe even masks for races + drivers + teams?
+# - DB fields for links to F1 site
+# - DB fields for qualifying dates
 
-# - Auto calculate season points (display season points?)
-# - Interesting stats:
-#   - Which driver was voted most for dnf (top 5)?
+# Leaderboards/Points
+# - Auto calculate season points (display season points in table + season guess card title?)
 
 # General
-# - Decouple names from IDs + Fix Valtteri/Russel spelling errors
-# - Unit testing (as much as possible, but especially points calculation)
+# - Export all data to CSV (already have that), but downloadable via browser
 # - Add links to the official F1 stats page (for quali/result), probably best to store entire link in DB (because they are not entirely regular)?
+# - Unit testing (as much as possible, but especially points calculation)

@@ -243,6 +243,10 @@ class PointsModel(Model):
     def total_driver_points_by(self, driver_name: str) -> int:
         return sum(self.driver_points_by(driver_name=driver_name))
 
+    def drivers_sorted_by_points(self) -> List[Driver]:
+        comparator: Callable[[Driver], int] = lambda driver: self.total_driver_points_by(driver.name)
+        return sorted(self.all_drivers(include_none=False), key=comparator, reverse=True)
+
     def wdc_standing_by_position(self) -> Dict[int, List[str]]:
         standing: Dict[int, List[str]] = dict()
 
@@ -252,7 +256,7 @@ class PointsModel(Model):
         position: int = 1
         last_points: int = 0
 
-        for driver in self.all_drivers(include_none=False):
+        for driver in self.drivers_sorted_by_points():
             points: int = self.total_driver_points_by(driver.name)
             if points < last_points:
                 position += 1
@@ -268,7 +272,7 @@ class PointsModel(Model):
         position: int = 1
         last_points: int = 0
 
-        for driver in self.all_drivers(include_none=False):
+        for driver in self.drivers_sorted_by_points():
             points: int = self.total_driver_points_by(driver.name)
             if points < last_points:
                 position += 1
@@ -331,10 +335,6 @@ class PointsModel(Model):
 
         return most_lost_names
 
-    def drivers_sorted_by_points(self) -> List[Driver]:
-        comparator: Callable[[Driver], int] = lambda driver: self.wdc_standing_by_driver()[driver.name]
-        return sorted(self.all_drivers(include_none=False), key=comparator)
-
     #
     # Team points
     #
@@ -353,6 +353,10 @@ class PointsModel(Model):
         teammates: List[Driver] = self.drivers_by(team_name=team_name)
         return sum(self.driver_points_by(driver_name=teammates[0].name)) + sum(self.driver_points_by(driver_name=teammates[1].name))
 
+    def teams_sorted_by_points(self) -> List[Team]:
+        comparator: Callable[[Team], int] = lambda team: self.total_team_points_by(team.name)
+        return sorted(self.all_teams(include_none=False), key=comparator, reverse=True)
+
     def wcc_standing_by_position(self) -> Dict[int, List[str]]:
         standing: Dict[int, List[str]] = dict()
 
@@ -362,7 +366,7 @@ class PointsModel(Model):
         position: int = 1
         last_points: int = 0
 
-        for team in self.all_teams(include_none=False):
+        for team in self.teams_sorted_by_points():
             points: int = self.total_team_points_by(team.name)
             if points < last_points:
                 position += 1
@@ -378,7 +382,7 @@ class PointsModel(Model):
         position: int = 1
         last_points: int = 0
 
-        for team in self.all_teams(include_none=False):
+        for team in self.teams_sorted_by_points():
             points: int = self.total_team_points_by(team.name)
             if points < last_points:
                 position += 1
@@ -390,10 +394,6 @@ class PointsModel(Model):
 
     def wcc_diff_2023_by(self, team_name: str) -> int:
         return WCC_STANDING_2023[team_name] - self.wcc_standing_by_team()[team_name]
-
-    def teams_sorted_by_points(self) -> List[Team]:
-        comparator: Callable[[Team], int] = lambda team: self.wcc_standing_by_team()[team.name]
-        return sorted(self.all_teams(include_none=False), key=comparator)
 
     #
     # User stats
