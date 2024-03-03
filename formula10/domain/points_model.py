@@ -106,7 +106,7 @@ class PointsModel(Model):
         if self._points_per_step is None:
             self._points_per_step = dict()
             for user in self.all_users():
-                self._points_per_step[user.name] = [0] * 24  # Start at index 1, like the race numbers
+                self._points_per_step[user.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
 
             for race_guess in self.all_race_guesses():
                 user_name: str = race_guess.user.name
@@ -475,7 +475,7 @@ class PointsModel(Model):
     def cumulative_points_data(self) -> str:
         data: Dict[Any, Any] = dict()
 
-        data["labels"] = [
+        data["labels"] = [0] + [
             race.name for race in sorted(self.all_races(), key=lambda race: race.number)
         ]
 
