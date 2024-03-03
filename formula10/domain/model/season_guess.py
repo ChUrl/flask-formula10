@@ -58,6 +58,15 @@ class SeasonGuess():
 
         return db_season_guess
 
+    def __eq__(self, __value: object) -> bool:
+        if isinstance(__value, SeasonGuess):
+            return self.user == __value.user
+
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(self.user)
+
     user: User
     hot_take: str | None
     p2_wcc: Team | None

@@ -18,6 +18,15 @@ class SeasonGuessResult():
         db_season_guess_result.overtakes_correct = self.overtakes_correct
         return db_season_guess_result
 
+    def __eq__(self, __value: object) -> bool:
+        if isinstance(__value, SeasonGuessResult):
+            return self.user == __value.user
+
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(self.user)
+
     user: User
     hot_take_correct: bool
     overtakes_correct: bool

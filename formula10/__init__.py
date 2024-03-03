@@ -35,10 +35,9 @@ import formula10.controller.error_controller
 # Large DB Update
 # - Don't use names for frontend post requests, either use IDs or post the whole object (if its possible)...
 # - For season guess calc there is missing: Fastest laps + sprint points + sprint DNFs (in race result)
-# - Fix Valtteri/Russel spelling errors
 # - Mask to allow changing usernames (easy if name is not used as ID)
 # - Maybe even masks for races + drivers + teams?
-# - DB fields for links to F1 site
+# - DB fields for links to F1 site - NO: just hardcode them in with a dictionary
 # - DB fields for qualifying dates
 
 # Leaderboards/Points
