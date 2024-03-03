@@ -43,7 +43,7 @@ DRIVER_RACE_POINTS: Dict[int, int] = {
     10: 1
 }
 
-STANDING_2023: Dict[str, int] = {
+WDC_STANDING_2023: Dict[str, int] = {
     "Max Verstappen": 1,
     "Sergio Perez": 2,
     "Lewis Hamilton": 3,
@@ -64,6 +64,19 @@ STANDING_2023: Dict[str, int] = {
     "Zhou Guanyu": 18,
     "Kevin Magnussen": 19,
     "Logan Sargeant": 21
+}
+
+WCC_STANDING_2023: Dict[str, int] = {
+    "Red Bull": 1,
+    "Mercedes": 2,
+    "Ferrari": 3,
+    "McLaren": 4,
+    "Aston Martin": 5,
+    "Alpine": 6,
+    "Williams": 7,
+    "VCARB": 8,
+    "Sauber": 9,
+    "Haas": 10
 }
 
 def standing_points(race_guess: RaceGuess, race_result: RaceResult) -> int:
@@ -166,7 +179,15 @@ class PointsModel(Model):
         diff: Dict[str, int] = dict()
 
         for driver in self.all_drivers(include_none=False):
-            diff[driver.name] = STANDING_2023[driver.name] - self.wdc_standing_by_driver()[driver.name]
+            diff[driver.name] = WDC_STANDING_2023[driver.name] - self.wdc_standing_by_driver()[driver.name]
+
+        return diff
+
+    def wcc_diff_2023(self) -> Dict[str, int]:
+        diff: Dict[str, int] = dict()
+
+        for team in self.all_teams(include_none=False):
+            diff[team.name] = WCC_STANDING_2023[team.name] - self.wcc_standing_by_team()[team.name]
 
         return diff
 

@@ -32,6 +32,7 @@
                             <th scope="col" class="text-center" style="min-width: 50px;">Driver</th>
                             <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
                             <th scope="col" class="text-center" style="min-width: 100px;">DNFs</th>
+                            <th scope="col" class="text-center" style="min-width: 100px;">Place Delta</th>
                         </tr>
                         </thead>
 
@@ -43,6 +44,7 @@
                                 <td class="text-center text-nowrap">{{ driver.name }}</td>
                                 <td class="text-center text-nowrap">{{ points.wdc_points()[driver.name] }}</td>
                                 <td class="text-center text-nowrap">{{ points.dnfs()[driver.name] }}</td>
+                                <td class="text-center text-nowrap">{{ "%+d" % points.wdc_diff_2023()[driver.name] }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -64,6 +66,7 @@
                             <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
                             <th scope="col" class="text-center" style="min-width: 50px;">Team</th>
                             <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
+                            <th scope="col" class="text-center" style="min-width: 100px;">Place Delta</th>
                         </tr>
                         </thead>
 
@@ -74,6 +77,7 @@
                                 <td class="text-center text-nowrap">{{ team_standing }}</td>
                                 <td class="text-center text-nowrap">{{ team.name }}</td>
                                 <td class="text-center text-nowrap">{{ points.wcc_points()[team.name] }}</td>
+                                <td class="text-center text-nowrap">{{ points.wcc_diff_2023()[team.name] }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
