@@ -6,7 +6,7 @@
 
 {% block body %}
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm mb-2">
         <div class="card-header">
             Add user
         </div>
@@ -27,7 +27,7 @@
     </div>
 
     {% if model.all_users() | length > 0 %}
-        <div class="card mt-2 shadow-sm">
+        <div class="card shadow-sm mb-2">
             <div class="card-header">
                 Registered users
             </div>
@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <div class="card mt-2 shadow-sm">
+        <div class="card shadow-sm mb-2">
             <div class="card-header">
                 Delete user
             </div>
@@ -71,17 +71,5 @@
             </div>
         </div>
     {% endif %}
-
-{#    <div class="card mt-2 border-danger shadow-sm">#}
-{#        <div class="card-body">#}
-{#            <h5 class="card-title">Functions that should not be public</h5>#}
-{#            <h6 class="card-subtitle mb-2">(F you if you click this without knowing what it does)</h6>#}
-
-{#            <a class="btn btn-outline-danger" href="/save/all">Save all data</a>#}
-{#            <a class="btn btn-outline-danger" href="/load/all">Load all data</a>#}
-{#            <a class="btn btn-outline-danger" href="/load/static">Load static data</a>#}
-{#            <a class="btn btn-outline-danger" href="/load/dynamic">Load dynamic data</a>#}
-{#        </div>#}
-{#    </div>#}
 
 {% endblock body %}

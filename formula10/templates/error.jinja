@@ -5,10 +5,12 @@
 {% set active_page = "/error" %}
 
 {% block body %}
-    <div class="card">
+    <div class="card shadow-sm mb-2">
+        <div class="card-header">
+            <span class="text-danger fw-bold">Error</span>
+        </div>
         <div class="card-body">
-            <h5 class="card-title text-danger fw-bold">Error</h5>
-            <h6 class="card-subtitle">{{ error_message }}</h6>
+            {{ error_message }}
         </div>
     </div>
 {% endblock body %}

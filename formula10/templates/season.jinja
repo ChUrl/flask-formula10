@@ -10,7 +10,7 @@
 
 {% block body %}
 
-    <div class="card mb-2">
+    <div class="card shadow-sm mb-2">
         <div class="card-header">
             Note
         </div>
@@ -26,7 +26,7 @@
 
         {% for user in model.all_users_or_active_user() %}
 
-            <div class="card mb-2 shadow-sm">
+            <div class="card shadow-sm mb-2">
                 <div class="card-header">
                     {# Link should only be visible if all users are visible #}
                     {% if model.active_user is not none %}
