@@ -12,6 +12,12 @@ class SeasonGuessResult():
 
         return season_guess_result
 
+    def to_db_season_guess_result(self) -> DbSeasonGuessResult:
+        db_season_guess_result: DbSeasonGuessResult = DbSeasonGuessResult(user_id=self.user.id)
+        db_season_guess_result.hot_take_correct = self.hot_take_correct
+        db_season_guess_result.overtakes_correct = self.overtakes_correct
+        return db_season_guess_result
+
     user: User
     hot_take_correct: bool
     overtakes_correct: bool

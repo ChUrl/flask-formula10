@@ -1,5 +1,4 @@
-from typing import List
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from formula10.database.model.db_team import DbTeam
@@ -13,21 +12,14 @@ class DbDriver(db.Model):
     """
     __tablename__ = "driver"
 
-    def __init__(self, *, name: str):
-        self.name = name  # Primary key
+    def __init__(self, *, id: int):
+        self.id = id  # Primary key
 
-    @classmethod
-    def from_csv(cls, row: List[str]):
-        db_driver: DbDriver = cls(name=str(row[0]))
-        db_driver.abbr = str(row[1])
-        db_driver.team_name = str(row[2])
-        db_driver.country_code = str(row[3])
-        return db_driver
-
-    name: Mapped[str] = mapped_column(String(32), primary_key=True)
-    abbr: Mapped[str] = mapped_column(String(4))
-    team_name: Mapped[str] = mapped_column(ForeignKey("team.name"))
-    country_code: Mapped[str] = mapped_column(String(2))  # alpha-2 code
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    name: Mapped[str] = mapped_column(String(32), nullable=False, unique=True)
+    abbr: Mapped[str] = mapped_column(String(4), nullable=False, unique=True)
+    team_id: Mapped[str] = mapped_column(ForeignKey("team.id"), nullable=False)
+    country_code: Mapped[str] = mapped_column(String(2), nullable=False)  # alpha-2 code
 
     # Relationships
-    team: Mapped[DbTeam] = relationship("DbTeam", foreign_keys=[team_name])
+    team: Mapped[DbTeam] = relationship("DbTeam", foreign_keys=[team_id])

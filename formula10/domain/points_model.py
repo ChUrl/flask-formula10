@@ -51,14 +51,14 @@ WDC_STANDING_2023: Dict[str, int] = {
     "Charles Leclerc": 5,
     "Lando Norris": 6,
     "Carlos Sainz": 7,
-    "George Russel": 8,  # @todo typo
+    "George Russell": 8,
     "Oscar Piastri": 9,
     "Lance Stroll": 10,
     "Pierre Gasly": 11,
     "Esteban Ocon": 12,
     "Alexander Albon": 13,
     "Yuki Tsunoda": 14,
-    "Valteri Bottas": 15,  # @todo typo
+    "Valtteri Bottas": 15,
     "Nico Hulkenberg": 16,
     "Daniel Ricciardo": 17,
     "Zhou Guanyu": 18,

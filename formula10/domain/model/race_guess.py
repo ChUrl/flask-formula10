@@ -15,10 +15,9 @@ class RaceGuess():
         return race_guess
 
     def to_db_race_guess(self) -> DbRaceGuess:
-        db_race_guess: DbRaceGuess = DbRaceGuess(user_name=self.user.name,
-                                                 race_name=self.race.name,
-                                                 pxx_driver_name=self.pxx_guess.name,
-                                                 dnf_driver_name=self.dnf_guess.name)
+        db_race_guess: DbRaceGuess = DbRaceGuess(user_id=self.user.id, race_id=self.race.id)
+        db_race_guess.pxx_driver_id = self.pxx_guess.id
+        db_race_guess.dnf_driver_id = self.dnf_guess.id
         return db_race_guess
 
     def __eq__(self, __value: object) -> bool:
@@ -26,6 +25,9 @@ class RaceGuess():
             return self.user == __value.user and self.race == __value.race
 
         return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash((self.user, self.race))
 
     user: User
     race: Race

@@ -14,27 +14,27 @@ class RaceResult:
         race_result.race = Race.from_db_race(db_race_result.race)
 
         # Deserialize from json
-        standing: Dict[str, str] = json.loads(db_race_result.pxx_driver_names_json)
-        initial_dnf: List[str] = json.loads(db_race_result.first_dnf_driver_names_json)
-        all_dnfs: List[str] = json.loads(db_race_result.dnf_driver_names_json)
-        standing_exclusions: List[str] = json.loads(db_race_result.excluded_driver_names_json)
+        standing: Dict[str, str] = json.loads(db_race_result.pxx_driver_ids_json)
+        initial_dnf: List[str] = json.loads(db_race_result.first_dnf_driver_ids_json)
+        all_dnfs: List[str] = json.loads(db_race_result.dnf_driver_ids_json)
+        standing_exclusions: List[str] = json.loads(db_race_result.excluded_driver_ids_json)
 
         # Populate relationships
         race_result.standing = {
-            position: Driver.from_db_driver(find_single_driver_strict(driver_name))
-            for position, driver_name in standing.items()
+            position: Driver.from_db_driver(find_single_driver_strict(int(driver_id)))
+            for position, driver_id in standing.items()
         }
         race_result.initial_dnf = [
-            Driver.from_db_driver(find_single_driver_strict(driver_name))
-            for driver_name in initial_dnf
+            Driver.from_db_driver(find_single_driver_strict(int(driver_id)))
+            for driver_id in initial_dnf
         ]
         race_result.all_dnfs = [
-            Driver.from_db_driver(find_single_driver_strict(driver_name))
-            for driver_name in all_dnfs
+            Driver.from_db_driver(find_single_driver_strict(int(driver_id)))
+            for driver_id in all_dnfs
         ]
         race_result.standing_exclusions = [
-            Driver.from_db_driver(find_single_driver_strict(driver_name))
-            for driver_name in standing_exclusions
+            Driver.from_db_driver(find_single_driver_strict(int(driver_id)))
+            for driver_id in standing_exclusions
         ]
 
         return race_result
@@ -45,21 +45,21 @@ class RaceResult:
             position: driver.name for position, driver in self.standing.items()
         }
         initial_dnf: List[str] = [
-            driver.name for driver in self.initial_dnf if driver
+            str(driver.id) for driver in self.initial_dnf if driver
         ]
         all_dnfs: List[str] = [
-            driver.name for driver in self.all_dnfs if driver
+            str(driver.id) for driver in self.all_dnfs if driver
         ]
         standing_exclusions: List[str] = [
-            driver.name for driver in self.standing_exclusions if driver
+            str(driver.id) for driver in self.standing_exclusions if driver
         ]
 
         # Serialize to json
-        db_race_result: DbRaceResult = DbRaceResult(race_name=self.race.name,
-                                                    pxx_driver_names_json=json.dumps(standing),
-                                                    first_dnf_driver_names_json=json.dumps(initial_dnf),
-                                                    dnf_driver_names_json=json.dumps(all_dnfs),
-                                                    excluded_driver_names_json=json.dumps(standing_exclusions))
+        db_race_result: DbRaceResult = DbRaceResult(race_id=self.race.id)
+        db_race_result.pxx_driver_ids_json = json.dumps(standing)
+        db_race_result.first_dnf_driver_ids_json = json.dumps(initial_dnf)
+        db_race_result.dnf_driver_ids_json = json.dumps(all_dnfs)
+        db_race_result.excluded_driver_ids_json = json.dumps(standing_exclusions)
 
         return db_race_result
 
@@ -68,6 +68,9 @@ class RaceResult:
             return self.race == __value.race
 
         return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(self.race)
 
     race: Race
     standing: Dict[str, Driver]  # Always contains all 20 drivers, even if DNF'ed or excluded

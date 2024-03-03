@@ -4,12 +4,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 # Load local ENV variables (can be set when calling the executable)
 ENABLE_TIMING: bool = False if os.getenv("DISABLE_TIMING") == "True" else True
-ENABLE_DEBUG_ENDPOINTS: bool = True if os.getenv("ENABLE_DEBUG_ENDPOINTS") == "True" else False
 print("Running Formula10 with:")
 if not ENABLE_TIMING:
     print("- Disabled timing constraints")
-if ENABLE_DEBUG_ENDPOINTS:
-    print("- Enabled debug endpoints")
 
 app: Flask = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///formula10.db"
@@ -36,8 +33,9 @@ import formula10.controller.error_controller
 
 # TODO
 # Large DB Update
+# - Don't use names for frontend post requests, either use IDs or post the whole object (if its possible)...
 # - For season guess calc there is missing: Fastest laps + sprint points + sprint DNFs (in race result)
-# - Decouple names from IDs in each object + Fix Valtteri/Russel spelling errors
+# - Fix Valtteri/Russel spelling errors
 # - Mask to allow changing usernames (easy if name is not used as ID)
 # - Maybe even masks for races + drivers + teams?
 # - DB fields for links to F1 site
@@ -47,6 +45,5 @@ import formula10.controller.error_controller
 # - Auto calculate season points (display season points in table + season guess card title?)
 
 # General
-# - Export all data to CSV (already have that), but downloadable via browser
 # - Add links to the official F1 stats page (for quali/result), probably best to store entire link in DB (because they are not entirely regular)?
 # - Unit testing (as much as possible, but especially points calculation)

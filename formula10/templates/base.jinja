@@ -34,7 +34,7 @@
             {% endif %}
 
             {% for driver in drivers %}
-                <option value="{{ driver.name }}">{{ driver.abbr }}</option>
+                <option value="{{ driver.id }}">{{ driver.abbr }}</option>
             {% endfor %}
         </select>
         <label for="{{ name }}" class="text-primary">{{ label }}</label>
@@ -55,13 +55,13 @@
             {% for driver in drivers %}
                 {% if driver_match == driver %}
                     {% set user_has_chosen.driverpre = true %}
-                    <option selected="selected" value="{{ driver.name }}">{{ driver.abbr }}</option>
+                    <option selected="selected" value="{{ driver.id }}">{{ driver.abbr }}</option>
                 {% else %}
-                    <option value="{{ driver.name }}">{{ driver.abbr }}</option>
+                    <option value="{{ driver.id }}">{{ driver.abbr }}</option>
                 {% endif %}
 
                 {% if (include_none == true) and (driver == model.none_driver()) %}
-                    <option disabled>──────────</option>
+                    <option disabled="disabled">──────────</option>
                 {% endif %}
             {% endfor %}
 
@@ -85,7 +85,7 @@
             {% endif %}
 
             {% for team in teams %}
-                <option value="{{ team.name }}">{{ team.name }}</option>
+                <option value="{{ team.id }}">{{ team.name }}</option>
             {% endfor %}
         </select>
         <label for="{{ name }}" class="text-primary">{{ label }}</label>
@@ -106,13 +106,13 @@
             {% for team in teams %}
                 {% if team_match == team %}
                     {% set user_has_chosen.teampre = true %}
-                    <option selected="selected" value="{{ team.name }}">{{ team.name }}</option>
+                    <option selected="selected" value="{{ team.id }}">{{ team.name }}</option>
                 {% else %}
-                    <option value="{{ team.name }}">{{ team.name }}</option>
+                    <option value="{{ team.id }}">{{ team.name }}</option>
                 {% endif %}
 
                 {% if (include_none == true) and (team == model.none_team()) %}
-                    <option disabled>──────────</option>
+                    <option disabled="disabled">──────────</option>
                 {% endif %}
             {% endfor %}
 

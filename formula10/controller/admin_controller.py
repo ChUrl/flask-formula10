@@ -2,49 +2,11 @@ from typing import List
 from urllib.parse import unquote
 from flask import redirect, render_template, request
 from werkzeug import Response
-from formula10.controller.error_controller import error_redirect
 
 from formula10.database.update_queries import update_race_result, update_user
-from formula10.database.import_export import export_dynamic_data, reload_dynamic_data, reload_season_guess_result_data, reload_static_data
+from formula10.domain.domain_model import Model
 from formula10.domain.template_model import TemplateModel
-from formula10 import ENABLE_DEBUG_ENDPOINTS, app
-
-
-@app.route("/save/all")
-def save() -> Response:
-    export_dynamic_data()
-    return redirect("/")
-
-
-@app.route("/load/all")
-def load() -> Response:
-    if not ENABLE_DEBUG_ENDPOINTS:
-        return error_redirect("Debug endpoints are disabled!")
-
-    reload_static_data()
-    reload_dynamic_data()
-    return redirect("/")
-
-
-@app.route("/load/static")
-def load_static() -> Response:
-    reload_static_data()
-    return redirect("/")
-
-
-@app.route("/load/seasonresults")
-def load_season_results() -> Response:
-    reload_season_guess_result_data()
-    return redirect("/")
-
-
-@app.route("/load/dynamic")
-def load_dynamic() -> Response:
-    if not ENABLE_DEBUG_ENDPOINTS:
-        return error_redirect("Debug endpoints are disabled!")
-
-    reload_dynamic_data()
-    return redirect("/")
+from formula10 import app
 
 
 @app.route("/result")
@@ -69,7 +31,9 @@ def result_enter_post(race_name: str) -> Response:
     dnfs: List[str] = request.form.getlist("dnf-drivers")
     excluded: List[str] = request.form.getlist("excluded-drivers")
 
-    return update_race_result(race_name, pxxs, first_dnfs, dnfs, excluded)
+    # @todo Ugly
+    race_id: int = Model().race_by(race_name=race_name).id
+    return update_race_result(race_id, pxxs, first_dnfs, dnfs, excluded)
 
 
 @app.route("/user")

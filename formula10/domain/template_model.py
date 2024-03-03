@@ -6,7 +6,7 @@ from formula10.domain.model.driver import Driver
 from formula10.domain.model.race import Race
 from formula10.domain.model.race_result import RaceResult
 from formula10.domain.model.user import User
-from formula10.database.validation import find_first_else_none, find_multiple_strict, race_has_started
+from formula10.database.validation import find_first_else_none, find_multiple_strict, find_single_strict, race_has_started
 
 
 class TemplateModel(Model):
@@ -33,10 +33,12 @@ class TemplateModel(Model):
         return not race_has_started(race=race) if ENABLE_TIMING else True
 
     def season_guess_open(self) -> bool:
-        return not race_has_started(race_name="Bahrain") if ENABLE_TIMING else True
+        return not race_has_started(race_id=1) if ENABLE_TIMING else True
 
     def race_result_open(self, race_name: str) -> bool:
-        return race_has_started(race_name=race_name) if ENABLE_TIMING else True
+        predicate: Callable[[Race], bool] = lambda race: race.name == race_name
+        race: Race = find_single_strict(predicate, self.all_races())
+        return race_has_started(race_id=race.id) if ENABLE_TIMING else True
 
     def active_user_name_or_everyone(self) -> str:
         return self.active_user.name if self.active_user is not None else "Everyone"

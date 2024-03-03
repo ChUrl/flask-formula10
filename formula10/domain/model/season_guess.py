@@ -20,17 +20,17 @@ class SeasonGuess():
         season_guess.most_wdc_lost = Driver.from_db_driver(db_season_guess.lost_driver) if db_season_guess.lost_driver is not None else None
 
         # Deserialize from json
-        team_winners: List[str | None] = json.loads(db_season_guess.team_winners_driver_names_json)
-        podiums: List[str] = json.loads(db_season_guess.podium_drivers_driver_names_json)
+        team_winners: List[str | None] = json.loads(db_season_guess.team_winners_driver_ids_json)
+        podiums: List[str] = json.loads(db_season_guess.podium_drivers_driver_ids_json)
 
         # Populate relationships
         season_guess.team_winners = [
-            Driver.from_db_driver(find_single_driver_strict(driver_name)) if driver_name is not None else None
-            for driver_name in team_winners
+            Driver.from_db_driver(find_single_driver_strict(int(driver_id))) if driver_id is not None else None
+            for driver_id in team_winners
         ]
         season_guess.podiums = [
-            Driver.from_db_driver(find_single_driver_strict(driver_name))
-            for driver_name in podiums
+            Driver.from_db_driver(find_single_driver_strict(int(driver_id)))
+            for driver_id in podiums
         ]
 
         return season_guess
@@ -46,16 +46,15 @@ class SeasonGuess():
         ]
 
         # Serialize to json
-        db_season_guess: DbSeasonGuess = DbSeasonGuess(user_name=self.user.name,
-                                                       team_winners_driver_names_json=json.dumps(team_winners),
-                                                       podium_drivers_driver_names_json=json.dumps(podiums))
-        db_season_guess.user_name = self.user.name
+        db_season_guess: DbSeasonGuess = DbSeasonGuess(user_id=self.user.id)
         db_season_guess.hot_take = self.hot_take
-        db_season_guess.p2_team_name = self.p2_wcc.name if self.p2_wcc is not None else None
-        db_season_guess.overtake_driver_name = self.most_overtakes.name if self.most_overtakes is not None else None
-        db_season_guess.dnf_driver_name = self.most_dnfs.name if self.most_dnfs is not None else None
-        db_season_guess.gained_driver_name = self.most_wdc_gained.name if self.most_wdc_gained is not None else None
-        db_season_guess.lost_driver_name = self.most_wdc_lost.name if self.most_wdc_lost is not None else None
+        db_season_guess.p2_team_id = self.p2_wcc.id if self.p2_wcc is not None else None
+        db_season_guess.overtake_driver_id = self.most_overtakes.id if self.most_overtakes is not None else None
+        db_season_guess.dnf_driver_id = self.most_dnfs.id if self.most_dnfs is not None else None
+        db_season_guess.gained_driver_id = self.most_wdc_gained.id if self.most_wdc_gained is not None else None
+        db_season_guess.lost_driver_id = self.most_wdc_lost.id if self.most_wdc_lost is not None else None
+        db_season_guess.team_winners_driver_ids_json=json.dumps(team_winners)
+        db_season_guess.podium_drivers_driver_ids_json=json.dumps(podiums)
 
         return db_season_guess
 

@@ -1,4 +1,3 @@
-from typing import Any, List
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,38 +13,18 @@ class DbRaceGuess(db.Model):
     It stores the corresponding race and the guessed drivers for PXX and DNF.
     """
     __tablename__ = "raceguess"
-    __csv_header__ = ["user_name", "race_name", "pxx_driver_name", "dnf_driver_name"]
 
-    def __init__(self, *, user_name: str, race_name: str, pxx_driver_name: str, dnf_driver_name: str):
-        self.user_name = user_name  # Primary key
-        self.race_name = race_name  # Primary key
+    def __init__(self, *, user_id: int, race_id: int):
+        self.user_id = user_id  # Primary key
+        self.race_id = race_id  # Primary key
 
-        self.dnf_driver_name = dnf_driver_name
-        self.pxx_driver_name = pxx_driver_name
-
-    @classmethod
-    def from_csv(cls, row: List[str]):
-        db_race_guess: DbRaceGuess = cls(user_name=str(row[0]),
-                                         race_name=str(row[1]),
-                                         pxx_driver_name=str(row[2]),
-                                         dnf_driver_name=str(row[3]))
-        return db_race_guess
-
-    def to_csv(self) -> List[Any]:
-        return [
-            self.user_name,
-            self.race_name,
-            self.pxx_driver_name,
-            self.dnf_driver_name
-        ]
-
-    user_name: Mapped[str] = mapped_column(ForeignKey("user.name"), primary_key=True)
-    race_name: Mapped[str] = mapped_column(ForeignKey("race.name"), primary_key=True)
-    pxx_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
-    dnf_driver_name: Mapped[str] = mapped_column(ForeignKey("driver.name"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
+    race_id: Mapped[int] = mapped_column(ForeignKey("race.id"), primary_key=True)
+    pxx_driver_id: Mapped[int] = mapped_column(ForeignKey("driver.id"), nullable=False)
+    dnf_driver_id: Mapped[int] = mapped_column(ForeignKey("driver.id"), nullable=False)
 
     # Relationships
-    user: Mapped[DbUser] = relationship("DbUser", foreign_keys=[user_name])
-    race: Mapped[DbRace] = relationship("DbRace", foreign_keys=[race_name])
-    pxx: Mapped[DbDriver] = relationship("DbDriver", foreign_keys=[pxx_driver_name])
-    dnf: Mapped[DbDriver] = relationship("DbDriver", foreign_keys=[dnf_driver_name])
+    user: Mapped[DbUser] = relationship("DbUser", foreign_keys=[user_id])
+    race: Mapped[DbRace] = relationship("DbRace", foreign_keys=[race_id])
+    pxx: Mapped[DbDriver] = relationship("DbDriver", foreign_keys=[pxx_driver_id])
+    dnf: Mapped[DbDriver] = relationship("DbDriver", foreign_keys=[dnf_driver_id])

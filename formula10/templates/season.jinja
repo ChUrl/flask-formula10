@@ -102,26 +102,26 @@
                                 <div class="g-col-6">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio"
-                                               name="teamwinner-{{ team.name }}"
-                                               id="teamwinner-{{ team.name }}-1-{{ user.name }}"
-                                               value="{{ driver_a.name }}"
+                                               name="teamwinner-{{ team.id }}"
+                                               id="teamwinner-{{ team.id }}-1-{{ user.id }}"
+                                               value="{{ driver_a.id }}"
                                                {% if (user_guess is not none) and (driver_a in user_guess.team_winners) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label {% if (user_guess is not none) and (driver_a in user_guess.team_winners) and points.is_team_winner(driver_a) %}text-success{% endif %}"
-                                               for="teamwinner-{{ team.name }}-1-{{ user.name }}">{{ driver_a.name }}</label>
+                                               for="teamwinner-{{ team.id }}-1-{{ user.id }}">{{ driver_a.name }}</label>
                                     </div>
                                 </div>
 
                                 <div class="g-col-6">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio"
-                                               name="teamwinner-{{ team.name }}"
-                                               id="teamwinner-{{ team.name }}-2-{{ user.name }}"
-                                               value="{{ driver_b.name }}"
+                                               name="teamwinner-{{ team.id }}"
+                                               id="teamwinner-{{ team.id }}-2-{{ user.id }}"
+                                               value="{{ driver_b.id }}"
                                                {% if (user_guess is not none) and (driver_b in user_guess.team_winners) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label {% if (user_guess is not none) and (driver_b in user_guess.team_winners) and points.is_team_winner(driver_b) %}text-success{% endif %}"
-                                               for="teamwinner-{{ team.name }}-2-{{ user.name }}">{{ driver_b.name }}</label>
+                                               for="teamwinner-{{ team.id }}-2-{{ user.id }}">{{ driver_b.name }}</label>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -139,12 +139,12 @@
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="checkbox"
                                                name="podiumdrivers"
-                                               id="podium-{{ driver_a.name }}-{{ user.name }}"
-                                               value="{{ driver_a.name }}"
+                                               id="podium-{{ driver_a.id }}-{{ user.id }}"
+                                               value="{{ driver_a.id }}"
                                                {% if (user_guess is not none) and (driver_a in user_guess.podiums) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label {% if (user_guess is not none) and (driver_a in user_guess.podiums) and points.has_podium(driver_a) %}text-success{% endif %}"
-                                               for="podium-{{ driver_a.name }}-{{ user.name }}">{{ driver_a.name }}</label>
+                                               for="podium-{{ driver_a.id }}-{{ user.id }}">{{ driver_a.name }}</label>
                                     </div>
                                 </div>
 
@@ -152,12 +152,12 @@
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="checkbox"
                                                name="podiumdrivers"
-                                               id="podium-{{ driver_b.name }}-{{ user.name }}"
-                                               value="{{ driver_b.name }}"
+                                               id="podium-{{ driver_b.id }}-{{ user.id }}"
+                                               value="{{ driver_b.id }}"
                                                {% if (user_guess is not none) and (driver_b in user_guess.podiums) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label {% if (user_guess is not none) and (driver_b in user_guess.podiums) and points.has_podium(driver_b) %}text-success{% endif %}"
-                                               for="podium-{{ driver_b.name }}-{{ user.name }}">{{ driver_b.name }}</label>
+                                               for="podium-{{ driver_b.id }}-{{ user.id }}">{{ driver_b.name }}</label>
                                     </div>
                                 </div>
                             {% endfor %}
