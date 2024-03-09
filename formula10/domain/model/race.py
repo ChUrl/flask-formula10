@@ -13,6 +13,8 @@ class Race():
         race.number = db_race.number
         race.date = db_race.date
         race.place_to_guess = db_race.pxx
+        race.quali_date = db_race.quali_date
+        race.has_sprint = db_race.has_sprint
         return race
 
     def to_db_race(self) -> DbRace:
@@ -21,6 +23,8 @@ class Race():
         db_race.number = self.number
         db_race.date = self.date
         db_race.pxx = self.place_to_guess
+        db_race.quali_date = self.date
+        db_race.has_sprint = self.has_sprint
         return db_race
 
     def __eq__(self, __value: object) -> bool:
@@ -37,6 +41,8 @@ class Race():
     number: int
     date: datetime
     place_to_guess: int
+    quali_date: datetime
+    has_sprint: bool
 
     @property
     def name_sanitized(self) -> str:

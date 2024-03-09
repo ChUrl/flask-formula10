@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from formula10 import db
@@ -20,3 +20,5 @@ class DbRace(db.Model):
     number: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False, unique=True)
     pxx: Mapped[int] = mapped_column(Integer, nullable=False)  # This is the place to guess
+    quali_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, unique=True)
+    has_sprint: Mapped[bool] = mapped_column(Boolean, nullable=False)
