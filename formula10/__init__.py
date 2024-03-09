@@ -29,24 +29,3 @@ import formula10.controller.statistics_controller
 import formula10.controller.rules_controller
 import formula10.controller.admin_controller
 import formula10.controller.error_controller
-
-
-# TODO
-# Large DB Update
-# - Don't use names for frontend post requests, use IDs
-# - For season guess calc there is missing: Fastest laps + sprint points + sprint DNFs (in race result)
-# - Mask to allow changing usernames (easy if name is not used as ID)
-# - Maybe even masks for races + drivers + teams?
-# - DB fields for links to F1 site - NO: just hardcode them in with a dictionary
-
-# Leaderboards/Points
-# - Auto calculate season points (display season points in table + season guess card title?)
-
-# Optimizations
-# - Optimize PointsModel + TemplateModel. In case something is calculated often, cache it.
-# - NEVER do manual DB queries, except in the DomainModel!
-
-# General
-# - Adapt diagram colors to team colors
-# - Add links to the official F1 stats page (for quali/result), probably best to store entire link in DB (because they are not entirely regular)?
-# - Unit testing (as much as possible, but especially points calculation)

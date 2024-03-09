@@ -1,39 +1,36 @@
-from typing import List
-from urllib.parse import unquote
-from flask import redirect, render_template, request
+from flask import render_template, request
 from werkzeug import Response
 
-from formula10.database.update_queries import update_race_result, update_user
-from formula10.domain.domain_model import Model
+from formula10.database.update_queries import update_user
 from formula10.domain.template_model import TemplateModel
 from formula10 import app
 
 
-@app.route("/result")
-def result_root() -> Response:
-    return redirect("/result/Current")
+# @app.route("/result")
+# def result_root() -> Response:
+#     return redirect("/result/Current")
 
 
-@app.route("/result/<race_name>")
-def result_active_race(race_name: str) -> str:
-    race_name = unquote(race_name)
-    model = TemplateModel(active_user_name=None,
-                          active_result_race_name=race_name)
+# @app.route("/result/<race_name>")
+# def result_active_race(race_name: str) -> str:
+#     race_name = unquote(race_name)
+#     model = TemplateModel(active_user_name=None,
+#                           active_result_race_name=race_name)
 
-    return render_template("result.jinja", model=model)
+#     return render_template("result.jinja", model=model)
 
 
-@app.route("/result-enter/<race_name>", methods=["POST"])
-def result_enter_post(race_name: str) -> Response:
-    race_name = unquote(race_name)
-    pxxs: List[str] = request.form.getlist("pxx-drivers")
-    first_dnfs: List[str] = request.form.getlist("first-dnf-drivers")
-    dnfs: List[str] = request.form.getlist("dnf-drivers")
-    excluded: List[str] = request.form.getlist("excluded-drivers")
+# @app.route("/result-enter/<race_name>", methods=["POST"])
+# def result_enter_post(race_name: str) -> Response:
+#     race_name = unquote(race_name)
+#     pxxs: List[str] = request.form.getlist("pxx-drivers")
+#     first_dnfs: List[str] = request.form.getlist("first-dnf-drivers")
+#     dnfs: List[str] = request.form.getlist("dnf-drivers")
+#     excluded: List[str] = request.form.getlist("excluded-drivers")
 
-    # @todo Ugly
-    race_id: int = Model().race_by(race_name=race_name).id
-    return update_race_result(race_id, pxxs, first_dnfs, dnfs, excluded)
+#     # @todo Ugly
+#     race_id: int = Model().race_by(race_name=race_name).id
+#     return update_race_result(race_id, pxxs, first_dnfs, dnfs, excluded)
 
 
 @app.route("/user")

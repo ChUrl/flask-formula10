@@ -1,19 +1,15 @@
 import json
-from typing import Dict, List, cast
-from urllib.parse import quote
+from typing import List, cast
 from flask import redirect
 from werkzeug import Response
 from formula10.controller.error_controller import error_redirect
 
 from formula10.database.common_queries import race_has_result, user_exists_and_disabled, user_exists_and_enabled
-from formula10.database.model.db_race import DbRace
 from formula10.database.model.db_race_guess import DbRaceGuess
-from formula10.database.model.db_race_result import DbRaceResult
 from formula10.database.model.db_season_guess import DbSeasonGuess
 from formula10.database.model.db_user import DbUser
-from formula10.database.validation import any_is_none, positions_are_contiguous, race_has_started
+from formula10.database.validation import any_is_none, race_has_started
 from formula10 import ENABLE_TIMING, db
-from formula10.domain.model.driver import NONE_DRIVER
 
 
 def find_or_create_race_guess(user_id: int, race_id: int) -> DbRaceGuess:
@@ -116,77 +112,77 @@ def update_season_guess(user_id: int, guesses: List[str | None], team_winner_gue
     return redirect(f"/season/Everyone")
 
 
-def find_or_create_race_result(race_id: int) -> DbRaceResult:
-    # There can be a single RaceResult at most, since race_name is the primary key
-    race_result: DbRaceResult | None = db.session.query(DbRaceResult).filter_by(race_id=race_id).first()
-    if race_result is not None:
-        return race_result
+# def find_or_create_race_result(race_id: int) -> DbRaceResult:
+#     # There can be a single RaceResult at most, since race_name is the primary key
+#     race_result: DbRaceResult | None = db.session.query(DbRaceResult).filter_by(race_id=race_id).first()
+#     if race_result is not None:
+#         return race_result
 
-    race_result = DbRaceResult(race_id=race_id)
-    race_result.pxx_driver_ids_json = json.dumps(["9999"])
-    race_result.first_dnf_driver_ids_json = json.dumps(["9999"])
-    race_result.dnf_driver_ids_json = json.dumps(["9999"])
-    race_result.excluded_driver_ids_json = json.dumps(["9999"])
+#     race_result = DbRaceResult(race_id=race_id)
+#     race_result.pxx_driver_ids_json = json.dumps(["9999"])
+#     race_result.first_dnf_driver_ids_json = json.dumps(["9999"])
+#     race_result.dnf_driver_ids_json = json.dumps(["9999"])
+#     race_result.excluded_driver_ids_json = json.dumps(["9999"])
 
-    race_result.fastest_lap_id = 9999
-    race_result.sprint_dnf_driver_ids_json = json.dumps(["9999"])
-    race_result.sprint_points_json = json.dumps({"9999": "9999"})
+#     race_result.fastest_lap_id = 9999
+#     race_result.sprint_dnf_driver_ids_json = json.dumps(["9999"])
+#     race_result.sprint_points_json = json.dumps({"9999": "9999"})
 
-    db.session.add(race_result)
-    db.session.commit()
+#     db.session.add(race_result)
+#     db.session.commit()
 
-    # Double check if database insertion worked and obtain any values set by the database
-    race_result = db.session.query(DbRaceResult).filter_by(race_id=race_id).first()
-    if race_result is None:
-        raise Exception("Failed adding RaceResult to the database")
+#     # Double check if database insertion worked and obtain any values set by the database
+#     race_result = db.session.query(DbRaceResult).filter_by(race_id=race_id).first()
+#     if race_result is None:
+#         raise Exception("Failed adding RaceResult to the database")
 
-    return race_result
+#     return race_result
 
 
-def update_race_result(race_id: int, pxx_driver_ids_list: List[str], first_dnf_driver_ids_list: List[str], dnf_driver_ids_list: List[str], excluded_driver_ids_list: List[str]) -> Response:
-    if ENABLE_TIMING and not race_has_started(race_id=race_id):
-        return error_redirect("No race result can be entered, as the race has not begun!")
+# def update_race_result(race_id: int, pxx_driver_ids_list: List[str], first_dnf_driver_ids_list: List[str], dnf_driver_ids_list: List[str], excluded_driver_ids_list: List[str]) -> Response:
+#     if ENABLE_TIMING and not race_has_started(race_id=race_id):
+#         return error_redirect("No race result can be entered, as the race has not begun!")
 
-    # Use strings as keys, as these dicts will be serialized to json
-    pxx_driver_names: Dict[str, str] = {
-        str(position + 1): driver_id for position, driver_id in enumerate(pxx_driver_ids_list)
-    }
+#     # Use strings as keys, as these dicts will be serialized to json
+#     pxx_driver_names: Dict[str, str] = {
+#         str(position + 1): driver_id for position, driver_id in enumerate(pxx_driver_ids_list)
+#     }
 
-    # Not counted drivers have to be at the end
-    excluded_driver_names: Dict[str, str] = {
-        str(position + 1): driver_id for position, driver_id in enumerate(pxx_driver_ids_list)
-        if driver_id in excluded_driver_ids_list
-    }
-    if len(excluded_driver_names) > 0 and (not "20" in excluded_driver_names or not positions_are_contiguous(list(excluded_driver_names.keys()))):
-        return error_redirect("Race result was not saved, as excluded drivers must be contiguous and at the end of the field!")
+#     # Not counted drivers have to be at the end
+#     excluded_driver_names: Dict[str, str] = {
+#         str(position + 1): driver_id for position, driver_id in enumerate(pxx_driver_ids_list)
+#         if driver_id in excluded_driver_ids_list
+#     }
+#     if len(excluded_driver_names) > 0 and (not "20" in excluded_driver_names or not positions_are_contiguous(list(excluded_driver_names.keys()))):
+#         return error_redirect("Race result was not saved, as excluded drivers must be contiguous and at the end of the field!")
 
-    # First DNF drivers have to be contained in DNF drivers
-    for driver_id in first_dnf_driver_ids_list:
-        if driver_id not in dnf_driver_ids_list:
-            dnf_driver_ids_list.append(driver_id)
+#     # First DNF drivers have to be contained in DNF drivers
+#     for driver_id in first_dnf_driver_ids_list:
+#         if driver_id not in dnf_driver_ids_list:
+#             dnf_driver_ids_list.append(driver_id)
 
-    # There can't be dnfs but no initial dnfs
-    if len(dnf_driver_ids_list) > 0 and len(first_dnf_driver_ids_list) == 0:
-        return error_redirect("Race result was not saved, as there cannot be DNFs without (an) initial DNF(s)!")
+#     # There can't be dnfs but no initial dnfs
+#     if len(dnf_driver_ids_list) > 0 and len(first_dnf_driver_ids_list) == 0:
+#         return error_redirect("Race result was not saved, as there cannot be DNFs without (an) initial DNF(s)!")
 
-    race_result: DbRaceResult = find_or_create_race_result(race_id)
-    race_result.pxx_driver_ids_json = json.dumps(pxx_driver_names)
-    race_result.first_dnf_driver_ids_json = json.dumps(first_dnf_driver_ids_list)
-    race_result.dnf_driver_ids_json = json.dumps(dnf_driver_ids_list)
-    race_result.excluded_driver_ids_json = json.dumps(excluded_driver_ids_list)
+#     race_result: DbRaceResult = find_or_create_race_result(race_id)
+#     race_result.pxx_driver_ids_json = json.dumps(pxx_driver_names)
+#     race_result.first_dnf_driver_ids_json = json.dumps(first_dnf_driver_ids_list)
+#     race_result.dnf_driver_ids_json = json.dumps(dnf_driver_ids_list)
+#     race_result.excluded_driver_ids_json = json.dumps(excluded_driver_ids_list)
 
-    # @todo Dummy values
-    race_result.fastest_lap_id = NONE_DRIVER.id
-    race_result.sprint_dnf_driver_ids_json = json.dumps([NONE_DRIVER.id])
-    race_result.sprint_points_json = json.dumps({NONE_DRIVER.id: 0})
+#     # @todo Dummy values
+#     race_result.fastest_lap_id = NONE_DRIVER.id
+#     race_result.sprint_dnf_driver_ids_json = json.dumps([NONE_DRIVER.id])
+#     race_result.sprint_points_json = json.dumps({NONE_DRIVER.id: 0})
 
-    db.session.commit()
+#     db.session.commit()
 
-    race: DbRace | None = db.session.query(DbRace).filter_by(id=race_id).first()
-    if race is None:
-        raise Exception(f"Could not find DbRace with id {race_id}")
+#     race: DbRace | None = db.session.query(DbRace).filter_by(id=race_id).first()
+#     if race is None:
+#         raise Exception(f"Could not find DbRace with id {race_id}")
 
-    return redirect(f"/result/{quote(race.name)}")
+#     return redirect(f"/result/{quote(race.name)}")
 
 
 def update_user(user_name: str | None, add: bool = False, delete: bool = False) -> Response:

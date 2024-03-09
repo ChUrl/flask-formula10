@@ -26,7 +26,8 @@
 {# Simple driver select for forms #}
 {% macro driver_select(name, label, include_none, drivers=none, disabled=false, border="") %}
     <div class="form-floating">
-        <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}" {% if disabled %}disabled="disabled"{% endif %}>
+        <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}"
+                {% if disabled %}disabled="disabled"{% endif %}>
             <option value="" selected disabled hidden></option>
 
             {% if drivers == none %}
@@ -44,7 +45,8 @@
 {# Driver select for forms where a value might be preselected #}
 {% macro driver_select_with_preselect(driver_match, name, label, include_none, drivers=none, disabled=false, border="") %}
     <div class="form-floating">
-        <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}" {% if disabled %}disabled="disabled"{% endif %}>
+        <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}"
+                {% if disabled %}disabled="disabled"{% endif %}>
             {# Use namespace wrapper to persist scope between loop iterations #}
             {% set user_has_chosen = namespace(driverpre=false) %}
 
@@ -77,7 +79,8 @@
 {# Simple team select for forms #}
 {% macro team_select(name, label, include_none, teams=none, disabled=false, border="") %}
     <div class="form-floating">
-        <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}" {% if disabled %}disabled="disabled"{% endif %}>
+        <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}"
+                {% if disabled %}disabled="disabled"{% endif %}>
             <option value="" selected disabled hidden></option>
 
             {% if teams == none %}
@@ -95,7 +98,8 @@
 {# Team select for forms where a value might be preselected #}
 {% macro team_select_with_preselect(team_match, name, label, include_none, teams=none, disabled=false, border="") %}
     <div class="form-floating">
-        <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}" {% if disabled %}disabled="disabled"{% endif %}>
+        <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}"
+                {% if disabled %}disabled="disabled"{% endif %}>
             {# Use namespace wrapper to persist scope between loop iterations #}
             {% set user_has_chosen = namespace(teampre=false) %}
 
@@ -218,7 +222,7 @@
             <div class="flex-grow-1"></div>
 
             <div class="navbar-nav">
-                {{ nav_selector(page="/result", text="Enter Race Result") }}
+                {# {{ nav_selector(page="/result", text="Enter Race Result") }} #}
                 {{ nav_selector(page="/user", text="Manage Users") }}
             </div>
         </div>
