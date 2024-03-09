@@ -69,6 +69,14 @@ class TemplateModel(Model):
     def current_race(self) -> Race | None:
         return self.first_race_without_result()
 
+    def active_result_race_or_current_race(self) -> Race:
+        if self.active_result is not None:
+            return self.active_result.race
+        elif self.current_race is not None:
+            return self.current_race
+        else:
+            return self.all_races()[0]
+
     def active_result_race_name_or_current_race_name(self) -> str:
         if self.active_result is not None:
             return self.active_result.race.name

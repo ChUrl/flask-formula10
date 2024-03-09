@@ -31,7 +31,15 @@ def result_enter_post(race_name: str) -> Response:
     dnfs: List[str] = request.form.getlist("dnf-drivers")
     excluded: List[str] = request.form.getlist("excluded-drivers")
 
-    # @todo Ugly
+    fastest_lap: str | None = request.form.get("fastest-lap")
+    sprint_pxxs: List[str] = request.form.getlist("sprint-pxx-drivers")
+    sprint_dnf_drivers: List[str] = request.form.getlist("sprint-dnf-drivers")
+
+    # @todo Integrate these into update_race_result()
+    print("Fastest lap:", fastest_lap)
+    print("Sprint:", sprint_pxxs)
+    print("Sprint DNFs:", sprint_dnf_drivers)
+
     race_id: int = Model().race_by(race_name=race_name).id
     return update_race_result(race_id, pxxs, first_dnfs, dnfs, excluded)
 
