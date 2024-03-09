@@ -23,6 +23,7 @@
           flask
           flask-sqlalchemy
           sqlalchemy
+          requests
 
           pytest
         ]);
