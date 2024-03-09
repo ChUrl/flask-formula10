@@ -13,7 +13,6 @@ from formula10.database.model.db_season_guess import DbSeasonGuess
 from formula10.database.model.db_user import DbUser
 from formula10.database.validation import any_is_none, positions_are_contiguous, race_has_started
 from formula10 import ENABLE_TIMING, db
-from formula10.domain.model.driver import NONE_DRIVER
 
 
 def find_or_create_race_guess(user_id: int, race_id: int) -> DbRaceGuess:
@@ -129,8 +128,8 @@ def find_or_create_race_result(race_id: int) -> DbRaceResult:
     race_result.excluded_driver_ids_json = json.dumps(["9999"])
 
     race_result.fastest_lap_id = 9999
-    race_result.sprint_dnf_driver_ids_json = json.dumps(["9999"])
-    race_result.sprint_points_json = json.dumps({"9999": "9999"})
+    race_result.sprint_dnf_driver_ids_json = json.dumps([])
+    race_result.sprint_points_json = json.dumps({})
 
     db.session.add(race_result)
     db.session.commit()
@@ -143,21 +142,22 @@ def find_or_create_race_result(race_id: int) -> DbRaceResult:
     return race_result
 
 
-def update_race_result(race_id: int, pxx_driver_ids_list: List[str], first_dnf_driver_ids_list: List[str], dnf_driver_ids_list: List[str], excluded_driver_ids_list: List[str]) -> Response:
+def update_race_result(race_id: int, pxx_driver_ids_list: List[str], first_dnf_driver_ids_list: List[str], dnf_driver_ids_list: List[str], excluded_driver_ids_list: List[str],
+                       fastest_lap_driver_id: int, sprint_pxx_driver_ids_list: List[str], sprint_dnf_driver_ids_list: List[str]) -> Response:
     if ENABLE_TIMING and not race_has_started(race_id=race_id):
         return error_redirect("No race result can be entered, as the race has not begun!")
 
     # Use strings as keys, as these dicts will be serialized to json
-    pxx_driver_names: Dict[str, str] = {
+    pxx_driver_ids: Dict[str, str] = {
         str(position + 1): driver_id for position, driver_id in enumerate(pxx_driver_ids_list)
     }
 
     # Not counted drivers have to be at the end
-    excluded_driver_names: Dict[str, str] = {
+    excluded_driver_ids: Dict[str, str] = {
         str(position + 1): driver_id for position, driver_id in enumerate(pxx_driver_ids_list)
         if driver_id in excluded_driver_ids_list
     }
-    if len(excluded_driver_names) > 0 and (not "20" in excluded_driver_names or not positions_are_contiguous(list(excluded_driver_names.keys()))):
+    if len(excluded_driver_ids) > 0 and (not "20" in excluded_driver_ids or not positions_are_contiguous(list(excluded_driver_ids.keys()))):
         return error_redirect("Race result was not saved, as excluded drivers must be contiguous and at the end of the field!")
 
     # First DNF drivers have to be contained in DNF drivers
@@ -170,15 +170,19 @@ def update_race_result(race_id: int, pxx_driver_ids_list: List[str], first_dnf_d
         return error_redirect("Race result was not saved, as there cannot be DNFs without (an) initial DNF(s)!")
 
     race_result: DbRaceResult = find_or_create_race_result(race_id)
-    race_result.pxx_driver_ids_json = json.dumps(pxx_driver_names)
+    race_result.pxx_driver_ids_json = json.dumps(pxx_driver_ids)
     race_result.first_dnf_driver_ids_json = json.dumps(first_dnf_driver_ids_list)
     race_result.dnf_driver_ids_json = json.dumps(dnf_driver_ids_list)
     race_result.excluded_driver_ids_json = json.dumps(excluded_driver_ids_list)
 
-    # @todo Dummy values
-    race_result.fastest_lap_id = NONE_DRIVER.id
-    race_result.sprint_dnf_driver_ids_json = json.dumps([NONE_DRIVER.id])
-    race_result.sprint_points_json = json.dumps({NONE_DRIVER.id: 0})
+    # Extra stats for points calculation
+    sprint_pxx_driver_ids: Dict[str, str] = {
+        str(position + 1): driver_id for position, driver_id in enumerate(sprint_pxx_driver_ids_list)
+    }
+
+    race_result.fastest_lap_id = fastest_lap_driver_id
+    race_result.sprint_dnf_driver_ids_json = json.dumps(sprint_dnf_driver_ids_list)
+    race_result.sprint_points_json = json.dumps(sprint_pxx_driver_ids)
 
     db.session.commit()
 

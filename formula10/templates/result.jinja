@@ -155,7 +155,7 @@
 
                             {# Place numbers #}
                             <ul class="list-group list-group-flush d-inline-block">
-                                {% for driver in model.all_drivers_or_active_result_standing_drivers() %}
+                                {% for driver in model.all_drivers_or_active_result_sprint_standing_drivers() %}
                                     <li class="list-group-item p-1"><span id="place_number"
                                                                           class="fw-bold">P{{ "%02d" % loop.index }}</span>:
                                     </li>
@@ -164,7 +164,7 @@
 
                             {# Drag and drop, "#columns .column" is the selector for the JS #}
                             <ul id="columns" class="list-group list-group-flush d-inline-block float-end">
-                                {% for driver in model.all_drivers(include_none=false) %}
+                                {% for driver in model.all_drivers_or_active_result_sprint_standing_drivers() %}
                                     <li class="list-group-item {% if race_result_open == true %}column{% endif %} p-1"
                                         {% if race_result_open == true %}draggable="true"{% endif %}>
                                         {{ driver.name }}

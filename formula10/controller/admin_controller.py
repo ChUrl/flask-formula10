@@ -2,6 +2,7 @@ from typing import List
 from urllib.parse import unquote
 from flask import redirect, render_template, request
 from werkzeug import Response
+from formula10.controller.error_controller import error_redirect
 
 from formula10.database.update_queries import update_race_result, update_user
 from formula10.domain.domain_model import Model
@@ -31,17 +32,16 @@ def result_enter_post(race_name: str) -> Response:
     dnfs: List[str] = request.form.getlist("dnf-drivers")
     excluded: List[str] = request.form.getlist("excluded-drivers")
 
+    # Extra stats for points calculation
     fastest_lap: str | None = request.form.get("fastest-lap")
     sprint_pxxs: List[str] = request.form.getlist("sprint-pxx-drivers")
     sprint_dnf_drivers: List[str] = request.form.getlist("sprint-dnf-drivers")
 
-    # @todo Integrate these into update_race_result()
-    print("Fastest lap:", fastest_lap)
-    print("Sprint:", sprint_pxxs)
-    print("Sprint DNFs:", sprint_dnf_drivers)
+    if fastest_lap is None:
+        return error_redirect("Data was not saved, because fastest lap was not set.")
 
     race_id: int = Model().race_by(race_name=race_name).id
-    return update_race_result(race_id, pxxs, first_dnfs, dnfs, excluded)
+    return update_race_result(race_id, pxxs, first_dnfs, dnfs, excluded, int(fastest_lap), sprint_pxxs, sprint_dnf_drivers)
 
 
 @app.route("/user")

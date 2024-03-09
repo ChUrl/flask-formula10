@@ -174,6 +174,11 @@ class RaceResult:
             self.standing[str(position)] for position in range(1, 21)
         ]
 
+    def ordered_sprint_standing_list(self) -> List[Driver]:
+        return [
+            self.sprint_standing[str(position)] for position in range(1, 21)
+        ]
+
     def initial_dnf_string(self) -> str:
         if len(self.initial_dnf) == 0:
             return NONE_DRIVER.name

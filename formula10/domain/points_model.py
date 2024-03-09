@@ -11,6 +11,8 @@ from formula10.domain.model.season_guess_result import SeasonGuessResult
 from formula10.domain.model.team import Team
 from formula10.domain.model.user import User
 
+# Guess points
+
 RACE_GUESS_OFFSET_POINTS: Dict[int, int] = {
     3: 1,
     2: 3,
@@ -18,7 +20,6 @@ RACE_GUESS_OFFSET_POINTS: Dict[int, int] = {
     0: 10
 }
 RACE_GUESS_DNF_POINTS: int = 10
-
 SEASON_GUESS_HOT_TAKE_POINTS: int = 10
 SEASON_GUESS_P2_POINTS: int = 10
 SEASON_GUESS_OVERTAKES_POINTS: int = 10
@@ -29,6 +30,8 @@ SEASON_GUESS_TEAMWINNER_CORRECT_POINTS: int = 3
 SEASON_GUESS_TEAMWINNER_FALSE_POINTS: int = -3
 SEASON_GUESS_PODIUMS_CORRECT_POINTS: int = 3
 SEASON_GUESS_PODIUMS_FALSE_POINTS: int = -2
+
+# Driver points
 
 DRIVER_RACE_POINTS: Dict[int, int] = {
     1: 25,
@@ -42,6 +45,19 @@ DRIVER_RACE_POINTS: Dict[int, int] = {
     9: 2,
     10: 1
 }
+DRIVER_SPRINT_POINTS: Dict[int, int] = {
+    1: 8,
+    2: 7,
+    3: 6,
+    4: 5,
+    5: 4,
+    6: 3,
+    7: 2,
+    8: 1
+}
+DRIVER_FASTEST_LAP_POINTS: int = 1
+
+# Last season results
 
 WDC_STANDING_2023: Dict[str, int] = {
     "Max Verstappen": 1,
@@ -65,7 +81,6 @@ WDC_STANDING_2023: Dict[str, int] = {
     "Kevin Magnussen": 19,
     "Logan Sargeant": 21
 }
-
 WCC_STANDING_2023: Dict[str, int] = {
     "Red Bull": 1,
     "Mercedes": 2,
@@ -133,7 +148,6 @@ class PointsModel(Model):
 
         return self._points_per_step
 
-    # @todo Doesn't include fastest lap + sprint points
     def driver_points_per_step(self) -> Dict[str, List[int]]:
         """
         Returns a dictionary of lists, containing points per race for each driver.
@@ -144,15 +158,19 @@ class PointsModel(Model):
                 self._driver_points_per_step[driver.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
 
             for race_result in self.all_race_results():
-                for position, driver in race_result.standing.items():
-                    driver_name: str = driver.name
-                    race_number: int = race_result.race.number
+                race_number: int = race_result.race.number
 
-                    self._driver_points_per_step[driver_name][race_number] = DRIVER_RACE_POINTS[int(position)] if int(position) in DRIVER_RACE_POINTS else 0
+                for position, driver in race_result.standing.items():
+                    self._driver_points_per_step[driver.name][race_number] = DRIVER_RACE_POINTS[int(position)] if int(position) in DRIVER_RACE_POINTS else 0
+                    self._driver_points_per_step[driver.name][race_number] += DRIVER_FASTEST_LAP_POINTS if race_result.fastest_lap_driver == driver else 0
+
+                for position, driver in race_result.sprint_standing.items():
+                    driver_name: str = driver.name
+
+                    self._driver_points_per_step[driver_name][race_number] += DRIVER_SPRINT_POINTS[int(position)] if int(position) in DRIVER_SPRINT_POINTS else 0
 
         return self._driver_points_per_step
 
-    # @todo Doesn't include fastest lap + sprint points
     def team_points_per_step(self) -> Dict[str, List[int]]:
         """
         Returns a dictionary of lists, containing points per race for each team.
@@ -163,15 +181,14 @@ class PointsModel(Model):
                 self._team_points_per_step[team.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
 
             for race_result in self.all_race_results():
-                for position, driver in race_result.standing.items():
+                for driver in race_result.standing.values():
                     team_name: str = driver.team.name
                     race_number: int = race_result.race.number
 
-                    self._team_points_per_step[team_name][race_number] += DRIVER_RACE_POINTS[int(position)] if int(position) in DRIVER_RACE_POINTS else 0
+                    self._team_points_per_step[team_name][race_number] += self.driver_points_per_step()[driver.name][race_number]
 
         return self._team_points_per_step
 
-    # @todo Doesn't include sprint dnfs
     def dnfs(self) -> Dict[str, int]:
         if self._dnfs is None:
             self._dnfs = dict()
@@ -181,6 +198,9 @@ class PointsModel(Model):
 
             for race_result in self.all_race_results():
                 for driver in race_result.all_dnfs:
+                    self._dnfs[driver.name] += 1
+
+                for driver in race_result.sprint_dnfs:
                     self._dnfs[driver.name] += 1
 
         return self._dnfs
