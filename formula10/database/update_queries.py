@@ -13,6 +13,7 @@ from formula10.database.model.db_season_guess import DbSeasonGuess
 from formula10.database.model.db_user import DbUser
 from formula10.database.validation import any_is_none, positions_are_contiguous, race_has_started
 from formula10 import ENABLE_TIMING, db
+from formula10.domain.model.driver import NONE_DRIVER
 
 
 def find_or_create_race_guess(user_id: int, race_id: int) -> DbRaceGuess:
@@ -126,6 +127,11 @@ def find_or_create_race_result(race_id: int) -> DbRaceResult:
     race_result.first_dnf_driver_ids_json = json.dumps(["9999"])
     race_result.dnf_driver_ids_json = json.dumps(["9999"])
     race_result.excluded_driver_ids_json = json.dumps(["9999"])
+
+    race_result.fastest_lap_id = 9999
+    race_result.sprint_dnf_driver_ids_json = json.dumps(["9999"])
+    race_result.sprint_points_json = json.dumps({"9999": "9999"})
+
     db.session.add(race_result)
     db.session.commit()
 
@@ -168,6 +174,11 @@ def update_race_result(race_id: int, pxx_driver_ids_list: List[str], first_dnf_d
     race_result.first_dnf_driver_ids_json = json.dumps(first_dnf_driver_ids_list)
     race_result.dnf_driver_ids_json = json.dumps(dnf_driver_ids_list)
     race_result.excluded_driver_ids_json = json.dumps(excluded_driver_ids_list)
+
+    # @todo Dummy values
+    race_result.fastest_lap_id = NONE_DRIVER.id
+    race_result.sprint_dnf_driver_ids_json = json.dumps([NONE_DRIVER.id])
+    race_result.sprint_points_json = json.dumps({NONE_DRIVER.id: 0})
 
     db.session.commit()
 

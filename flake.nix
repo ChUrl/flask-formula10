@@ -37,9 +37,6 @@
             nodePackages.sass
             nodePackages.postcss-cli
             nodePackages.autoprefixer
-
-            sqlitebrowser # To modify tables
-            dbeaver # To import/export data + diagrams
           ];
 
           # Use $1 for positional args

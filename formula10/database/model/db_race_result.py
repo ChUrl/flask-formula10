@@ -1,5 +1,6 @@
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from formula10.database.model.db_driver import DbDriver
 
 from formula10.database.model.db_race import DbRace
 from formula10 import db
@@ -20,5 +21,10 @@ class DbRaceResult(db.Model):
     dnf_driver_ids_json: Mapped[str] = mapped_column(String(1024), nullable=False)
     excluded_driver_ids_json: Mapped[str] = mapped_column(String(1024), nullable=False)
 
+    fastest_lap_id: Mapped[int] = mapped_column(ForeignKey("driver.id"), nullable=False)
+    sprint_dnf_driver_ids_json: Mapped[str] = mapped_column(String(1024), nullable=False)
+    sprint_points_json: Mapped[str] = mapped_column(String(1024), nullable=False)
+
     # Relationships
     race: Mapped[DbRace] = relationship("DbRace", foreign_keys=[race_id])
+    fastest_lap_driver: Mapped[DbDriver] = relationship("DbDriver", foreign_keys=[fastest_lap_id])
