@@ -17,7 +17,10 @@ class ApiDriver():
         "team_name": str
     }
 
-    def __init__(self, response: dict[str, str]):
+    def __init__(self, response: dict[str, str] | None):
+        if response is None:
+            return
+
         for key in response:
             if not hasattr(self, key):
                 raise Exception(f"Mismatch between response data and {type(self).__name__} (key={key})")
@@ -28,6 +31,13 @@ class ApiDriver():
             setattr(self, key, self.__type_conversion_map__[key](response[key]))
 
         print("ApiDriver:", self.__dict__)
+
+    def to_params(self) -> Dict[str, str]:
+        params: Dict[str, str] = dict()
+        for key in self.__dict__:
+            params[str(key)] = str(self.__dict__[key])
+
+        return params
 
     # Set all members to None so hasattr works above
 
