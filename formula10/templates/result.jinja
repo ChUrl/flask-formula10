@@ -45,9 +45,24 @@
     {% set race_result_open=model.race_result_open(model.active_result_race_name_or_current_race_name()) %}
     {% if race_result_open == true %}
         {% set action_save_href = "/result-enter/" ~ model.active_result_race_name_or_current_race_name_sanitized() %}
+        {% set action_fetch_href = "/result-fetch/" ~ model.active_result_race_name_or_current_race_name_sanitized() %}
     {% else %}
         {% set action_save_href = "" %}
+        {% set action_fetch_href = "" %}
     {% endif %}
+
+    <form action="{{ action_fetch_href }}" method="post">
+        <div class="card shadow-sm mb-2 w-100">
+            <div class="card-header">
+                OpenF1
+            </div>
+
+            <div class="card-body">
+                <input type="submit" class="btn btn-danger mt-2 w-100" value="Fetch from OpenF1"
+                       {% if race_result_open == false %}disabled="disabled"{% endif %}>
+            </div>
+        </div>
+    </form>
 
     <form class="grid card-grid" action="{{ action_save_href }}" method="post">
 

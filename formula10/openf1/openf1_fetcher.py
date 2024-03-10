@@ -1,5 +1,6 @@
+from datetime import datetime
 import json
-from typing import Any, Dict, List, cast
+from typing import Any, Callable, Dict, List, cast
 from requests import Response, get
 
 from formula10.openf1.model.api_driver import ApiDriver
@@ -70,4 +71,6 @@ def fetch_openf1_position(session_key: int, position: int):
 
     response: List[Dict[str, str]] = request_helper(OPENF1_POSITION_ENDPOINT, _position.to_params())
 
-    return ApiPosition(response[0])
+    # Find the last driver that was on this position at last
+    predicate: Callable[[Dict[str, str]], datetime] = lambda position: datetime.strptime(position["date"], "%Y-%m-%dT%H:%M:%S.%f")
+    return ApiPosition(max(response, key=predicate))

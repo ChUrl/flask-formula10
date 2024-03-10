@@ -2,12 +2,15 @@ from typing import List
 from urllib.parse import unquote
 from flask import redirect, render_template, request
 from werkzeug import Response
-from formula10.controller.error_controller import error_redirect
 
+from formula10.controller.error_controller import error_redirect
 from formula10.database.update_queries import update_race_result, update_user
 from formula10.domain.domain_model import Model
 from formula10.domain.template_model import TemplateModel
 from formula10 import app
+from formula10.openf1.model.api_session import ApiSession
+from formula10.openf1.openf1_definitions import OPENF1_SESSION_NAME_RACE
+from formula10.openf1.openf1_fetcher import fetch_openf1_driver, fetch_openf1_position, fetch_openf1_session
 
 
 @app.route("/result")
@@ -42,6 +45,17 @@ def result_enter_post(race_name: str) -> Response:
 
     race_id: int = Model().race_by(race_name=race_name).id
     return update_race_result(race_id, pxxs, first_dnfs, dnfs, excluded, int(fastest_lap), sprint_pxxs, sprint_dnf_drivers)
+
+
+@app.route("/result-fetch/<race_name>", methods=["POST"])
+def result_fetch_post(race_name: str) -> Response:
+    session: ApiSession = fetch_openf1_session(OPENF1_SESSION_NAME_RACE, "KSA")
+    fetch_openf1_driver(session.session_key, "VER")
+    fetch_openf1_position(session.session_key, 1)
+
+    # @todo Fetch stuff and build the race_result using update_race_result(...)
+
+    return redirect("/result")
 
 
 @app.route("/user")
