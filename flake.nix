@@ -23,6 +23,7 @@
           flask
           flask-sqlalchemy
           sqlalchemy
+          requests
 
           pytest
         ]);
@@ -41,11 +42,26 @@
 
           # Use $1 for positional args
           commands = [
-            # {
-            #   name = "";
-            #   help = "";
-            #   command = "";
-            # }
+            {
+              name = "vscode";
+              help = "Launch VSCode";
+              command = "code . &>/dev/null &";
+            }
+            {
+              name = "pycharm";
+              help = "Launch PyCharm Professional";
+              command = "pycharm-professional . &>/dev/null &";
+            }
+            {
+              name = "db";
+              help = "Launch SQLiteBrowser";
+              command = "sqlitebrowser ./instance/formula10.db &>/dev/null &";
+            }
+            {
+              name = "api";
+              help = "Launch Hoppscotch in Google Chrome";
+              command = "google-chrome-stable https://hoppscotch.io &>/dev/null &";
+            }
           ];
         };
       });
