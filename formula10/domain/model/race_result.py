@@ -154,6 +154,8 @@ class RaceResult:
                     return points_strings[position_offset]
                 else:
                     return "0 Points"
+            elif driver == _driver and driver in self.standing_exclusions:
+                return "0 Points"
 
         raise Exception(f"Could not get points string for driver {driver.name}")
 
