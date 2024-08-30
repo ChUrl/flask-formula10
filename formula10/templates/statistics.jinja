@@ -27,7 +27,7 @@
                         </thead>
 
                         <tbody>
-                        {% for driver in points.drivers_sorted_by_points() %}
+                        {% for driver in points.drivers_sorted_by_points(include_inactive=True) %}
                             {% set driver_standing = points.wdc_standing_by_driver()[driver.name] %}
                             <tr class="{% if driver_standing == 1 %}table-danger{% endif %}">
                                 <td class="text-center text-nowrap">{{ driver_standing }}</td>

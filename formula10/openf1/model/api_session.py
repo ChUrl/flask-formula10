@@ -2,7 +2,7 @@ from datetime import datetime, time
 from typing import Any, Callable, Dict
 
 
-class ApiSession():
+class ApiSession:
     __type_conversion_map__: Dict[str, Callable[[Any], Any]] = {
         "location": str,
         "country_key": int,

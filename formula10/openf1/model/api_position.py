@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict
 
 
-class ApiPosition():
+class ApiPosition:
     __type_conversion_map__: Dict[str, Callable[[Any], Any]] = {
         "session_key": int,
         "meeting_key": int,

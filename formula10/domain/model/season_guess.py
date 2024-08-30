@@ -7,7 +7,7 @@ from formula10.domain.model.team import Team
 from formula10.domain.model.user import User
 
 
-class SeasonGuess():
+class SeasonGuess:
     @classmethod
     def from_db_season_guess(cls, db_season_guess: DbSeasonGuess):
         season_guess: SeasonGuess = cls()

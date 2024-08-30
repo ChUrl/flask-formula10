@@ -4,7 +4,7 @@ from urllib.parse import quote
 from formula10.database.model.db_race import DbRace
 
 
-class Race():
+class Race:
     @classmethod
     def from_db_race(cls, db_race: DbRace):
         race: Race = cls()

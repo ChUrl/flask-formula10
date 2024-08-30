@@ -2,7 +2,7 @@ from formula10.database.model.db_season_guess_result import DbSeasonGuessResult
 from formula10.domain.model.user import User
 
 
-class SeasonGuessResult():
+class SeasonGuessResult:
     @classmethod
     def from_db_season_guess_result(cls, db_season_guess_result: DbSeasonGuessResult):
         season_guess_result: SeasonGuessResult = cls()

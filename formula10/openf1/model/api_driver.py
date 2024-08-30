@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict
 
 
-class ApiDriver():
+class ApiDriver:
     __type_conversion_map__: Dict[str, Callable[[Any], Any]] = {
         "session_key": int,
         "meeting_key": int,

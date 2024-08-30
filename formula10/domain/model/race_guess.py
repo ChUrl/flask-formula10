@@ -4,7 +4,7 @@ from formula10.domain.model.race import Race
 from formula10.domain.model.user import User
 
 
-class RaceGuess():
+class RaceGuess:
     @classmethod
     def from_db_race_guess(cls, db_race_guess: DbRaceGuess):
         race_guess: RaceGuess = cls()

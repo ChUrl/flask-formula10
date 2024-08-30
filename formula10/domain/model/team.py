@@ -3,7 +3,7 @@ from urllib.parse import quote
 from formula10.database.model.db_team import DbTeam
 
 
-class Team():
+class Team:
     @classmethod
     def from_db_team(cls, db_team: DbTeam):
         team: Team = cls()

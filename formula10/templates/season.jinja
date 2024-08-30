@@ -81,7 +81,7 @@
                         <div class="input-group mt-2" data-bs-toggle="tooltip"
                              title="Which driver will gain/lose the most places in comparison to last season's results?">
                             {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_gained, name="gainedselect",
-                                   label="Most WDC pl. gained:", include_none=false, drivers=model.drivers_for_wdc_gained(),
+                                   label="Most WDC pl. gained:", include_none=false, drivers=model.active_drivers_for_wdc_gained(),
                                    disabled=not season_guess_open,
                                    border=("border-success" if points.most_gained_correct(user.name) else "")) }}
                             {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_lost, name="lostselect",
@@ -95,8 +95,8 @@
                             winners:</h6>
                         <div class="grid mt-2 container" style="row-gap: 0;">
                             {% for team in model.all_teams(include_none=false) %}
-                                {% set driver_a = model.drivers_by(team_name=team.name)[0] %}
-                                {% set driver_b = model.drivers_by(team_name=team.name)[1] %}
+                                {% set driver_a = model.drivers_by(team_name=team.name, include_inactive=False)[0] %}
+                                {% set driver_b = model.drivers_by(team_name=team.name, include_inactive=False)[1] %}
 
                                 <div class="g-col-6">
                                     <div class="form-check form-check-inline">
@@ -131,8 +131,8 @@
                             title="Which driver will reach at least a single podium?">Drivers with podium(s):</h6>
                         <div class="grid mt-2 container" style="row-gap: 0;">
                             {% for team in model.all_teams(include_none=false) %}
-                                {% set driver_a = model.drivers_by(team_name=team.name)[0] %}
-                                {% set driver_b = model.drivers_by(team_name=team.name)[1] %}
+                                {% set driver_a = model.drivers_by(team_name=team.name, include_inactive=False)[0] %}
+                                {% set driver_b = model.drivers_by(team_name=team.name, include_inactive=False)[1] %}
 
                                 <div class="g-col-6">
                                     <div class="form-check form-check-inline">

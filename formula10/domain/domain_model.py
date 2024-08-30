@@ -9,7 +9,7 @@ from formula10.database.model.db_season_guess import DbSeasonGuess
 from formula10.database.model.db_season_guess_result import DbSeasonGuessResult
 from formula10.database.model.db_team import DbTeam
 from formula10.database.model.db_user import DbUser
-from formula10.database.validation import find_multiple_strict, find_single_or_none_strict, find_single_strict
+from formula10.database.validation import find_multiple_strict, find_single_or_none_strict, find_single_strict, find_atleast_strict
 from formula10.domain.model.driver import NONE_DRIVER, Driver
 from formula10.domain.model.race import Race
 from formula10.domain.model.race_guess import RaceGuess
@@ -21,7 +21,7 @@ from formula10.domain.model.user import User
 from formula10 import db
 
 
-class Model():
+class Model:
     _all_users: List[User] | None = None
     _all_race_results: List[RaceResult] | None = None
     _all_race_guesses: List[RaceGuess] | None = None
@@ -29,6 +29,7 @@ class Model():
     _all_season_guess_results: List[SeasonGuessResult] | None = None
     _all_races: List[Race] | None = None
     _all_drivers: List[Driver] | None = None
+    _all_active_drivers: List[Driver] | None = None
     _all_teams: List[Team] | None = None
 
     def all_users(self) -> List[User]:
@@ -100,21 +101,34 @@ class Model():
 
         return self._all_races
 
-    def all_drivers(self, *, include_none: bool) -> List[Driver]:
+    def all_drivers(self, *, include_none: bool, include_inactive: bool) -> List[Driver]:
         """
-        Returns a list of all drivers.
+        Returns a list of all active drivers.
         """
-        if self._all_drivers is None:
-            self._all_drivers = [
-                Driver.from_db_driver(db_driver)
-                for db_driver in db.session.query(DbDriver).all()
-            ]
+        if include_inactive:
+            if self._all_drivers is None:
+                self._all_drivers = [
+                    Driver.from_db_driver(db_driver)
+                    for db_driver in db.session.query(DbDriver).all()
+                ]
 
-        if include_none:
-            return self._all_drivers
+            if include_none:
+                return self._all_drivers
+            else:
+                predicate: Callable[[Driver], bool] = lambda driver: driver != NONE_DRIVER
+                return find_multiple_strict(predicate, self._all_drivers)
         else:
-            predicate: Callable[[Driver], bool] = lambda driver: driver != NONE_DRIVER
-            return find_multiple_strict(predicate, self._all_drivers)
+            if self._all_active_drivers is None:
+                self._all_active_drivers = [
+                    Driver.from_db_driver(db_driver)
+                    for db_driver in db.session.query(DbDriver).filter_by(active=True).all()
+                ]
+
+            if include_none:
+                return self._all_active_drivers
+            else:
+                predicate: Callable[[Driver], bool] = lambda driver: driver != NONE_DRIVER
+                return find_multiple_strict(predicate, self._all_active_drivers)
 
     def all_teams(self, *, include_none: bool) -> List[Team]:
         """
@@ -280,34 +294,40 @@ class Model():
     # Team queries
     #
 
-    def none_team(self) -> Team:
+    @staticmethod
+    def none_team() -> Team:
         return NONE_TEAM
 
     #
     # Driver queries
     #
 
-    def none_driver(self) -> Driver:
+    @staticmethod
+    def none_driver() -> Driver:
         return NONE_DRIVER
 
     @overload
-    def drivers_by(self, *, team_name: str) -> List[Driver]:
+    def drivers_by(self, *, team_name: str, include_inactive: bool) -> List[Driver]:
         """
         Returns a list of all drivers driving for a certain team.
         """
-        return self.drivers_by(team_name=team_name)
+        return self.drivers_by(team_name=team_name, include_inactive=include_inactive)
 
     @overload
-    def drivers_by(self) -> Dict[str, List[Driver]]:
+    def drivers_by(self, *, include_inactive: bool) -> Dict[str, List[Driver]]:
         """
         Returns a dictionary of drivers mapped to team names.
         """
-        return self.drivers_by()
+        return self.drivers_by(include_inactive=include_inactive)
 
-    def drivers_by(self, *, team_name: str | None = None) -> List[Driver] | Dict[str, List[Driver]]:
+    def drivers_by(self, *, team_name: str | None = None, include_inactive: bool) -> List[Driver] | Dict[str, List[Driver]]:
         if team_name is not None:
             predicate: Callable[[Driver], bool] = lambda driver: driver.team.name == team_name
-            return find_multiple_strict(predicate, self.all_drivers(include_none=False), 2)
+
+            if include_inactive:
+                return find_atleast_strict(predicate, self.all_drivers(include_none=False, include_inactive=True), 2)
+            else:
+                return find_multiple_strict(predicate, self.all_drivers(include_none=False, include_inactive=False), 2)
 
         if team_name is None:
             drivers_by: Dict[str, List[Driver]] = dict()
@@ -316,7 +336,7 @@ class Model():
 
             for team in self.all_teams(include_none=False):
                 drivers_by[team.name] = []
-            for driver in self.all_drivers(include_none=False):
+            for driver in self.all_drivers(include_none=False, include_inactive=include_inactive):
                 drivers_by[driver.team.name] += [driver]
 
             return drivers_by

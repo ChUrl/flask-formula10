@@ -30,7 +30,7 @@
             <option value="" selected disabled hidden></option>
 
             {% if drivers == none %}
-                {% set drivers = model.all_drivers(include_none=include_none) %}
+                {% set drivers = model.all_drivers(include_none=include_none, include_inactive=False) %}
             {% endif %}
 
             {% for driver in drivers %}
@@ -49,7 +49,7 @@
             {% set user_has_chosen = namespace(driverpre=false) %}
 
             {% if drivers == none %}
-                {% set drivers = model.all_drivers(include_none=include_none) %}
+                {% set drivers = model.all_drivers(include_none=include_none, include_inactive=False) %}
             {% endif %}
 
             {% for driver in drivers %}

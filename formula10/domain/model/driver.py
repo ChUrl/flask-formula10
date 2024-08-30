@@ -4,7 +4,7 @@ from formula10.database.model.db_driver import DbDriver
 from formula10.domain.model.team import NONE_TEAM, Team
 
 
-class Driver():
+class Driver:
     @classmethod
     def from_db_driver(cls, db_driver: DbDriver):
         driver: Driver = cls()
@@ -13,6 +13,7 @@ class Driver():
         driver.abbr = db_driver.abbr
         driver.country = db_driver.country_code
         driver.team = Team.from_db_team(db_driver.team)
+        driver.active = db_driver.active
         return driver
 
     def to_db_driver(self) -> DbDriver:
@@ -21,6 +22,7 @@ class Driver():
         db_driver.abbr = self.abbr
         db_driver.country_code = self.country
         db_driver.team_id = self.team.name
+        db_driver.active = self.active
         return db_driver
 
     def __eq__(self, __value: object) -> bool:
@@ -37,6 +39,7 @@ class Driver():
     abbr: str
     country: str
     team: Team
+    active: bool
 
     @property
     def name_sanitized(self) -> str:
@@ -49,3 +52,4 @@ NONE_DRIVER.name = "None"
 NONE_DRIVER.abbr = "None"
 NONE_DRIVER.country = "NO"
 NONE_DRIVER.team = NONE_TEAM
+NONE_DRIVER.active = False

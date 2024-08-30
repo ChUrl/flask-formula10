@@ -29,10 +29,12 @@ class TemplateModel(Model):
         if active_result_race_name is not None:
             self.active_result = self.race_result_by(race_name=active_result_race_name)
 
-    def race_guess_open(self, race: Race) -> bool:
+    @staticmethod
+    def race_guess_open(race: Race) -> bool:
         return not race_has_started(race=race) if ENABLE_TIMING else True
 
-    def season_guess_open(self) -> bool:
+    @staticmethod
+    def season_guess_open() -> bool:
         return not race_has_started(race_id=1) if ENABLE_TIMING else True
 
     def race_result_open(self, race_name: str) -> bool:
@@ -93,12 +95,12 @@ class TemplateModel(Model):
         else:
             return self.all_races()[0].name_sanitized
 
-    def all_drivers_or_active_result_standing_drivers(self) -> List[Driver]:
-        return self.active_result.ordered_standing_list() if self.active_result is not None else self.all_drivers(include_none=False)
+    def all_active_drivers_or_active_result_standing_drivers(self) -> List[Driver]:
+        return self.active_result.ordered_standing_list() if self.active_result is not None else self.all_drivers(include_none=False, include_inactive=False)
 
-    def all_drivers_or_active_result_sprint_standing_drivers(self) -> List[Driver]:
-        return self.active_result.ordered_sprint_standing_list() if self.active_result is not None else self.all_drivers(include_none=False)
+    def all_active_drivers_or_active_result_sprint_standing_drivers(self) -> List[Driver]:
+        return self.active_result.ordered_sprint_standing_list() if self.active_result is not None else self.all_drivers(include_none=False, include_inactive=False)
 
-    def drivers_for_wdc_gained(self) -> List[Driver]:
+    def active_drivers_for_wdc_gained(self) -> List[Driver]:
         predicate: Callable[[Driver], bool] = lambda driver: driver.abbr not in self._wdc_gained_excluded_abbrs
-        return find_multiple_strict(predicate, self.all_drivers(include_none=False))
+        return find_multiple_strict(predicate, self.all_drivers(include_none=False, include_inactive=False))

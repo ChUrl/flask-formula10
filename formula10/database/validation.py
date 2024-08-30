@@ -76,6 +76,19 @@ def find_multiple_strict(predicate: Callable[[_T], bool], iterable: Iterable[_T]
     return filtered
 
 
+def find_atleast_strict(predicate: Callable[[_T], bool], iterable: Iterable[_T], count: int = 0) -> List[_T]:
+    """
+    Finds at least <count> elements in a sequence matching a predicate.
+    Throws exception if fewer elements were found than specified.
+    """
+    filtered = list(filter(predicate, iterable))
+
+    if len(filtered) < count:
+        raise Exception(f"find_atleast found {len(filtered)} matching elements but expected at least {count}")
+
+    return filtered
+
+
 def find_single_strict(predicate: Callable[[_T], bool], iterable: Iterable[_T]) -> _T:
     """
     Find a single element in a sequence matching a predicate.
