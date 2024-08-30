@@ -9,12 +9,12 @@ if not ENABLE_TIMING:
     print("- Disabled timing constraints")
 
 app: Flask = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///formula10.db"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///formula10.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Session cookie is used to propagate message to error page
-app.config['SESSION_TYPE'] = 'memcached'
-app.config['SECRET_KEY'] = 'ich stinke nach maggi'
+app.config["SESSION_TYPE"] = "memcached"
+app.config["SECRET_KEY"] = "ich stinke nach maggi"
 
 app.url_map.strict_slashes = False
 

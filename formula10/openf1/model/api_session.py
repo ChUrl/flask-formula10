@@ -20,6 +20,8 @@ class ApiSession():
         "year": int
     }
 
+
+
     def __init__(self, response: dict[str, str] | None):
         if response is None:
             return
