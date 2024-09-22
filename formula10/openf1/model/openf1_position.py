@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict
 
 
-class ApiPosition:
+class OpenF1Position:
     __type_conversion_map__: Dict[str, Callable[[Any], Any]] = {
         "session_key": int,
         "meeting_key": int,
@@ -24,7 +24,7 @@ class ApiPosition:
 
             setattr(self, key, self.__type_conversion_map__[key](response[key]))
 
-        print("ApiPosition:", self.__dict__)
+        print("OpenF1Position:", self.__dict__)
 
     def to_params(self) -> Dict[str, str]:
         params: Dict[str, str] = dict()

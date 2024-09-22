@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict
 
 
-class ApiDriver:
+class OpenF1Driver:
     __type_conversion_map__: Dict[str, Callable[[Any], Any]] = {
         "session_key": int,
         "meeting_key": int,
@@ -30,7 +30,7 @@ class ApiDriver:
 
             setattr(self, key, self.__type_conversion_map__[key](response[key]))
 
-        print("ApiDriver:", self.__dict__)
+        print("OpenF1Driver:", self.__dict__)
 
     def to_params(self) -> Dict[str, str]:
         params: Dict[str, str] = dict()
