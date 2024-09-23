@@ -51,7 +51,7 @@ class Model:
         if self._all_race_results is None:
             self._all_race_results = [
                 RaceResult.from_db_race_result(db_race_result)
-                for db_race_result in db.session.query(DbRaceResult).join(DbRaceResult.race).order_by(desc(DbRace.number)).all()
+                for db_race_result in db.session.query(DbRaceResult).join(DbRaceResult.race).order_by(desc("number")).all()
             ]
 
         return self._all_race_results
@@ -96,7 +96,7 @@ class Model:
         if self._all_races is None:
             self._all_races = [
                 Race.from_db_race(db_race)
-                for db_race in db.session.query(DbRace).order_by(desc(DbRace.number)).all()
+                for db_race in db.session.query(DbRace).order_by(desc("number")).all()
             ]
 
         return self._all_races
