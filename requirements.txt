@@ -5,6 +5,8 @@ flask
 flask-sqlalchemy
 sqlalchemy
 requests
+
 fastf1
+pandas
 
 pytest
