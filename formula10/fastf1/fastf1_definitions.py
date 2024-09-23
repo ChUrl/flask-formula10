@@ -1,7 +1,7 @@
 # https://docs.fastf1.dev/events.html#event-formats
 from typing import Optional
 
-from fastf1.core import Lap, DriverResult
+from fastf1.core import Lap, DriverResult, Session
 from fastf1.events import Event
 from pandas import Timestamp, Timedelta
 
@@ -83,6 +83,24 @@ class EventDataHelper:
     @property
     def f1_api_support(self) -> bool:
         return self.__event["F1ApiSupport"]
+
+    # The following doesn't correspond to DataFrame columns
+
+    @property
+    def sprint_qualifying(self):
+        return self.__event.get_sprint_qualifying()
+
+    @property
+    def sprint(self):
+        return self.__event.get_sprint()
+
+    @property
+    def qualifying(self) -> Session:
+        return self.__event.get_qualifying()
+
+    @property
+    def race(self) -> Session:
+        return self.__event.get_race()
 
 
 class LapDataHelper:
