@@ -36,6 +36,9 @@ class Race:
     def __hash__(self) -> int:
         return hash(self.id)
 
+    def __repr__(self) -> str:
+        return f"race(\n\tid={self.id}, name={self.name}, number={self.number},\n\tdate={self.date}, quali_date={self.quali_date},\n\thas_sprint={self.has_sprint}, place_to_guess={self.place_to_guess}\n)"
+
     id: int
     name: str
     number: int
