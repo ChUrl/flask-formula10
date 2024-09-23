@@ -4,7 +4,6 @@ from typing import Optional
 from fastf1.core import Lap, DriverResult
 from fastf1.events import Event
 from pandas import Timestamp, Timedelta
-from typing_extensions import deprecated
 
 FASTF1_SESSIONTYPE_NORMAL: str = "conventional"
 FASTF1_SESSIONTYPE_SPRINT: str = "sprint_qualifying"
