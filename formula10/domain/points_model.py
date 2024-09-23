@@ -384,7 +384,7 @@ class PointsModel(Model):
         teammates: List[Driver] = self.drivers_by(team_name=team_name, include_inactive=True)
         return sum(sum(self.driver_points_by(driver_name=teammate.name, include_inactive=True)) for teammate in teammates)
 
-    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
+    @cache.cached(timeout=None, key_prefix="points_teams_sorted_by_points") # Cleanup when adding/updating race results
     def teams_sorted_by_points(self) -> List[Team]:
         comparator: Callable[[Team], int] = lambda team: self.total_team_points_by(team.name)
         return sorted(self.all_teams(include_none=False), key=comparator, reverse=True)
