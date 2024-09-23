@@ -1,6 +1,8 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_caching import Cache
+from werkzeug.middleware.profiler import ProfilerMiddleware
 
 # Load local ENV variables (can be set when calling the executable)
 ENABLE_TIMING: bool = False if os.getenv("DISABLE_TIMING") == "True" else True
@@ -20,6 +22,11 @@ app.url_map.strict_slashes = False
 
 db: SQLAlchemy = SQLAlchemy()
 db.init_app(app)
+
+cache: Cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
+cache.init_app(app)
+
+# app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=("/formula10/*",), sort_by=("cumtime",))
 
 # NOTE: These imports are required to register the routes. They need to be imported after "app" is declared
 import formula10.controller.race_controller  # type: ignore
