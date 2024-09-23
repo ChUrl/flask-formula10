@@ -8,9 +8,9 @@ from formula10.database.update_queries import update_race_result, update_user
 from formula10.domain.domain_model import Model
 from formula10.domain.template_model import TemplateModel
 from formula10 import app
-from formula10.openf1.model.api_session import ApiSession
+from formula10.openf1.model.openf1_session import OpenF1Session
 from formula10.openf1.openf1_definitions import OPENF1_SESSION_NAME_RACE
-from formula10.openf1.openf1_fetcher import fetch_openf1_driver, fetch_openf1_position, fetch_openf1_session
+from formula10.openf1.openf1_fetcher import openf1_fetch_driver, openf1_fetch_position, openf1_fetch_session
 
 
 @app.route("/result")
@@ -49,9 +49,9 @@ def result_enter_post(race_name: str) -> Response:
 
 @app.route("/result-fetch/<race_name>", methods=["POST"])
 def result_fetch_post(race_name: str) -> Response:
-    session: ApiSession = fetch_openf1_session(OPENF1_SESSION_NAME_RACE, "KSA")
-    fetch_openf1_driver(session.session_key, "VER")
-    fetch_openf1_position(session.session_key, 1)
+    session: OpenF1Session = openf1_fetch_session(OPENF1_SESSION_NAME_RACE, "KSA")
+    openf1_fetch_driver(session.session_key, "VER")
+    openf1_fetch_position(session.session_key, 1)
 
     # @todo Fetch stuff and build the race_result using update_race_result(...)
 
