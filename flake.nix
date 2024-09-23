@@ -84,6 +84,7 @@
           # Web
           flask
           flask-sqlalchemy
+          flask-caching
           sqlalchemy
           requests
 

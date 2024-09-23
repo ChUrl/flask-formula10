@@ -2,6 +2,7 @@ import json
 from typing import Any, Callable, Dict, List, overload
 import numpy as np
 
+from formula10 import cache
 from formula10.domain.domain_model import Model
 from formula10.domain.model.driver import NONE_DRIVER, Driver
 from formula10.domain.model.race_guess import RaceGuess
@@ -119,118 +120,93 @@ class PointsModel(Model):
     This class bundles all data + functionality required to do points calculations.
     """
 
-    _points_per_step: Dict[str, List[int]] | None = None
-    _driver_points_per_step: Dict[str, List[int]] | None = None
-    _active_driver_points_per_step: Dict[str, List[int]] | None = None
-    _team_points_per_step: Dict[str, List[int]] | None = None
-    _dnfs: Dict[str, int] | None = None
-
     def __init__(self):
         Model.__init__(self)
 
+    @cache.cached(timeout=None, key_prefix="points_points_per_step") # Clear when adding/updating race results or users
     def points_per_step(self) -> Dict[str, List[int]]:
         """
         Returns a dictionary of lists, containing points per race for each user.
         """
-        if self._points_per_step is None:
-            self._points_per_step = dict()
-            for user in self.all_users():
-                self._points_per_step[user.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
+        points_per_step = dict()
+        for user in self.all_users():
+            points_per_step[user.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
 
-            for race_guess in self.all_race_guesses():
-                user_name: str = race_guess.user.name
-                race_number: int = race_guess.race.number
-                race_result: RaceResult | None = self.race_result_by(race_name=race_guess.race.name)
+        for race_guess in self.all_race_guesses():
+            user_name: str = race_guess.user.name
+            race_number: int = race_guess.race.number
+            race_result: RaceResult | None = self.race_result_by(race_name=race_guess.race.name)
 
-                if race_result is None:
-                    continue
+            if race_result is None:
+                continue
 
-                self._points_per_step[user_name][race_number] = standing_points(race_guess, race_result) + dnf_points(race_guess, race_result)
+            points_per_step[user_name][race_number] = standing_points(race_guess, race_result) + dnf_points(race_guess, race_result)
 
-        return self._points_per_step
+        return points_per_step
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Clear when adding/updating race results
     def driver_points_per_step(self, *, include_inactive: bool) -> Dict[str, List[int]]:
         """
         Returns a dictionary of lists, containing points per race for each driver.
         """
-        if include_inactive:
-            if self._driver_points_per_step is None:
-                self._driver_points_per_step = dict()
-                for driver in self.all_drivers(include_none=False, include_inactive=True):
-                    self._driver_points_per_step[driver.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
+        driver_points_per_step = dict()
+        for driver in self.all_drivers(include_none=False, include_inactive=include_inactive):
+            driver_points_per_step[driver.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
 
-                for race_result in self.all_race_results():
-                    race_number: int = race_result.race.number
+        for race_result in self.all_race_results():
+            race_number: int = race_result.race.number
 
-                    for position, driver in race_result.standing.items():
-                        self._driver_points_per_step[driver.name][race_number] = DRIVER_RACE_POINTS[int(position)] if int(position) in DRIVER_RACE_POINTS else 0
-                        self._driver_points_per_step[driver.name][race_number] += DRIVER_FASTEST_LAP_POINTS if race_result.fastest_lap_driver == driver else 0
+            for position, driver in race_result.standing.items():
+                driver_points_per_step[driver.name][race_number] = DRIVER_RACE_POINTS[int(position)] if int(position) in DRIVER_RACE_POINTS else 0
+                driver_points_per_step[driver.name][race_number] += DRIVER_FASTEST_LAP_POINTS if race_result.fastest_lap_driver == driver else 0
 
-                    for position, driver in race_result.sprint_standing.items():
-                        driver_name: str = driver.name
+            for position, driver in race_result.sprint_standing.items():
+                driver_name: str = driver.name
 
-                        self._driver_points_per_step[driver_name][race_number] += DRIVER_SPRINT_POINTS[int(position)] if int(position) in DRIVER_SPRINT_POINTS else 0
+                driver_points_per_step[driver_name][race_number] += DRIVER_SPRINT_POINTS[int(position)] if int(position) in DRIVER_SPRINT_POINTS else 0
 
-            return self._driver_points_per_step
-        else:
-            if self._active_driver_points_per_step is None:
-                self._active_driver_points_per_step = dict()
-                for driver in self.all_drivers(include_none=False, include_inactive=False):
-                    self._active_driver_points_per_step[driver.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
-
-                for race_result in self.all_race_results():
-                    race_number: int = race_result.race.number
-
-                    for position, driver in race_result.standing.items():
-                        self._active_driver_points_per_step[driver.name][race_number] = DRIVER_RACE_POINTS[int(position)] if int(position) in DRIVER_RACE_POINTS else 0
-                        self._active_driver_points_per_step[driver.name][race_number] += DRIVER_FASTEST_LAP_POINTS if race_result.fastest_lap_driver == driver else 0
-
-                    for position, driver in race_result.sprint_standing.items():
-                        driver_name: str = driver.name
-
-                        self._active_driver_points_per_step[driver_name][race_number] += DRIVER_SPRINT_POINTS[int(position)] if int(position) in DRIVER_SPRINT_POINTS else 0
-
-            return self._active_driver_points_per_step
+        return driver_points_per_step
 
 
+    @cache.cached(timeout=None, key_prefix="points_team_points_per_step")
     def team_points_per_step(self) -> Dict[str, List[int]]:
         """
         Returns a dictionary of lists, containing points per race for each team.
         """
-        if self._team_points_per_step is None:
-            self._team_points_per_step = dict()
-            for team in self.all_teams(include_none=False):
-                self._team_points_per_step[team.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
+        team_points_per_step = dict()
+        for team in self.all_teams(include_none=False):
+            team_points_per_step[team.name] = [0] * (len(self.all_races()) + 1)  # Start at index 1, like the race numbers
 
-            for race_result in self.all_race_results():
-                for driver in race_result.standing.values():
-                    team_name: str = driver.team.name
-                    race_number: int = race_result.race.number
+        for race_result in self.all_race_results():
+            for driver in race_result.standing.values():
+                team_name: str = driver.team.name
+                race_number: int = race_result.race.number
 
-                    self._team_points_per_step[team_name][race_number] += self.driver_points_per_step(include_inactive=True)[driver.name][race_number]
+                team_points_per_step[team_name][race_number] += self.driver_points_per_step(include_inactive=True)[driver.name][race_number]
 
-        return self._team_points_per_step
+        return team_points_per_step
 
+    @cache.cached(timeout=None, key_prefix="points_dnfs")
     def dnfs(self) -> Dict[str, int]:
-        if self._dnfs is None:
-            self._dnfs = dict()
+        dnfs = dict()
 
-            for driver in self.all_drivers(include_none=False, include_inactive=True):
-                self._dnfs[driver.name] = 0
+        for driver in self.all_drivers(include_none=False, include_inactive=True):
+            dnfs[driver.name] = 0
 
-            for race_result in self.all_race_results():
-                for driver in race_result.all_dnfs:
-                    self._dnfs[driver.name] += 1
+        for race_result in self.all_race_results():
+            for driver in race_result.all_dnfs:
+                dnfs[driver.name] += 1
 
-                for driver in race_result.sprint_dnfs:
-                    self._dnfs[driver.name] += 1
+            for driver in race_result.sprint_dnfs:
+                dnfs[driver.name] += 1
 
-        return self._dnfs
+        return dnfs
 
     #
     # Driver stats
     #
 
+    @cache.cached(timeout=None, key_prefix="points_driver_points_per_step_cumulative") # Cleanup when adding/updating race results
     def driver_points_per_step_cumulative(self) -> Dict[str, List[int]]:
         """
         Returns a dictionary of lists, containing cumulative points per race for each driver.
@@ -262,6 +238,7 @@ class PointsModel(Model):
         """
         return self.driver_points_by(driver_name=driver_name, race_name=race_name, include_inactive=include_inactive)
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
     def driver_points_by(self, *, driver_name: str | None = None, race_name: str | None = None, include_inactive: bool) -> List[int] | Dict[str, int] | int:
         if driver_name is not None and race_name is None:
             return self.driver_points_per_step(include_inactive=include_inactive)[driver_name]
@@ -282,13 +259,16 @@ class PointsModel(Model):
 
         raise Exception("driver_points_by received an illegal combination of arguments")
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
     def total_driver_points_by(self, driver_name: str) -> int:
         return sum(self.driver_points_by(driver_name=driver_name, include_inactive=True))
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
     def drivers_sorted_by_points(self, *, include_inactive: bool) -> List[Driver]:
         comparator: Callable[[Driver], int] = lambda driver: self.total_driver_points_by(driver.name)
         return sorted(self.all_drivers(include_none=False, include_inactive=include_inactive), key=comparator, reverse=True)
 
+    @cache.cached(timeout=None, key_prefix="points_wdc_standing_by_position") # Cleanup when adding/updating race results
     def wdc_standing_by_position(self) -> Dict[int, List[str]]:
         standing: Dict[int, List[str]] = dict()
 
@@ -308,6 +288,7 @@ class PointsModel(Model):
 
         return standing
 
+    @cache.cached(timeout=None, key_prefix="points_wdc_standing_by_driver") # Cleanup when adding/updating race results
     def wdc_standing_by_driver(self) -> Dict[str, int]:
         standing: Dict[str, int] = dict()
 
@@ -330,6 +311,7 @@ class PointsModel(Model):
 
         return WDC_STANDING_2023[driver_name] - self.wdc_standing_by_driver()[driver_name]
 
+    @cache.cached(timeout=None, key_prefix="points_most_dnf_names") # Cleanup when adding/updating race results
     def most_dnf_names(self) -> List[str]:
         dnf_names: List[str] = list()
         most_dnfs: int = 0
@@ -344,6 +326,7 @@ class PointsModel(Model):
 
         return dnf_names
 
+    @cache.cached(timeout=None, key_prefix="points_most_gained_names") # Cleanup when adding/updating race results
     def most_gained_names(self) -> List[str]:
         most_gained_names: List[str] = list()
         most_gained: int = 0
@@ -362,6 +345,7 @@ class PointsModel(Model):
 
         return most_gained_names
 
+    @cache.cached(timeout=None, key_prefix="points_most_lost_names") # Cleanup when adding/updating race results
     def most_lost_names(self) -> List[str]:
         most_lost_names: List[str] = list()
         most_lost: int = 100
@@ -384,6 +368,7 @@ class PointsModel(Model):
     # Team points
     #
 
+    @cache.cached(timeout=None, key_prefix="points_team_points_per_step_cumulative") # Cleanup when adding/updating race results
     def team_points_per_step_cumulative(self) -> Dict[str, List[int]]:
         """
         Returns a dictionary of lists, containing cumulative points per race for each team.
@@ -394,14 +379,17 @@ class PointsModel(Model):
 
         return points_per_step_cumulative
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
     def total_team_points_by(self, team_name: str) -> int:
         teammates: List[Driver] = self.drivers_by(team_name=team_name, include_inactive=True)
         return sum(sum(self.driver_points_by(driver_name=teammate.name, include_inactive=True)) for teammate in teammates)
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
     def teams_sorted_by_points(self) -> List[Team]:
         comparator: Callable[[Team], int] = lambda team: self.total_team_points_by(team.name)
         return sorted(self.all_teams(include_none=False), key=comparator, reverse=True)
 
+    @cache.cached(timeout=None, key_prefix="points_wcc_standing_by_position") # Cleanup when adding/updating race results
     def wcc_standing_by_position(self) -> Dict[int, List[str]]:
         standing: Dict[int, List[str]] = dict()
 
@@ -421,6 +409,7 @@ class PointsModel(Model):
 
         return standing
 
+    @cache.cached(timeout=None, key_prefix="points_wcc_standing_by_team") # Cleanup when adding/updating race results
     def wcc_standing_by_team(self) -> Dict[str, int]:
         standing: Dict[str, int] = dict()
 
@@ -475,6 +464,7 @@ class PointsModel(Model):
         """
         return self.points_by(user_name=user_name, race_name=race_name)
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results or users
     def points_by(self, *, user_name: str | None = None, race_name: str | None = None) -> List[int] | Dict[str, int] | int:
         if user_name is not None and race_name is None:
             return self.points_per_step()[user_name]
@@ -508,6 +498,7 @@ class PointsModel(Model):
         comparator: Callable[[User], int] = lambda user: self.total_points_by(user.name)
         return sorted(self.all_users(), key=comparator, reverse=True)
 
+    @cache.cached(timeout=None, key_prefix="points_user_standing") # Cleanup when adding/updating race results or users
     def user_standing(self) -> Dict[str, int]:
         standing: Dict[str, int] = dict()
 
@@ -527,6 +518,7 @@ class PointsModel(Model):
         # Treat standing + dnf picks separately
         return len(self.race_guesses_by(user_name=user_name)) * 2
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
     def picks_with_points_count(self, user_name: str) -> int:
         count: int = 0
 
@@ -594,14 +586,14 @@ class PointsModel(Model):
 
         return season_guess.most_wdc_lost.name in self.most_lost_names()
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
     def is_team_winner(self, driver: Driver) -> bool:
         teammates: List[Driver] = self.drivers_by(team_name=driver.team.name, include_inactive=True)
         teammate: Driver = teammates[0] if teammates[1] == driver else teammates[1]
 
-        print(f"{driver.name} standing: {self.wdc_standing_by_driver()[driver.name]}, {teammate.name} standing: {self.wdc_standing_by_driver()[teammate.name]}")
-
         return self.wdc_standing_by_driver()[driver.name] <= self.wdc_standing_by_driver()[teammate.name]
 
+    @cache.memoize(timeout=None, args_to_ignore=["self"]) # Cleanup when adding/updating race results
     def has_podium(self, driver: Driver) -> bool:
         for race_result in self.all_race_results():
             position: int | None = race_result.driver_standing_position(driver)

@@ -3,6 +3,7 @@ numpy
 
 flask
 flask-sqlalchemy
+flask-caching
 sqlalchemy
 requests
 werkzeug

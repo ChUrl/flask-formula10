@@ -5,6 +5,7 @@ from werkzeug import Response
 
 from formula10.controller.error_controller import error_redirect
 from formula10.database.update_queries import update_race_result, update_user
+from formula10.domain.cache_invalidator import cache_invalidate_user_updated, cache_invalidate_race_result_updated
 from formula10.domain.domain_model import Model
 from formula10.domain.template_model import TemplateModel
 from formula10 import app
@@ -43,6 +44,7 @@ def result_enter_post(race_name: str) -> Response:
     if fastest_lap is None:
         return error_redirect("Data was not saved, because fastest lap was not set.")
 
+    cache_invalidate_race_result_updated()
     race_id: int = Model().race_by(race_name=race_name).id
     return update_race_result(race_id, pxxs, first_dnfs, dnfs, excluded, int(fastest_lap), sprint_pxxs, sprint_dnf_drivers)
 
@@ -55,6 +57,7 @@ def result_fetch_post(race_name: str) -> Response:
 
     # @todo Fetch stuff and build the race_result using update_race_result(...)
 
+    cache_invalidate_race_result_updated()
     return redirect("/result")
 
 
@@ -68,11 +71,13 @@ def user_root() -> str:
 
 @app.route("/user-add", methods=["POST"])
 def user_add_post() -> Response:
+    cache_invalidate_user_updated()
     username: str | None = request.form.get("select-add-user")
     return update_user(username, add=True)
 
 
 @app.route("/user-delete", methods=["POST"])
 def user_delete_post() -> Response:
+    cache_invalidate_user_updated()
     username: str | None = request.form.get("select-delete-user")
     return update_user(username, delete=True)

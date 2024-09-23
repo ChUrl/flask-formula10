@@ -5,6 +5,7 @@ from werkzeug import Response
 
 from formula10.database.model.db_team import DbTeam
 from formula10.database.update_queries import update_season_guess
+from formula10.domain.cache_invalidator import cache_invalidate_season_guess_updated
 from formula10.domain.domain_model import Model
 from formula10.domain.model.team import NONE_TEAM
 from formula10.domain.points_model import PointsModel
@@ -44,5 +45,6 @@ def season_guess_post(user_name: str) -> Response:
     ]
     podium_driver_guesses: List[str] = request.form.getlist("podiumdrivers")
 
+    cache_invalidate_season_guess_updated()
     user_id: int = Model().user_by(user_name=user_name).id
     return update_season_guess(user_id, guesses, team_winner_guesses, podium_driver_guesses)

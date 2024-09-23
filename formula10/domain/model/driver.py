@@ -34,6 +34,11 @@ class Driver:
     def __hash__(self) -> int:
         return hash(self.id)
 
+    # This is important to memoize functions getting a Driver as input.
+    # The repr() will be appended to the cache key.
+    def __repr__(self) -> str:
+        return f"Driver(id={self.id}, name={self.name})"
+
     id: int
     name: str
     abbr: str
@@ -52,4 +57,4 @@ NONE_DRIVER.name = "None"
 NONE_DRIVER.abbr = "None"
 NONE_DRIVER.country = "NO"
 NONE_DRIVER.team = NONE_TEAM
-NONE_DRIVER.active = False
+NONE_DRIVER.active = True

@@ -1,5 +1,5 @@
 from typing import List, Callable
-from formula10 import ENABLE_TIMING
+from formula10 import ENABLE_TIMING, cache
 
 from formula10.domain.domain_model import Model
 from formula10.domain.model.driver import Driver
@@ -54,6 +54,7 @@ class TemplateModel(Model):
 
         return self.all_users()
 
+    @cache.cached(timeout=None, key_prefix="template_first_race_without_result") # Cleanup when adding/updating race results
     def first_race_without_result(self) -> Race | None:
         """
         Returns the first race-object with no associated race result.

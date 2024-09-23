@@ -1,8 +1,10 @@
+from typing import List
 from urllib.parse import unquote
 from flask import redirect, render_template, request
 from werkzeug import Response
 
 from formula10.database.update_queries import delete_race_guess, update_race_guess
+from formula10.domain.cache_invalidator import cache_invalidate_race_guess_updated
 from formula10.domain.domain_model import Model
 from formula10.domain.points_model import PointsModel
 from formula10.domain.template_model import TemplateModel
@@ -37,6 +39,7 @@ def race_guess_post(race_name: str, user_name: str) -> Response:
     pxx: str | None = request.form.get("pxxselect")
     dnf: str | None = request.form.get("dnfselect")
 
+    cache_invalidate_race_guess_updated()
     race_id: int = Model().race_by(race_name=race_name).id
     user_id: int = Model().user_by(user_name=user_name).id
     return update_race_guess(race_id, user_id,
@@ -49,6 +52,7 @@ def race_guess_delete_post(race_name: str, user_name: str) -> Response:
     race_name = unquote(race_name)
     user_name = unquote(user_name)
 
+    cache_invalidate_race_guess_updated()
     race_id: int = Model().race_by(race_name=race_name).id
     user_id: int = Model().user_by(user_name=user_name).id
     return delete_race_guess(race_id, user_id)
