@@ -111,6 +111,8 @@
         packages = with pkgs; [
           myPython
 
+          sqlitebrowser
+
           nodejs_21
           nodePackages.sass
           nodePackages.postcss-cli
