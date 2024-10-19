@@ -1,6 +1,8 @@
-from typing import List
+from typing import Callable, List
 
 from formula10 import cache
+from formula10.domain.domain_model import Model
+from formula10.domain.points_model import PointsModel
 
 
 def cache_invalidate_user_updated() -> None:
@@ -12,10 +14,10 @@ def cache_invalidate_user_updated() -> None:
         "points_user_standing",
     ]
 
-    memoized_caches: List[str] = [
-        "points_by",
-        "race_guesses_by",
-        "season_guesses_by",
+    memoized_caches: List[Callable] = [
+        PointsModel.points_by,
+        PointsModel.race_guesses_by,
+        PointsModel.season_guesses_by,
     ]
 
     for c in caches:
@@ -45,16 +47,16 @@ def cache_invalidate_race_result_updated() -> None:
         "template_first_race_without_result",
     ]
 
-    memoized_caches: List[str] = [
-        "driver_points_per_step",
-        "driver_points_by",
-        "total_driver_points_by",
-        "drivers_sorted_by_points",
-        "total_team_points_by",
-        "points_by",
-        "is_team_winner",
-        "has_podium",
-        "picks_with_points_count",
+    memoized_caches: List[Callable] = [
+        PointsModel.driver_points_per_step,
+        PointsModel.driver_points_by,
+        PointsModel.total_driver_points_by,
+        PointsModel.drivers_sorted_by_points,
+        PointsModel.total_team_points_by,
+        PointsModel.points_by,
+        PointsModel.is_team_winner,
+        PointsModel.has_podium,
+        PointsModel.picks_with_points_count,
     ]
 
     for c in caches:
@@ -69,8 +71,8 @@ def cache_invalidate_race_guess_updated() -> None:
         "domain_all_race_guesses",
     ]
 
-    memoized_caches: List[str] = [
-        "race_guesses_by",
+    memoized_caches: List[Callable] = [
+        Model.race_guesses_by,
     ]
 
     for c in caches:
@@ -82,11 +84,11 @@ def cache_invalidate_race_guess_updated() -> None:
 
 def cache_invalidate_season_guess_updated() -> None:
     caches: List[str] = [
-        "domain_all_season_guesses"
+        "domain_all_season_guesses",
     ]
 
-    memoized_caches: List[str] = [
-        "season_guesses_by"
+    memoized_caches: List[Callable] = [
+        Model.season_guesses_by,
     ]
 
     for c in caches:
