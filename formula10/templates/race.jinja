@@ -39,7 +39,7 @@
                 {# Link should only be visible if all users are visible #}
                 {% if model.active_user is not none %}
                     <td class="text-center text-nowrap" style="min-width: 100px;">{{ model.active_user.name }}
-                        ({{ points.total_points_by(model.active_user.name) }})
+                        ({{ points.total_points_by(user_name=model.active_user.name, include_season=False) }})
                     </td>
                 {% else %}
                     {% for user in model.all_users() %}
