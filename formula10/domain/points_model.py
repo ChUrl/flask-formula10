@@ -90,6 +90,33 @@ WDC_SUBSTITUTE_POINTS: List[Tuple[int, int, int]] = [
     (8, 17, 1), # Bearman raced for Magnussen in Azerbaijan
 ]
 
+WDC_STANDING_2024: Dict[str, int] = {
+    "Max Verstappen": 1,
+    "Lando Norris": 2,
+    "Charles Leclerc": 3,
+    "Oscar Piastri": 4,
+    "Carlos Sainz": 5,
+    "George Russell": 6,
+    "Lewis Hamilton": 7,
+    "Sergio Perez": 8,
+    "Fernando Alonso": 9,
+    "Pierre Gasly": 10,
+    "Nico Hulkenberg": 11,
+    "Yuki Tsunoda": 12,
+    "Lance Stroll": 13,
+    "Esteban Ocon": 14,
+    "Kevin Magnussen": 15,
+    "Alexander Albon": 16,
+    "Daniel Ricciardo": 17,
+    "Oliver Bearman": 18,
+    "Franco Colapinto": 19,
+    "Zhou Guanyu": 20,
+    "Liam Lawson": 21,
+    "Valtteri Bottas": 22,
+    "Logan Sargeant": 23,
+    "Jack Doohan": 24
+}
+
 def standing_points(race_guess: RaceGuess, race_result: RaceResult) -> int:
     guessed_driver_position: int | None = race_result.driver_standing_position(
         driver=race_guess.pxx_guess
@@ -360,23 +387,31 @@ class PointsModel(Model):
     def wdc_standing_by_position(self) -> Dict[int, List[str]]:
         standing: Dict[int, List[str]] = dict()
 
-        for position in range(
-                1, len(self.all_drivers(include_none=False, include_inactive=True)) + 1
-        ):
-            standing[position] = list()
+        if WDC_STANDING_2024 is None:
+            for position in range(
+                    1, len(self.all_drivers(include_none=False, include_inactive=True)) + 1
+            ):
+                standing[position] = list()
 
-        position: int = 1
-        last_points: int = 0
+            position: int = 1
+            last_points: int = 0
 
-        for driver in self.drivers_sorted_by_points(include_inactive=True):
-            points: int = self.total_driver_points_by(driver.name)
-            if points < last_points:
-                # If multiple drivers have equal points, a place is shared.
-                # In this case, the next driver does not occupy the immediate next position.
-                position += len(standing[position])
+            for driver in self.drivers_sorted_by_points(include_inactive=True):
+                points: int = self.total_driver_points_by(driver.name)
+                if points < last_points:
+                    # If multiple drivers have equal points, a place is shared.
+                    # In this case, the next driver does not occupy the immediate next position.
+                    position += len(standing[position])
 
-            standing[position].append(driver.name)
-            last_points = points
+                standing[position].append(driver.name)
+                last_points = points
+
+        if WDC_STANDING_2024 is not None:
+            for position in range(1, len(WDC_STANDING_2024) + 1):
+                standing[position] = list()
+
+            for driver, position in WDC_STANDING_2024.items():
+                standing[position] += [driver]
 
         return standing
 
@@ -386,25 +421,29 @@ class PointsModel(Model):
     def wdc_standing_by_driver(self) -> Dict[str, int]:
         standing: Dict[str, int] = dict()
 
-        position: int = 1
-        last_points: int = 0
+        if WDC_STANDING_2024 is None:
+            position: int = 1
+            last_points: int = 0
 
-        for driver in self.drivers_sorted_by_points(include_inactive=True):
-            points: int = self.total_driver_points_by(driver.name)
-            if points < last_points:
-                drivers_with_this_position = 0
-                for _driver, _position in standing.items():
-                    if _position == position:
-                        drivers_with_this_position += 1
+            for driver in self.drivers_sorted_by_points(include_inactive=True):
+                points: int = self.total_driver_points_by(driver.name)
+                if points < last_points:
+                    drivers_with_this_position = 0
+                    for _driver, _position in standing.items():
+                        if _position == position:
+                            drivers_with_this_position += 1
 
-                # If multiple drivers have equal points, a place is shared.
-                # In this case, the next driver does not occupy the immediate next position.
-                position += drivers_with_this_position
+                    # If multiple drivers have equal points, a place is shared.
+                    # In this case, the next driver does not occupy the immediate next position.
+                    position += drivers_with_this_position
 
-            standing[driver.name] = position
-            last_points = points
+                standing[driver.name] = position
+                last_points = points
 
-        return standing
+            return standing
+
+        if WDC_STANDING_2024 is not None:
+            return WDC_STANDING_2024
 
     def wdc_diff_2023_by(self, driver_name: str) -> int:
         if not driver_name in WDC_STANDING_2023:
