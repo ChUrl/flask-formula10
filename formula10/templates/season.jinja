@@ -50,7 +50,7 @@
                         {# Hot Take #}
                         <div class="form-floating">
                             <textarea
-                                    class="form-control {% if points.hot_take_correct(user.name) %}border-success{% endif %}"
+                                    class="form-control {% if points.hot_take_correct(user.name) %}border-success{% else %}border-danger{% endif %}"
                                     id="hot-take-input-{{ user.name }}" name="hottakeselect"
                                     style="height: 150px"
                                     {% if season_guess_open == false %}disabled="disabled"{% endif %}>
@@ -64,29 +64,29 @@
                         <div class="mt-2">
                             {{ team_select_with_preselect(team_match=user_guess.p2_wcc, name="p2select", label="P2 in WCC:",
                                    include_none=false, disabled=not season_guess_open,
-                                   border=("border-success" if points.p2_constructor_correct(user.name) else "")) }}
+                                   border=("border-success" if points.p2_constructor_correct(user.name) else "border-danger")) }}
                         </div>
 
                         {# Most Overtakes + DNFs #}
                         <div class="input-group mt-2">
                             {{ driver_select_with_preselect(driver_match=user_guess.most_overtakes, name="overtakeselect",
-                                   label="Most overtakes:", include_none=false, disabled=not season_guess_open,
-                                   border=("border-success" if points.overtakes_correct(user.name) else "")) }}
+                                   label="Most overtakes:", include_none=false, include_inactive=true, disabled=not season_guess_open,
+                                   border=("border-success" if points.overtakes_correct(user.name) else "border-danger")) }}
                             {{ driver_select_with_preselect(driver_match=user_guess.most_dnfs, name="dnfselect", label="Most DNFs:",
-                                   include_none=false, disabled=not season_guess_open,
-                                   border=("border-success" if points.dnfs_correct(user.name) else "")) }}
+                                   include_none=false, include_inactive=true, disabled=not season_guess_open,
+                                   border=("border-success" if points.dnfs_correct(user.name) else "border-danger")) }}
                         </div>
 
                         {# Most Gained + Lost #}
                         <div class="input-group mt-2" data-bs-toggle="tooltip"
                              title="Which driver will gain/lose the most places in comparison to last season's results?">
                             {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_gained, name="gainedselect",
-                                   label="Most WDC pl. gained:", include_none=false, drivers=model.active_drivers_for_wdc_gained(),
-                                   disabled=not season_guess_open,
-                                   border=("border-success" if points.most_gained_correct(user.name) else "")) }}
+                                   label="Most WDC pl. gained:", include_none=false, include_inactive=true,
+                                   drivers=model.active_drivers_for_wdc_gained(), disabled=not season_guess_open,
+                                   border=("border-success" if points.most_gained_correct(user.name) else "border-danger")) }}
                             {{ driver_select_with_preselect(driver_match=user_guess.most_wdc_lost, name="lostselect",
-                                   label="Most WDC pl. lost:", include_none=false, disabled=not season_guess_open,
-                                   border=("border-success" if points.most_lost_correct(user.name) else "")) }}
+                                   label="Most WDC pl. lost:", include_none=false, include_inactive=true, disabled=not season_guess_open,
+                                   border=("border-success" if points.most_lost_correct(user.name) else "border-danger")) }}
                         </div>
 
                         {# Team-internal Winners #}
@@ -106,7 +106,8 @@
                                                value="{{ driver_a.id }}"
                                                {% if (user_guess is not none) and (driver_a in user_guess.team_winners) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
-                                        <label class="form-check-label {% if (user_guess is not none) and (driver_a in user_guess.team_winners) and points.is_team_winner(driver_a) %}text-success{% endif %}"
+                                        <label class="form-check-label {% if (user_guess is not none) and (driver_a in user_guess.team_winners) and points.is_team_winner(driver_a) %}text-success
+                                               {% elif (user_guess is not none) and (driver_a in user_guess.team_winners) and (not points.is_team_winner(driver_a)) %}text-danger{% endif %}"
                                                for="teamwinner-{{ team.id }}-1-{{ user.id }}">{{ driver_a.name }}</label>
                                     </div>
                                 </div>
@@ -119,7 +120,8 @@
                                                value="{{ driver_b.id }}"
                                                {% if (user_guess is not none) and (driver_b in user_guess.team_winners) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
-                                        <label class="form-check-label {% if (user_guess is not none) and (driver_b in user_guess.team_winners) and points.is_team_winner(driver_b) %}text-success{% endif %}"
+                                        <label class="form-check-label {% if (user_guess is not none) and (driver_b in user_guess.team_winners) and points.is_team_winner(driver_b) %}text-success
+                                               {% elif (user_guess is not none) and (driver_b in user_guess.team_winners) and (not points.is_team_winner(driver_b)) %}text-danger{% endif %}"
                                                for="teamwinner-{{ team.id }}-2-{{ user.id }}">{{ driver_b.name }}</label>
                                     </div>
                                 </div>
@@ -142,7 +144,8 @@
                                                value="{{ driver_a.id }}"
                                                {% if (user_guess is not none) and (driver_a in user_guess.podiums) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
-                                        <label class="form-check-label {% if (user_guess is not none) and (driver_a in user_guess.podiums) and points.has_podium(driver_a) %}text-success{% endif %}"
+                                        <label class="form-check-label {% if (user_guess is not none) and (driver_a in user_guess.podiums) and points.has_podium(driver_a) %}text-success
+                                               {% elif (user_guess is not none) and (driver_a in user_guess.podiums) and (not points.has_podium(driver_a)) %}text-danger{% endif %}"
                                                for="podium-{{ driver_a.id }}-{{ user.id }}">{{ driver_a.name }}</label>
                                     </div>
                                 </div>
@@ -155,7 +158,8 @@
                                                value="{{ driver_b.id }}"
                                                {% if (user_guess is not none) and (driver_b in user_guess.podiums) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
-                                        <label class="form-check-label {% if (user_guess is not none) and (driver_b in user_guess.podiums) and points.has_podium(driver_b) %}text-success{% endif %}"
+                                        <label class="form-check-label {% if (user_guess is not none) and (driver_b in user_guess.podiums) and points.has_podium(driver_b) %}text-success
+                                               {% elif (user_guess is not none) and (driver_b in user_guess.podiums) and (not points.has_podium(driver_b)) %}text-danger{% endif %}"
                                                for="podium-{{ driver_b.id }}-{{ user.id }}">{{ driver_b.name }}</label>
                                     </div>
                                 </div>

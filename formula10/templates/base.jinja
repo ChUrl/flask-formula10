@@ -24,13 +24,13 @@
 {% endmacro %}
 
 {# Simple driver select for forms #}
-{% macro driver_select(name, label, include_none, drivers=none, disabled=false, border="") %}
+{% macro driver_select(name, label, include_none, include_inactive=false, drivers=none, disabled=false, border="") %}
     <div class="form-floating">
         <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}" {% if disabled %}disabled="disabled"{% endif %}>
             <option value="" selected disabled hidden></option>
 
             {% if drivers == none %}
-                {% set drivers = model.all_drivers(include_none=include_none, include_inactive=False) %}
+                {% set drivers = model.all_drivers(include_none=include_none, include_inactive=include_inactive) %}
             {% endif %}
 
             {% for driver in drivers %}
@@ -42,14 +42,14 @@
 {% endmacro %}
 
 {# Driver select for forms where a value might be preselected #}
-{% macro driver_select_with_preselect(driver_match, name, label, include_none, drivers=none, disabled=false, border="") %}
+{% macro driver_select_with_preselect(driver_match, name, label, include_none, include_inactive=false, drivers=none, disabled=false, border="") %}
     <div class="form-floating">
         <select name="{{ name }}" id="{{ name }}" class="form-select {{ border }}" aria-label="{{ name }}" {% if disabled %}disabled="disabled"{% endif %}>
             {# Use namespace wrapper to persist scope between loop iterations #}
             {% set user_has_chosen = namespace(driverpre=false) %}
 
             {% if drivers == none %}
-                {% set drivers = model.all_drivers(include_none=include_none, include_inactive=False) %}
+                {% set drivers = model.all_drivers(include_none=include_none, include_inactive=include_inactive) %}
             {% endif %}
 
             {% for driver in drivers %}
