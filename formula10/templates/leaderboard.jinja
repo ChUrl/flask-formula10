@@ -29,6 +29,8 @@
                         <th scope="col" class="text-center" style="min-width: 50px;">Place</th>
                         <th scope="col" class="text-center" style="min-width: 50px;">User</th>
                         <th scope="col" class="text-center" style="min-width: 100px;">Points</th>
+                        <th scope="col" class="text-center" style="min-width: 100px;">Points (Race)</th>
+                        <th scope="col" class="text-center" style="min-width: 100px;">Points (Season)</th>
                         <th scope="col" class="text-center" style="min-width: 100px;">Total picks</th>
                         <th scope="col" class="text-center" style="min-width: 100px;" data-bs-toggle="tooltip"
                             title="Any points count as correct">Correct picks
@@ -38,12 +40,14 @@
                     </thead>
 
                     <tbody>
-                    {% for user in points.users_sorted_by_points() %}
-                        {% set user_standing = points.user_standing()[user.name] %}
+                    {% for user in points.users_sorted_by_points(include_season=True) %}
+                        {% set user_standing = points.user_standing(include_season=True)[user.name] %}
                         <tr class="{% if user_standing == 1 %}table-danger{% endif %}">
                             <td class="text-center text-nowrap">{{ user_standing }}</td>
                             <td class="text-center text-nowrap">{{ user.name }}</td>
-                            <td class="text-center text-nowrap">{{ points.total_points_by(user.name) }}</td>
+                            <td class="text-center text-nowrap">{{ points.total_points_by(user_name=user.name, include_season=True) }}</td>
+                            <td class="text-center text-nowrap">{{ points.total_points_by(user_name=user.name, include_season=False) }}</td>
+                            <td class="text-center text-nowrap">{{ points.season_points_by(user_name=user.name) }}</td>
                             <td class="text-center text-nowrap">{{ points.picks_count(user.name) }}</td>
                             <td class="text-center text-nowrap">{{ points.picks_with_points_count(user.name) }}</td>
                             <td class="text-center text-nowrap">{{ "%0.2f" % points.points_per_pick(user.name) }}</td>
@@ -57,7 +61,7 @@
 
     <div class="card shadow-sm mb-2">
         <div class="card-header">
-            History
+            History (Race)
         </div>
 
         <div class="card-body">

@@ -45,7 +45,7 @@
                     {% for user in model.all_users() %}
                         <td class="text-center text-nowrap" style="min-width: 100px;">
                             <a href="/race/{{ user.name_sanitized }}" class="link-dark">{{ user.name }}
-                                ({{ points.total_points_by(user.name) }})</a>
+                                ({{ points.total_points_by(user_name=user.name, include_season=False) }})</a>
                         </td>
                     {% endfor %}
                 {% endif %}

@@ -1,5 +1,5 @@
 import json
-from typing import Any, Callable, Dict, List, overload
+from typing import Any, Callable, Dict, List, overload, Tuple
 import numpy as np
 
 from formula10 import cache
@@ -11,6 +11,7 @@ from formula10.domain.model.season_guess import SeasonGuess
 from formula10.domain.model.season_guess_result import SeasonGuessResult
 from formula10.domain.model.team import Team
 from formula10.domain.model.user import User
+from formula10.database.validation import find_single_or_none_strict
 
 # Guess points
 
@@ -68,6 +69,7 @@ WDC_STANDING_2023: Dict[str, int] = {
     "Kevin Magnussen": 19,
     "Logan Sargeant": 21,
 }
+
 WCC_STANDING_2023: Dict[str, int] = {
     "Red Bull": 1,
     "Mercedes": 2,
@@ -81,6 +83,12 @@ WCC_STANDING_2023: Dict[str, int] = {
     "Haas": 10,
 }
 
+# In case a substitute driver is driving, those points have to be subtracted from the actual driver
+# (Driver_ID, Race_ID, Points)
+WDC_SUBSTITUTE_POINTS: List[Tuple[int, int, int]] = [
+    (15, 2, 6), # Bearman raced for Sainz in Saudi Arabia
+    (8, 17, 1), # Bearman raced for Magnussen in Azerbaijan
+]
 
 def standing_points(race_guess: RaceGuess, race_result: RaceResult) -> int:
     guessed_driver_position: int | None = race_result.driver_standing_position(
@@ -106,6 +114,16 @@ def dnf_points(race_guess: RaceGuess, race_result: RaceResult) -> int:
     return 0
 
 
+def substitute_points(driver: Driver, race_number: int) -> int:
+    predicate: Callable[[Tuple[int, int, int]], bool] = lambda substitution: driver.id == substitution[0] and race_number == substitution[1]
+    substitution: Tuple[int, int, int] = find_single_or_none_strict(predicate, WDC_SUBSTITUTE_POINTS)
+
+    if substitution is not None:
+        return substitution[2]
+    else:
+        return 0
+
+
 class PointsModel(Model):
     """
     This class bundles all data + functionality required to do points calculations.
@@ -124,7 +142,7 @@ class PointsModel(Model):
         points_per_step = dict()
         for user in self.all_users():
             points_per_step[user.name] = [0] * (
-                len(self.all_races()) + 1
+                    len(self.all_races()) + 1
             )  # Start at index 1, like the race numbers
 
         for race_guess in self.all_race_guesses():
@@ -152,10 +170,10 @@ class PointsModel(Model):
         """
         driver_points_per_step = dict()
         for driver in self.all_drivers(
-            include_none=False, include_inactive=include_inactive
+                include_none=False, include_inactive=include_inactive
         ):
             driver_points_per_step[driver.name] = [0] * (
-                len(self.all_races()) + 1
+                    len(self.all_races()) + 1
             )  # Start at index 1, like the race numbers
 
         for race_result in self.all_race_results():
@@ -170,8 +188,10 @@ class PointsModel(Model):
                 driver_points_per_step[driver.name][race_number] += (
                     DRIVER_FASTEST_LAP_POINTS
                     if race_result.fastest_lap_driver == driver
+                    and int(position) <= 10
                     else 0
                 )
+                driver_points_per_step[driver.name][race_number] -= substitute_points(driver, race_number)
 
             for position, driver in race_result.sprint_standing.items():
                 driver_name: str = driver.name
@@ -192,7 +212,7 @@ class PointsModel(Model):
         team_points_per_step = dict()
         for team in self.all_teams(include_none=False):
             team_points_per_step[team.name] = [0] * (
-                len(self.all_races()) + 1
+                    len(self.all_races()) + 1
             )  # Start at index 1, like the race numbers
 
         for race_result in self.all_race_results():
@@ -237,7 +257,7 @@ class PointsModel(Model):
         """
         points_per_step_cumulative: Dict[str, List[int]] = dict()
         for driver_name, points in self.driver_points_per_step(
-            include_inactive=True
+                include_inactive=True
         ).items():
             points_per_step_cumulative[driver_name] = np.cumsum(points).tolist()
 
@@ -245,7 +265,7 @@ class PointsModel(Model):
 
     @overload
     def driver_points_by(
-        self, *, driver_name: str, include_inactive: bool
+            self, *, driver_name: str, include_inactive: bool
     ) -> List[int]:
         """
         Returns a list of points per race for a specific driver.
@@ -256,7 +276,7 @@ class PointsModel(Model):
 
     @overload
     def driver_points_by(
-        self, *, race_name: str, include_inactive: bool
+            self, *, race_name: str, include_inactive: bool
     ) -> Dict[str, int]:
         """
         Returns a dictionary of points per driver for a specific race.
@@ -267,7 +287,7 @@ class PointsModel(Model):
 
     @overload
     def driver_points_by(
-        self, *, driver_name: str, race_name: str, include_inactive: bool
+            self, *, driver_name: str, race_name: str, include_inactive: bool
     ) -> int:
         """
         Returns the points for a specific race for a specific driver.
@@ -282,11 +302,11 @@ class PointsModel(Model):
         timeout=None, args_to_ignore=["self"]
     )  # Cleanup when adding/updating race results
     def driver_points_by(
-        self,
-        *,
-        driver_name: str | None = None,
-        race_name: str | None = None,
-        include_inactive: bool
+            self,
+            *,
+            driver_name: str | None = None,
+            race_name: str | None = None,
+            include_inactive: bool
     ) -> List[int] | Dict[str, int] | int:
         if driver_name is not None and race_name is None:
             return self.driver_points_per_step(include_inactive=include_inactive)[
@@ -298,7 +318,7 @@ class PointsModel(Model):
             points_by_race: Dict[str, int] = dict()
 
             for _driver_name, points in self.driver_points_per_step(
-                include_inactive=include_inactive
+                    include_inactive=include_inactive
             ).items():
                 points_by_race[_driver_name] = points[race_number]
 
@@ -341,7 +361,7 @@ class PointsModel(Model):
         standing: Dict[int, List[str]] = dict()
 
         for position in range(
-            1, len(self.all_drivers(include_none=False, include_inactive=True)) + 1
+                1, len(self.all_drivers(include_none=False, include_inactive=True)) + 1
         ):
             standing[position] = list()
 
@@ -391,7 +411,7 @@ class PointsModel(Model):
             return 0
 
         return (
-            WDC_STANDING_2023[driver_name] - self.wdc_standing_by_driver()[driver_name]
+                WDC_STANDING_2023[driver_name] - self.wdc_standing_by_driver()[driver_name]
         )
 
     @cache.cached(
@@ -583,7 +603,7 @@ class PointsModel(Model):
         timeout=None, args_to_ignore=["self"]
     )  # Cleanup when adding/updating race results or users
     def points_by(
-        self, *, user_name: str | None = None, race_name: str | None = None
+            self, *, user_name: str | None = None, race_name: str | None = None
     ) -> List[int] | Dict[str, int] | int:
         if user_name is not None and race_name is None:
             return self.points_per_step()[user_name]
@@ -604,30 +624,64 @@ class PointsModel(Model):
 
         raise Exception("points_by received an illegal combination of arguments")
 
-    def total_points_by(self, user_name: str) -> int:
+    def season_points_by(self, *, user_name: str) -> int:
+        """
+        Returns the number of points from seasonguesses for a specific user.
+        """
+        big_picks = (int(self.hot_take_correct(user_name=user_name)) * 10
+                     + int(self.p2_constructor_correct(user_name=user_name)) * 10
+                     + int(self.overtakes_correct(user_name=user_name)) * 10
+                     + int(self.dnfs_correct(user_name=user_name)) * 10
+                     + int(self.most_gained_correct(user_name=user_name)) * 10
+                     + int(self.most_lost_correct(user_name=user_name)) * 10)
+
+        small_picks = 0
+        guess: SeasonGuess = self.season_guesses_by(user_name=user_name)
+
+        for driver in guess.team_winners:
+            if self.is_team_winner(driver):
+                small_picks += 3
+            else:
+                small_picks -= 3
+
+        # NOTE: Not picked drivers that had a podium are also wrong
+        for driver in self.all_drivers(include_none=False, include_inactive=True):
+            if driver in guess.podiums and self.has_podium(driver):
+                small_picks += 3
+            elif driver in guess.podiums and not self.has_podium(driver):
+                small_picks -=2
+            elif driver not in guess.podiums and self.has_podium(driver):
+                small_picks -=2
+
+        return big_picks + small_picks
+
+    def total_points_by(self, *, user_name: str, include_season: bool) -> int:
         """
         Returns the total number of points for a specific user.
         """
-        return sum(self.points_by(user_name=user_name))
+        if include_season:
+            return sum(self.points_by(user_name=user_name)) + self.season_points_by(user_name=user_name)
+        else:
+            return sum(self.points_by(user_name=user_name))
 
-    def users_sorted_by_points(self) -> List[User]:
+    def users_sorted_by_points(self, *, include_season: bool) -> List[User]:
         """
         Returns the list of users, sorted by their points from race guesses (in descending order).
         """
-        comparator: Callable[[User], int] = lambda user: self.total_points_by(user.name)
+        comparator: Callable[[User], int] = lambda user: self.total_points_by(user_name=user.name, include_season=include_season)
         return sorted(self.all_users(), key=comparator, reverse=True)
 
     @cache.cached(
         timeout=None, key_prefix="points_user_standing"
     )  # Cleanup when adding/updating race results or users
-    def user_standing(self) -> Dict[str, int]:
+    def user_standing(self, *, include_season: bool) -> Dict[str, int]:
         standing: Dict[str, int] = dict()
 
         position: int = 1
         last_points: int = 0
 
-        for user in self.users_sorted_by_points():
-            if self.total_points_by(user.name) < last_points:
+        for user in self.users_sorted_by_points(include_season=include_season):
+            if self.total_points_by(user_name=user.name, include_season=include_season) < last_points:
                 users_with_this_position = 0
                 for _user, _position in standing.items():
                     if _position == position:
@@ -639,7 +693,7 @@ class PointsModel(Model):
 
             standing[user.name] = position
 
-            last_points = self.total_points_by(user.name)
+            last_points = self.total_points_by(user_name=user.name, include_season=include_season)
 
         return standing
 
@@ -671,7 +725,7 @@ class PointsModel(Model):
         if self.picks_count(user_name) == 0:
             return 0.0
 
-        return self.total_points_by(user_name) / self.picks_count(user_name)
+        return self.total_points_by(user_name=user_name, include_season=False) / self.picks_count(user_name)
 
     #
     # Season guess evaluation
@@ -738,12 +792,11 @@ class PointsModel(Model):
         teammates: List[Driver] = self.drivers_by(
             team_name=driver.team.name, include_inactive=True
         )
-        teammate: Driver = teammates[0] if teammates[1] == driver else teammates[1]
 
-        return (
-            self.wdc_standing_by_driver()[driver.name]
-            <= self.wdc_standing_by_driver()[teammate.name]
-        )
+        # Min - Highest position is the lowest place number
+        winner: Driver = min(teammates, key=lambda driver: self.wdc_standing_by_driver()[driver.name])
+
+        return driver == winner
 
     @cache.memoize(
         timeout=None, args_to_ignore=["self"]

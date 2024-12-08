@@ -95,8 +95,10 @@
                             winners:</h6>
                         <div class="grid mt-2 container" style="row-gap: 0;">
                             {% for team in model.all_teams(include_none=false) %}
-                                {% set driver_a = model.drivers_by(team_name=team.name, include_inactive=False)[0] %}
-                                {% set driver_b = model.drivers_by(team_name=team.name, include_inactive=False)[1] %}
+                                {# HACK: Choosing 0 and 1 will chose the drivers with the lowest IDs (although there could be others). #}
+                                {#       This means the drivers chosen from at the start of the season will be visible. #}
+                                {% set driver_a = model.drivers_by(team_name=team.name, include_inactive=True)[0] %}
+                                {% set driver_b = model.drivers_by(team_name=team.name, include_inactive=True)[1] %}
 
                                 <div class="g-col-6">
                                     <div class="form-check form-check-inline">
@@ -133,8 +135,10 @@
                             title="Which driver will reach at least a single podium?">Drivers with podium(s):</h6>
                         <div class="grid mt-2 container" style="row-gap: 0;">
                             {% for team in model.all_teams(include_none=false) %}
-                                {% set driver_a = model.drivers_by(team_name=team.name, include_inactive=False)[0] %}
-                                {% set driver_b = model.drivers_by(team_name=team.name, include_inactive=False)[1] %}
+                                {# HACK: Choosing 0 and 1 will chose the drivers with the lowest IDs (although there could be others). #}
+                                {#       This means the drivers chosen from at the start of the season will be visible. #}
+                                {% set driver_a = model.drivers_by(team_name=team.name, include_inactive=True)[0] %}
+                                {% set driver_b = model.drivers_by(team_name=team.name, include_inactive=True)[1] %}
 
                                 <div class="g-col-6">
                                     <div class="form-check form-check-inline">
@@ -145,7 +149,8 @@
                                                {% if (user_guess is not none) and (driver_a in user_guess.podiums) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label {% if (user_guess is not none) and (driver_a in user_guess.podiums) and points.has_podium(driver_a) %}text-success
-                                               {% elif (user_guess is not none) and (driver_a in user_guess.podiums) and (not points.has_podium(driver_a)) %}text-danger{% endif %}"
+                                               {% elif (user_guess is not none) and (driver_a in user_guess.podiums) and (not points.has_podium(driver_a)) %}text-danger
+                                               {% elif (user_guess is not none) and (driver_a not in user_guess.podiums) and (points.has_podium(driver_a)) %}text-danger{% endif %}"
                                                for="podium-{{ driver_a.id }}-{{ user.id }}">{{ driver_a.name }}</label>
                                     </div>
                                 </div>
@@ -159,7 +164,8 @@
                                                {% if (user_guess is not none) and (driver_b in user_guess.podiums) %}checked="checked"{% endif %}
                                                {% if season_guess_open == false %}disabled="disabled"{% endif %}>
                                         <label class="form-check-label {% if (user_guess is not none) and (driver_b in user_guess.podiums) and points.has_podium(driver_b) %}text-success
-                                               {% elif (user_guess is not none) and (driver_b in user_guess.podiums) and (not points.has_podium(driver_b)) %}text-danger{% endif %}"
+                                               {% elif (user_guess is not none) and (driver_b in user_guess.podiums) and (not points.has_podium(driver_b)) %}text-danger
+                                               {% elif (user_guess is not none) and (driver_b not in user_guess.podiums) and (points.has_podium(driver_b)) %}text-danger{% endif %}"
                                                for="podium-{{ driver_b.id }}-{{ user.id }}">{{ driver_b.name }}</label>
                                     </div>
                                 </div>
