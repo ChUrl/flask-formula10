@@ -818,11 +818,11 @@ class PointsModel(Model):
 
         data["labels"] = [0] + [
             race.name for race in sorted(self.all_races(), key=lambda race: race.number)
-        ]
+        ] # + ["Season"]
 
         data["datasets"] = [
             {
-                "data": self.points_per_step_cumulative()[user.name],
+                "data": self.points_per_step_cumulative()[user.name], # + [self.total_points_by(user_name=user.name, include_season=True)],
                 "label": user.name,
                 "fill": False,
             }
