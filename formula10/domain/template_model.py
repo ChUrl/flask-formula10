@@ -104,4 +104,4 @@ class TemplateModel(Model):
 
     def active_drivers_for_wdc_gained(self) -> List[Driver]:
         predicate: Callable[[Driver], bool] = lambda driver: driver.abbr not in self._wdc_gained_excluded_abbrs
-        return find_multiple_strict(predicate, self.all_drivers(include_none=False, include_inactive=False))
+        return find_multiple_strict(predicate, self.all_drivers(include_none=False, include_inactive=True))

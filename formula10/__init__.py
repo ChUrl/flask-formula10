@@ -29,7 +29,7 @@ cache.init_app(app)
 # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=("/formula10/*",), sort_by=("cumtime",))
 
 # NOTE: These imports are required to register the routes. They need to be imported after "app" is declared
-import formula10.controller.race_controller  # type: ignore
+import formula10.controller.race_controller
 import formula10.controller.season_controller
 import formula10.controller.leaderboard_controller
 import formula10.controller.statistics_controller
